@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Membership Portal</p>
+    <h1>{{ ASSOCIATION_NAME }}</h1>
+    <p>Apply, upload KYC documents, submit payment details, and download your digital membership card from one secure portal.</p>
+    <div class="actions">
+      <a class="button primary" href="{% url 'register' %}">Apply for Membership</a>
+      <a class="button" href="{% url 'login' %}">Member Login</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

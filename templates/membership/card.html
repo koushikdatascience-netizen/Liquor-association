@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Membership Card - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block content %}
+<section class="member-card">
+  <div class="card-head">
+    <div>
+      <p class="eyebrow">Digital Membership Card</p>
+      <h1>{{ ASSOCIATION_NAME }}</h1>
+    </div>
+    {% if member.qr_code %}
+      <img src="{{ member.qr_code.url }}" alt="Membership QR code">
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if member.application.passport_photo %}
+      <img class="photo" src="{{ member.application.passport_photo.url }}" alt="{{ member.application.full_name }}">
+    {% endif %}
+    <dl class="details">
+      <dt>Member Name</dt><dd>{{ member.application.full_name }}</dd>
+      <dt>Membership No.</dt><dd>{{ member.membership_number }}</dd>
+      <dt>Shop Name</dt><dd>{{ member.application.shop_name }}</dd>
+      <dt>District</dt><dd>{{ member.application.district }}</dd>
+      <dt>Mobile</dt><dd>{{ member.application.mobile_number }}</dd>
+      <dt>Valid Till</dt><dd>{{ member.valid_till }}</dd>
+    </dl>
+  </div>
+  <p class="signature">Digitally signed by {{ ASSOCIATION_NAME }}</p>
+  <div class="card-actions">
+    <a class="button primary" href="{% url 'membership_card_pdf' %}">Download PDF</a>
+  </div>
+</section>
+{% endblock %}

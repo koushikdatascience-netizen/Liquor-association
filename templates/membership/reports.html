@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Reports - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block content %}
+<section class="dashboard-head">
+  <div>
+    <p class="eyebrow">Admin Reports</p>
+    <h1>Membership Overview</h1>
+  </div>
+</section>
+<section class="stats">
+  <article><strong>{{ stats.total_members }}</strong><span>Total Members</span></article>
+  <article><strong>{{ stats.active_members }}</strong><span>Active Members</span></article>
+  <article><strong>{{ stats.pending_applications }}</strong><span>Pending Applications</span></article>
+  <article><strong>{{ stats.pending_payments }}</strong><span>Pending Payments</span></article>
+</section>
+<section class="grid two">
+  <article class="panel">
+    <h2>District-wise Members</h2>
+    <ul class="list">
+      {% for item in stats.districts %}
+        <li>{{ item.district }} <span>{{ item.total }}</span></li>
+      {% endfor %}
+    </ul>
+  </article>
+  <article class="panel">
+    <h2>License Type-wise Members</h2>
+    <ul class="list">
+      {% for item in stats.license_types %}
+        <li>{{ item.excise_license_type }} <span>{{ item.total }}</span></li>
+      {% endfor %}
+    </ul>
+  </article>
+</section>
+{% endblock %}

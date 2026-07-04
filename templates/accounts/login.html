@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Login - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Member Login</h1>
+  <p class="muted">Use your registered email or mobile number.</p>
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="button primary" type="submit">Login</button>
+  </form>
+  <p class="muted">New applicant? <a href="{% url 'register' %}">Apply for membership</a></p>
+</section>
+{% endblock %}

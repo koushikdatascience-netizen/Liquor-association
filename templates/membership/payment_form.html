@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Payment Upload - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>Upload Payment Proof</h1>
+  <p class="muted">Application: {{ application.full_name }} / {{ application.shop_name }}</p>
+  <form method="post" enctype="multipart/form-data" class="form-grid">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="button primary" type="submit">Submit Payment</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Verify Member - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <p class="eyebrow">Verified Membership</p>
+  <h1>{{ member.application.full_name }}</h1>
+  <dl class="details">
+    <dt>Membership Number</dt><dd>{{ member.membership_number }}</dd>
+    <dt>Shop Name</dt><dd>{{ member.application.shop_name }}</dd>
+    <dt>District</dt><dd>{{ member.application.district }}</dd>
+    <dt>Valid Till</dt><dd>{{ member.valid_till }}</dd>
+  </dl>
+</section>
+{% endblock %}
