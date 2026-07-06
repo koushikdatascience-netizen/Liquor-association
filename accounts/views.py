@@ -26,7 +26,7 @@ def register(request):
                 send_registration_otps(user)
             except Exception as exc:
                 messages.warning(request, f"Account created, but OTP sending failed: {exc}")
-            login(request, user)
+            login(request, user, backend="accounts.backends.EmailOrMobileBackend")
             messages.success(request, "Account created. Please verify your email and mobile OTP.")
             return redirect("verify_registration_otp")
     else:
