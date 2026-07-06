@@ -14,6 +14,7 @@ until python manage.py migrate --noinput; do
   sleep 5
 done
 
+python manage.py ensure_admin
 python manage.py collectstatic --noinput
 
 exec "$@"

@@ -61,6 +61,8 @@ SMTP_FROM_EMAIL=
 WHATSAPP_API_URL=
 WHATSAPP_API_TOKEN=
 WHATSAPP_FROM=
+
+DJANGO_ADMIN_PASSWORD=
 ```
 
 For Resend SMTP:
@@ -107,11 +109,21 @@ The workflow at `.github/workflows/render-deploy.yml` does this:
 
 ## 6. Create Production Superuser
 
-After the first deploy, open Render Shell for the web service and run:
+If Render Shell is available, you can create an admin manually:
 
 ```bash
 python manage.py createsuperuser
 ```
+
+If Render Shell is not available, set these environment variables on the web service and redeploy:
+
+```env
+DJANGO_ADMIN_USERNAME=admin
+DJANGO_ADMIN_EMAIL=admin@example.com
+DJANGO_ADMIN_PASSWORD=Admin@12345
+```
+
+On every deploy, the app will create or reset that admin user automatically when `DJANGO_ADMIN_PASSWORD` is present.
 
 ## 7. Important Production Notes
 

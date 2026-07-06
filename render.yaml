@@ -26,6 +26,12 @@ services:
         value: "5000.00"
       - key: ACCOUNT_REQUIRE_OTP_VERIFICATION
         value: "False"
+      - key: DJANGO_ADMIN_USERNAME
+        value: admin
+      - key: DJANGO_ADMIN_EMAIL
+        value: admin@example.com
+      - key: DJANGO_ADMIN_PASSWORD
+        sync: false
       - key: PAYMENT_UPI_ID
         sync: false
       - key: PAYMENT_BANK_NAME
