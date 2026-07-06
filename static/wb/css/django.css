@@ -200,6 +200,19 @@ body {
   color: #fff;
 }
 
+.hero.container {
+  min-height: auto;
+  display: block;
+  color: var(--text);
+  background: transparent;
+  border-radius: 0;
+}
+
+.hero.container p,
+.hero.container .lead {
+  color: var(--text-2);
+}
+
 @media (max-width: 860px) {
   .nav {
     position: sticky;
@@ -247,6 +260,7 @@ body {
 
   .hero {
     padding-top: 48px;
+    padding-bottom: 28px;
   }
 
   .hero h1 {
@@ -289,6 +303,7 @@ body {
 
   .hero h1 {
     font-size: 30px;
+    overflow-wrap: anywhere;
   }
 
   .lead {
