@@ -52,7 +52,18 @@ def member_dashboard(request):
 @login_required
 def application_create(request):
     profile = request.user.profile
-    if not request.user.is_staff and (not profile.email_verified or not profile.mobile_verified):
+    if not settings.ACCOUNT_REQUIRE_OTP_VERIFICATION and (
+        not profile.email_verified or not profile.mobile_verified
+    ):
+        profile.email_verified = True
+        profile.mobile_verified = True
+        profile.save(update_fields=["email_verified", "mobile_verified"])
+
+    if (
+        settings.ACCOUNT_REQUIRE_OTP_VERIFICATION
+        and not request.user.is_staff
+        and (not profile.email_verified or not profile.mobile_verified)
+    ):
         messages.error(request, "Please verify your email and mobile OTP before submitting the application.")
         return redirect("verify_registration_otp")
 

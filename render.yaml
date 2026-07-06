@@ -24,6 +24,8 @@ services:
         value: Liquor Association
       - key: MEMBERSHIP_FEE
         value: "5000.00"
+      - key: ACCOUNT_REQUIRE_OTP_VERIFICATION
+        value: "False"
       - key: PAYMENT_UPI_ID
         sync: false
       - key: PAYMENT_BANK_NAME
