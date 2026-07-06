@@ -1,13 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Apply - {{ ASSOCIATION_NAME }}{% endblock %}
 {% block content %}
-<section class="panel narrow">
-  <h1>Apply for Membership</h1>
-  <form method="post" class="form-grid">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <p class="muted">You can login with either your email or mobile number after registration.</p>
-    <button class="button primary" type="submit">Create Account</button>
-  </form>
-</section>
+<div class="auth-split">
+  <div class="auth-split-left">
+    <div class="auth-card">
+      <h2>Sign Up</h2>
+      <p class="kicker">Create <b>account</b></p>
+      <form method="post" class="form django-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <p class="small">You can login with either your email or mobile number after registration.</p>
+        <button class="btn btn-primary btn-block" type="submit">Create account</button>
+      </form>
+      <p class="auth-alt">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+    </div>
+  </div>
+  <div class="auth-split-right">
+    <img src="https://westwardwhiskey.com/cdn/shop/files/NeatKitHexGlasses-lifestyle.png?v=1727212800&width=580" alt="Association welfare illustration">
+  </div>
+</div>
 {% endblock %}

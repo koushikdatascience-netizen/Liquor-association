@@ -1,53 +1,74 @@
 {% extends "base.html" %}
 {% block title %}Reports - {{ ASSOCIATION_NAME }}{% endblock %}
-{% block content %}
-<section class="dashboard-head">
-  <div>
-    <p class="eyebrow">Admin Reports</p>
-    <h1>Membership Overview</h1>
+{% block body %}
+<div class="portal">
+  {% include "includes/portal_sidebar.html" %}
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search reports..." aria-label="Search"></div>
+      </div>
+      <div class="topbar-right">
+        <a class="btn btn-admin btn-sm" href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin</a>
+        <div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div>
+      </div>
+    </header>
+    {% include "includes/messages.html" %}
+    <div class="page">
+      <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Reports</div>
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Membership overview</h1>
+          <p class="small mt-8">Live operational reports for applications, payments, renewals and KYC.</p>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="card stat"><h4>Total Members</h4><div class="val">{{ stats.total_members }}</div><div class="meta">All generated records</div></div>
+        <div class="card stat"><h4>Active Members</h4><div class="val">{{ stats.active_members }}</div><div class="meta">Currently valid</div></div>
+        <div class="card stat"><h4>Pending Applications</h4><div class="val">{{ stats.pending_applications }}</div><div class="meta">Awaiting document check</div></div>
+        <div class="card stat"><h4>Pending Payments</h4><div class="val">{{ stats.pending_payments }}</div><div class="meta">Awaiting verification</div></div>
+      </div>
+      <div class="stat-grid mt-16">
+        <div class="card stat"><h4>Expired Members</h4><div class="val">{{ stats.expired_members }}</div><div class="meta">Past validity</div></div>
+        <div class="card stat"><h4>Renewals Due</h4><div class="val">{{ stats.renewals_due }}</div><div class="meta">Next 30 days</div></div>
+        <div class="card stat"><h4>Payment Collection</h4><div class="val">Rs. {{ stats.payment_collection }}</div><div class="meta">Approved payments</div></div>
+        <div class="card stat"><h4>Pending KYC</h4><div class="val">{{ stats.pending_kyc }}</div><div class="meta">KYC workflow</div></div>
+      </div>
+      <div class="grid grid-2 mt-32">
+        <div class="card">
+          <h3 class="h-card mb-16">District-wise members</h3>
+          <div class="notif-list">
+            {% for item in stats.districts %}
+              <div class="notif"><div class="n-icon"><i class="bi bi-geo-alt"></i></div><div class="n-body"><div class="n-title">{{ item.district|default:"Not provided" }}</div><p>{{ item.total }} member/application record(s)</p></div></div>
+            {% empty %}<p class="small">No data yet.</p>{% endfor %}
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="h-card mb-16">License type-wise members</h3>
+          <div class="notif-list">
+            {% for item in stats.license_types %}
+              <div class="notif"><div class="n-icon"><i class="bi bi-card-checklist"></i></div><div class="n-body"><div class="n-title">{{ item.excise_license_type|default:"Not provided" }}</div><p>{{ item.total }} member/application record(s)</p></div></div>
+            {% empty %}<p class="small">No data yet.</p>{% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="card mt-32">
+        <h3 class="h-card mb-16">Exports</h3>
+        <div class="report-actions">
+          <a class="btn btn-secondary" href="{% url 'export_report' 'district-wise-members' 'excel' %}">District-wise Excel</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'district-wise-members' 'pdf' %}">District-wise PDF</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'license-type-members' 'excel' %}">License Type Excel</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'license-type-members' 'pdf' %}">License Type PDF</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'payment-collection' 'excel' %}">Payment Collection Excel</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'payment-collection' 'pdf' %}">Payment Collection PDF</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'pending-payments' 'excel' %}">Pending Payments Excel</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'pending-kyc' 'excel' %}">Pending KYC Excel</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'renewal-report' 'excel' %}">Renewal Report Excel</a>
+          <a class="btn btn-secondary" href="{% url 'export_report' 'gst-report' 'excel' %}">GST Report Excel</a>
+        </div>
+      </div>
+    </div>
   </div>
-</section>
-<section class="stats">
-  <article><strong>{{ stats.total_members }}</strong><span>Total Members</span></article>
-  <article><strong>{{ stats.active_members }}</strong><span>Active Members</span></article>
-  <article><strong>{{ stats.pending_applications }}</strong><span>Pending Applications</span></article>
-  <article><strong>{{ stats.pending_payments }}</strong><span>Pending Payments</span></article>
-  <article><strong>{{ stats.expired_members }}</strong><span>Expired Members</span></article>
-  <article><strong>{{ stats.renewals_due }}</strong><span>Renewals Due</span></article>
-  <article><strong>Rs. {{ stats.payment_collection }}</strong><span>Payment Collection</span></article>
-  <article><strong>{{ stats.pending_kyc }}</strong><span>Pending KYC</span></article>
-</section>
-<section class="grid two">
-  <article class="panel">
-    <h2>District-wise Members</h2>
-    <ul class="list">
-      {% for item in stats.districts %}
-        <li>{{ item.district }} <span>{{ item.total }}</span></li>
-      {% endfor %}
-    </ul>
-  </article>
-  <article class="panel">
-    <h2>License Type-wise Members</h2>
-    <ul class="list">
-      {% for item in stats.license_types %}
-        <li>{{ item.excise_license_type }} <span>{{ item.total }}</span></li>
-      {% endfor %}
-    </ul>
-  </article>
-</section>
-<section class="panel">
-  <h2>Exports</h2>
-  <div class="report-actions">
-    <a class="button" href="{% url 'export_report' 'district-wise-members' 'excel' %}">District-wise Excel</a>
-    <a class="button" href="{% url 'export_report' 'district-wise-members' 'pdf' %}">District-wise PDF</a>
-    <a class="button" href="{% url 'export_report' 'license-type-members' 'excel' %}">License Type Excel</a>
-    <a class="button" href="{% url 'export_report' 'license-type-members' 'pdf' %}">License Type PDF</a>
-    <a class="button" href="{% url 'export_report' 'payment-collection' 'excel' %}">Payment Collection Excel</a>
-    <a class="button" href="{% url 'export_report' 'payment-collection' 'pdf' %}">Payment Collection PDF</a>
-    <a class="button" href="{% url 'export_report' 'pending-payments' 'excel' %}">Pending Payments Excel</a>
-    <a class="button" href="{% url 'export_report' 'pending-kyc' 'excel' %}">Pending KYC Excel</a>
-    <a class="button" href="{% url 'export_report' 'renewal-report' 'excel' %}">Renewal Report Excel</a>
-    <a class="button" href="{% url 'export_report' 'gst-report' 'excel' %}">GST Report Excel</a>
-  </div>
-</section>
+</div>
 {% endblock %}

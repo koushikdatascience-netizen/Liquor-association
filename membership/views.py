@@ -14,7 +14,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 from .forms import MembershipApplicationForm, PaymentProofForm
-from .models import Member, MembershipApplication, PaymentProof, notify_staff
+from .models import AuditLog, BroadcastMessage, Member, MembershipApplication, PaymentProof, notify_staff
 
 
 def home(request):
@@ -47,6 +47,43 @@ def member_dashboard(request):
             },
         },
     )
+
+
+def member_portal_context(request):
+    applications = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at")
+    application = applications.first()
+    member = Member.objects.filter(user=request.user).select_related("application").first()
+    payment = getattr(application, "payment", None) if application else None
+    notifications = request.user.notifications.order_by("-created_at")
+    return {
+        "application": application,
+        "applications": applications,
+        "member": member,
+        "notifications": notifications,
+        "payment": payment,
+        "payment_settings": {
+            "upi_id": settings.PAYMENT_UPI_ID,
+            "bank_name": settings.PAYMENT_BANK_NAME,
+            "account_name": settings.PAYMENT_ACCOUNT_NAME,
+            "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
+            "ifsc": settings.PAYMENT_IFSC,
+        },
+    }
+
+
+@login_required
+def member_profile(request):
+    return render(request, "membership/profile.html", member_portal_context(request))
+
+
+@login_required
+def member_notifications(request):
+    return render(request, "membership/notifications.html", member_portal_context(request))
+
+
+@login_required
+def membership_status(request):
+    return render(request, "membership/status.html", member_portal_context(request))
 
 
 @login_required
@@ -314,6 +351,126 @@ def reports(request):
         "license_types": MembershipApplication.objects.values("excise_license_type").annotate(total=Count("id")),
     }
     return render(request, "membership/reports.html", {"stats": stats})
+
+
+def admin_stats():
+    today = timezone.localdate()
+    return {
+        "total_members": Member.objects.count(),
+        "active_members": Member.objects.filter(is_active=True).count(),
+        "pending_applications": MembershipApplication.objects.filter(status=MembershipApplication.Status.SUBMITTED).count(),
+        "pending_payments": MembershipApplication.objects.filter(status=MembershipApplication.Status.PAYMENT_SUBMITTED).count(),
+        "expired_members": Member.objects.filter(valid_till__lt=today).count(),
+        "renewals_due": Member.objects.filter(valid_till__range=(today, today + timezone.timedelta(days=30))).count(),
+        "payment_collection": PaymentProof.objects.filter(status=PaymentProof.Status.APPROVED).aggregate(total=Sum("amount"))["total"] or 0,
+        "today_registrations": MembershipApplication.objects.filter(created_at__date=today).count(),
+    }
+
+
+@staff_member_required
+def staff_dashboard(request):
+    districts = list(
+        MembershipApplication.objects.values("district").annotate(total=Count("id")).order_by("-total")[:6]
+    )
+    max_district_total = max([item["total"] for item in districts] or [1])
+    return render(
+        request,
+        "admin_portal/dashboard.html",
+        {
+            "active_page": "dashboard",
+            "stats": admin_stats(),
+            "districts": districts,
+            "max_district_total": max_district_total,
+            "recent_logs": AuditLog.objects.select_related("actor").order_by("-created_at")[:6],
+        },
+    )
+
+
+@staff_member_required
+def staff_applications(request):
+    return render(
+        request,
+        "admin_portal/applications.html",
+        {
+            "active_page": "applications",
+            "applications": MembershipApplication.objects.select_related("applicant").order_by("-created_at")[:50],
+            "counts": {
+                "pending": MembershipApplication.objects.filter(status=MembershipApplication.Status.SUBMITTED).count(),
+                "approved": MembershipApplication.objects.filter(
+                    status__in=[
+                        MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+                        MembershipApplication.Status.PAYMENT_APPROVED,
+                        MembershipApplication.Status.MEMBER_ACTIVE,
+                    ]
+                ).count(),
+                "rejected": MembershipApplication.objects.filter(status=MembershipApplication.Status.REJECTED).count(),
+                "docs_requested": MembershipApplication.objects.filter(
+                    status=MembershipApplication.Status.ADDITIONAL_DOCUMENTS
+                ).count(),
+            },
+        },
+    )
+
+
+@staff_member_required
+def staff_payments(request):
+    return render(
+        request,
+        "admin_portal/payments.html",
+        {
+            "active_page": "payments",
+            "payments": PaymentProof.objects.select_related("application").order_by("-created_at")[:50],
+        },
+    )
+
+
+@staff_member_required
+def staff_members(request):
+    return render(
+        request,
+        "admin_portal/members.html",
+        {
+            "active_page": "members",
+            "members": Member.objects.select_related("application").order_by("-created_at")[:50],
+        },
+    )
+
+
+@staff_member_required
+def staff_notifications(request):
+    broadcasts = BroadcastMessage.objects.select_related("sent_by", "recipient").order_by("-created_at")[:20]
+    return render(
+        request,
+        "admin_portal/notifications.html",
+        {
+            "active_page": "notifications",
+            "broadcasts": broadcasts,
+            "email_count": BroadcastMessage.objects.filter(
+                channel__in=[BroadcastMessage.Channel.EMAIL, BroadcastMessage.Channel.EMAIL_WHATSAPP]
+            ).count(),
+            "whatsapp_count": BroadcastMessage.objects.filter(
+                channel__in=[BroadcastMessage.Channel.WHATSAPP, BroadcastMessage.Channel.EMAIL_WHATSAPP]
+            ).count(),
+        },
+    )
+
+
+@staff_member_required
+def staff_reports(request):
+    districts = list(
+        MembershipApplication.objects.values("district").annotate(total=Count("id")).order_by("-total")[:6]
+    )
+    return render(
+        request,
+        "admin_portal/reports.html",
+        {
+            "active_page": "reports",
+            "stats": admin_stats(),
+            "districts": districts,
+            "max_district_total": max([item["total"] for item in districts] or [1]),
+            "recent_logs": AuditLog.objects.select_related("actor").order_by("-created_at")[:6],
+        },
+    )
 
 
 @login_required

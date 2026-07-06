@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Verify OTP - {{ ASSOCIATION_NAME }}{% endblock %}
 {% block content %}
-<section class="panel narrow">
-  <h1>Verify OTP</h1>
-  <p class="muted">Enter the OTP sent to your registered email and WhatsApp/mobile number.</p>
-  <form method="post" class="form-grid">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="button primary" type="submit">Verify Account</button>
-  </form>
-  <p class="muted"><a href="{% url 'resend_registration_otp' %}">Resend OTP</a></p>
-</section>
+<div class="auth-split">
+  <div class="auth-split-left">
+    <div class="auth-card">
+      <h2>Verify OTP</h2>
+      <p class="kicker">Confirm <b>account</b></p>
+      <form method="post" class="form django-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary btn-block" type="submit">Verify Account</button>
+      </form>
+      <p class="auth-alt"><a href="{% url 'resend_registration_otp' %}">Resend OTP</a></p>
+    </div>
+  </div>
+  <div class="auth-split-right">
+    <img src="https://westwardwhiskey.com/cdn/shop/files/NeatKitHexGlasses-lifestyle.png?v=1727212800&width=580" alt="Association welfare illustration">
+  </div>
+</div>
 {% endblock %}

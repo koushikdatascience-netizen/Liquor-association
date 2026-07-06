@@ -1,14 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Verify Member - {{ ASSOCIATION_NAME }}{% endblock %}
 {% block content %}
-<section class="panel narrow">
-  <p class="eyebrow">Verified Membership</p>
-  <h1>{{ member.application.full_name }}</h1>
-  <dl class="details">
-    <dt>Membership Number</dt><dd>{{ member.membership_number }}</dd>
-    <dt>Shop Name</dt><dd>{{ member.application.shop_name }}</dd>
-    <dt>District</dt><dd>{{ member.application.district }}</dd>
-    <dt>Valid Till</dt><dd>{{ member.valid_till }}</dd>
-  </dl>
+<section class="section">
+  <div class="container-sm">
+    <div class="card verify-card text-center">
+      <div class="success-icon"><i class="bi bi-shield-check"></i></div>
+      <span class="eyebrow"><span class="dot"></span> Verified Membership</span>
+      <h1 class="mt-16">{{ member.application.full_name }}</h1>
+      <p class="small">This membership is active and QR-verifiable.</p>
+      <div class="mcard mt-24">
+        <div class="mcard-head">
+          <div class="mcard-logo"><span class="l-mark">W</span> {{ ASSOCIATION_NAME }}</div>
+          <span class="badge gold">Active</span>
+        </div>
+        <div class="mcard-body">
+          <div class="mcard-photo"><i class="bi bi-person"></i></div>
+          <div>
+            <div class="mcard-name">{{ member.application.full_name }}</div>
+            <div class="mcard-role">{{ member.application.shop_name }}</div>
+          </div>
+          <div class="mcard-qr"><i class="bi bi-qr-code"></i></div>
+        </div>
+        <div class="mcard-foot">
+          <div>Number<span>{{ member.membership_number }}</span></div>
+          <div>District<span>{{ member.application.district }}</span></div>
+          <div>Mobile<span>{{ member.application.mobile_number }}</span></div>
+          <div>Valid Till<span>{{ member.valid_till|date:"d M Y" }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 {% endblock %}

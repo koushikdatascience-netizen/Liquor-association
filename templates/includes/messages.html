@@ -1,0 +1,10 @@
+{% if messages %}
+  <div class="toast-host django-messages" aria-live="polite" aria-atomic="true">
+    {% for message in messages %}
+      <div class="toast">
+        <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle{% else %}check-circle{% endif %}" aria-hidden="true"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

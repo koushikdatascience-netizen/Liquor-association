@@ -1,0 +1,212 @@
+/* Django integration overrides for the WBFL frontend */
+body {
+  background: var(--bg);
+  font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.django-messages {
+  position: fixed;
+}
+
+.django-form {
+  display: grid;
+  gap: 16px;
+}
+
+.django-form p {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.django-form label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.django-form input,
+.django-form select,
+.django-form textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: 0 14px;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.django-form textarea {
+  min-height: 96px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.django-form input:focus,
+.django-form select:focus,
+.django-form textarea:focus {
+  border-color: var(--btn);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, .06);
+}
+
+.django-form input[type="checkbox"] {
+  width: auto;
+  min-height: 0;
+  margin-right: 8px;
+}
+
+.django-form input[type="file"] {
+  padding: 12px 14px;
+  height: auto;
+}
+
+.django-form .helptext {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.django-form .errorlist {
+  margin: 0 0 6px;
+  padding-left: 18px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.django-form.columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.django-form.columns p:has(textarea),
+.django-form.columns p:has(input[type="file"]),
+.django-form.columns p:has(input[type="checkbox"]) {
+  grid-column: 1 / -1;
+}
+
+.side-logout {
+  margin: 0;
+}
+
+.side-logout button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 10px 16px;
+}
+
+.detail-grid dt {
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.detail-grid dd {
+  margin: 0;
+  font-size: 14px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--gold-soft);
+  color: #7a5c00;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.mcard-photo img,
+.mcard-qr img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.mcard-qr img {
+  padding: 6px;
+  object-fit: contain;
+}
+
+.payment-details {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--surface-3);
+}
+
+.report-actions,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.document-review {
+  display: grid;
+  gap: 18px;
+}
+
+.document-review__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.document-review__stage {
+  min-height: 68vh;
+  display: grid;
+  place-items: center;
+  background: #111;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  padding: 16px;
+}
+
+.document-review__stage img {
+  max-width: 100%;
+  max-height: 76vh;
+  object-fit: contain;
+  background: #fff;
+}
+
+.document-review__stage iframe {
+  width: 100%;
+  min-height: 76vh;
+  border: 0;
+  background: #fff;
+}
+
+.document-review__fallback {
+  max-width: 520px;
+  text-align: center;
+  color: #fff;
+}
+
+@media (max-width: 780px) {
+  .django-form.columns,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .document-review__header {
+    flex-direction: column;
+  }
+}

@@ -1,12 +1,44 @@
 {% extends "base.html" %}
 {% block title %}Application Form - {{ ASSOCIATION_NAME }}{% endblock %}
-{% block content %}
-<section class="panel">
-  <h1>{% if is_update %}Update Documents{% else %}Membership Application Form{% endif %}</h1>
-  <form method="post" enctype="multipart/form-data" class="form-grid columns">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="button primary" type="submit">Submit Application</button>
-  </form>
-</section>
+{% block body %}
+<div class="portal">
+  {% include "includes/portal_sidebar.html" %}
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"></div>
+      </div>
+      <div class="topbar-right"><div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div></div>
+    </header>
+    {% include "includes/messages.html" %}
+    <div class="page">
+      <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Application</div>
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">{% if is_update %}Update documents{% else %}Membership application{% endif %}</h1>
+          <p class="small mt-8">Complete the form to submit your application for review.</p>
+        </div>
+      </div>
+      <div class="stepper" role="navigation" aria-label="Application steps">
+        <div class="st active"><div class="st-num">1</div><div class="st-label">Personal</div></div><div class="st-sep"></div>
+        <div class="st active"><div class="st-num">2</div><div class="st-label">Business</div></div><div class="st-sep"></div>
+        <div class="st active"><div class="st-num">3</div><div class="st-label">KYC</div></div><div class="st-sep"></div>
+        <div class="st active"><div class="st-num">4</div><div class="st-label">Declaration</div></div>
+      </div>
+      <div class="wizard-card">
+        <h3>{% if is_update %}Requested document update{% else %}Application details{% endif %}</h3>
+        <p class="sub">Your information remains protected and will be reviewed by the association office.</p>
+        <form method="post" enctype="multipart/form-data" class="form django-form columns">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <div class="wiz-footer">
+            <a class="btn btn-secondary" href="{% url 'member_dashboard' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
+            <button class="btn btn-primary" type="submit">{% if is_update %}Resubmit Documents{% else %}Submit Application{% endif %} <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

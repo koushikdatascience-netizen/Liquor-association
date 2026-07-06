@@ -1,0 +1,23 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Members - Liquor Society Admin{% endblock %}
+{% block page_title %}Members{% endblock %}
+{% block search_target %}#membersTable{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Members</h1><p class="subtitle">Search, review, suspend, print card or download certificate.</p></div><div class="page-actions"><a class="btn primary" href="{% url 'admin:membership_member_changelist' %}"><i class="bi bi-people"></i> Manage Members</a></div></div>
+<div class="table-wrap">
+  <div class="table-toolbar"><div class="search"><i class="bi bi-search"></i><input data-table-search="#membersTable" type="text" placeholder="Search members..."></div><a class="btn" style="margin-left:auto;" href="{% url 'export_report' 'renewal-report' 'excel' %}"><i class="bi bi-download"></i> Renewal Export</a></div>
+  <table class="table" id="membersTable">
+    <thead><tr><th>Member</th><th>Membership No</th><th>Shop</th><th>District</th><th>Mobile</th><th>Valid Till</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for member in members %}
+      <tr>
+        <td><div class="who"><div class="avatar">{{ member.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ member.application.full_name }}</div><div class="s">{{ member.application.email }}</div></div></div></td>
+        <td>{{ member.membership_number }}</td><td>{{ member.application.shop_name }}</td><td>{{ member.application.district }}</td><td>{{ member.application.mobile_number }}</td><td>{{ member.valid_till|date:"d M Y" }}</td>
+        <td><span class="badge {% if member.is_active %}active{% else %}pending{% endif %}">{% if member.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+        <td><div class="row-actions"><a class="icon-btn" href="{% url 'admin:membership_member_change' member.id %}"><i class="bi bi-eye"></i></a></div></td>
+      </tr>
+      {% empty %}<tr><td colspan="8">No members yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

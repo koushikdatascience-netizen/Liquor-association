@@ -1,13 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Payment Upload - {{ ASSOCIATION_NAME }}{% endblock %}
-{% block content %}
-<section class="panel narrow">
-  <h1>Upload Payment Proof</h1>
-  <p class="muted">Application: {{ application.full_name }} / {{ application.shop_name }}</p>
-  <form method="post" enctype="multipart/form-data" class="form-grid">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="button primary" type="submit">Submit Payment</button>
-  </form>
-</section>
+{% block body %}
+<div class="portal">
+  {% include "includes/portal_sidebar.html" %}
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"></div>
+      </div>
+      <div class="topbar-right"><div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div></div>
+    </header>
+    {% include "includes/messages.html" %}
+    <div class="page">
+      <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Payment</div>
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Upload payment proof</h1>
+          <p class="small mt-8">{{ application.full_name }} / {{ application.shop_name }}</p>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3 class="h-card mb-16">Payment details</h3>
+          <div class="payment-details">
+            <strong>Membership Fee: Rs. {{ MEMBERSHIP_FEE }}</strong>
+            <span>Submit the UTR number, payment date, bank name and screenshot after bank/UPI payment.</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="h-card mb-16">Verification</h3>
+          <p class="small">The association office will verify the screenshot and UTR manually before final membership approval.</p>
+        </div>
+      </div>
+      <div class="wizard-card mt-24">
+        <h3>Payment submission</h3>
+        <p class="sub">Upload a clear screenshot and accurate transaction details.</p>
+        <form method="post" enctype="multipart/form-data" class="form django-form">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <div class="wiz-footer">
+            <a class="btn btn-secondary" href="{% url 'member_dashboard' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
+            <button class="btn btn-primary" type="submit">Submit Payment <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

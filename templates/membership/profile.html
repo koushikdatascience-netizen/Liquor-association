@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Profile - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block body %}
+<div class="portal">
+  {% include "includes/portal_sidebar.html" %}
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"></div>
+      </div>
+      <div class="topbar-right">
+        <a href="{% url 'member_notifications' %}" class="icon-btn" aria-label="Notifications"><i class="bi bi-bell"></i>{% if notifications %}<span class="dot-badge"></span>{% endif %}</a>
+        <div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div>
+      </div>
+    </header>
+    {% include "includes/messages.html" %}
+    <div class="page">
+      <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Profile</div>
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Profile</h1>
+          <p class="small mt-8">Manage your personal, business and security settings.</p>
+        </div>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Profile sections">
+        <button class="tab active" data-tab="personal" type="button" role="tab" aria-selected="true">Personal Details</button>
+        <button class="tab" data-tab="business" type="button" role="tab" aria-selected="false">Business Details</button>
+        <button class="tab" data-tab="documents" type="button" role="tab" aria-selected="false">Documents</button>
+        <button class="tab" data-tab="password" type="button" role="tab" aria-selected="false">Change Password</button>
+      </div>
+      <div class="card mt-16">
+        <div class="tab-panel" data-panel="personal">
+          <div class="form">
+            <div class="form-row">
+              <div class="field"><label>Full name</label><input class="input" value="{% if application %}{{ application.full_name }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}" readonly></div>
+              <div class="field"><label>Email</label><input class="input" type="email" value="{% if application %}{{ application.email }}{% else %}{{ user.email }}{% endif %}" readonly></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Phone</label><input class="input" value="{% if application %}{{ application.mobile_number }}{% else %}{{ user.profile.mobile_number }}{% endif %}" readonly></div>
+              <div class="field"><label>Address</label><input class="input" value="{% if application %}{{ application.residential_address }}{% endif %}" readonly></div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" data-panel="business" hidden>
+          <div class="form">
+            <div class="form-row">
+              <div class="field"><label>Company / Firm name</label><input class="input" value="{{ application.shop_name|default:'' }}" readonly></div>
+              <div class="field"><label>Licence ID</label><input class="input" value="{{ application.excise_license_number|default:'' }}" readonly></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Trade license</label><input class="input" value="{{ application.trade_license_number|default:'' }}" readonly></div>
+              <div class="field"><label>District</label><input class="input" value="{{ application.district|default:'' }}" readonly></div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" data-panel="documents" hidden>
+          {% if application %}
+          <div class="upload-grid">
+            <a class="upload" href="{{ application.aadhaar_card.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Aadhaar Card</h5><p>Uploaded</p></div></div></a>
+            <a class="upload" href="{{ application.pan_card.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>PAN Card</h5><p>Uploaded</p></div></div></a>
+            <a class="upload" href="{{ application.excise_license.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Excise License</h5><p>Uploaded</p></div></div></a>
+            <a class="upload" href="{{ application.trade_license.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Trade License</h5><p>Uploaded</p></div></div></a>
+          </div>
+          {% else %}
+          <p class="small">Documents will appear here after you submit your application.</p>
+          {% endif %}
+        </div>
+        <div class="tab-panel" data-panel="password" hidden>
+          <div class="form" style="max-width:420px">
+            <div class="field"><label>Current password</label><input class="input" type="password" autocomplete="current-password"></div>
+            <div class="field"><label>New password</label><input class="input" type="password" autocomplete="new-password" minlength="8"></div>
+            <div class="field"><label>Confirm new password</label><input class="input" type="password" autocomplete="new-password" minlength="8"></div>
+            <button class="btn btn-primary mt-8" type="button">Update password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

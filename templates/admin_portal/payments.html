@@ -1,0 +1,24 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Payments - Liquor Society Admin{% endblock %}
+{% block page_title %}Payment Verification{% endblock %}
+{% block search_target %}#paymentsTable{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Payment Verification</h1><p class="subtitle">Review screenshots, UTR numbers and bank details.</p></div><div class="page-actions"><a class="btn primary" href="{% url 'admin:membership_paymentproof_changelist' %}"><i class="bi bi-cash-coin"></i> Verify in Django Admin</a></div></div>
+<div class="table-wrap">
+  <div class="table-toolbar"><div class="search"><i class="bi bi-search"></i><input data-table-search="#paymentsTable" type="text" placeholder="Search payments..."></div><a class="btn" style="margin-left:auto;" href="{% url 'export_report' 'pending-payments' 'excel' %}"><i class="bi bi-download"></i> Export</a></div>
+  <table class="table" id="paymentsTable">
+    <thead><tr><th>Applicant</th><th>UTR</th><th>Amount</th><th>Bank</th><th>Date</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for payment in payments %}
+      <tr>
+        <td><div class="who"><div class="avatar">{{ payment.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ payment.application.full_name }}</div><div class="s">{{ payment.application.shop_name }}</div></div></div></td>
+        <td>{{ payment.utr_number }}</td><td>₹{{ payment.amount }}</td><td>{{ payment.bank_name }}</td><td>{{ payment.payment_date|date:"d M Y" }}</td>
+        <td><span class="badge {% if payment.status == 'APPROVED' %}verified{% elif payment.status == 'REJECTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></td>
+        <td><div class="row-actions"><a class="icon-btn" href="{% url 'admin:membership_paymentproof_change' payment.id %}"><i class="bi bi-eye"></i></a></div></td>
+      </tr>
+      {% empty %}<tr><td colspan="7">No payments submitted yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  <div class="table-footer"><span>Showing latest {{ payments|length }} payments</span><div class="pagination"><button class="pg active">1</button></div></div>
+</div>
+{% endblock %}

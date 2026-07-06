@@ -1,141 +1,149 @@
 {% extends "base.html" %}
 {% block title %}Dashboard - {{ ASSOCIATION_NAME }}{% endblock %}
-{% block content %}
-<section class="dashboard-head">
-  <div>
-    <p class="eyebrow">Applicant Dashboard</p>
-    <h1>Welcome, {{ user.get_full_name|default:user.username }}</h1>
+{% block body %}
+<div class="portal">
+  {% include "includes/portal_sidebar.html" %}
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"></div>
+      </div>
+      <div class="topbar-right">
+        <a href="{% url 'member_notifications' %}" class="icon-btn" aria-label="Notifications"><i class="bi bi-bell"></i>{% if notifications %}<span class="dot-badge"></span>{% endif %}</a>
+        <div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div>
+      </div>
+    </header>
+    {% include "includes/messages.html" %}
+    <div class="page">
+      <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Dashboard</div>
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Welcome back, {{ user.get_full_name|default:user.username }}</h1>
+          <p class="small mt-8">Here's what's happening with your membership today.</p>
+        </div>
+        {% if not application %}
+          <a href="{% url 'application_create' %}" class="btn btn-primary">Continue application <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        {% endif %}
+      </div>
+
+      <div class="stat-grid">
+        <div class="card stat">
+          <h4>Application</h4>
+          <div class="val">{% if application %}{{ application.get_status_display }}{% else %}Not submitted{% endif %}</div>
+          <div class="meta">{% if application %}Submitted {{ application.created_at|date:"d M Y" }}{% else %}Start your application{% endif %}</div>
+        </div>
+        <div class="card stat">
+          <h4>Membership</h4>
+          <div class="val">{% if member and member.is_active %}Active{% elif member %}Pending{% else %}Pending{% endif %}</div>
+          <div class="meta">{% if member %}{{ member.membership_number }}{% else %}Awaiting approval by the office{% endif %}</div>
+        </div>
+        <div class="card stat">
+          <h4>Validity</h4>
+          <div class="val">{% if member %}{{ member.valid_till|date:"M Y" }}{% else %}After approval{% endif %}</div>
+          <div class="meta">Membership fee Rs. {{ MEMBERSHIP_FEE }}</div>
+        </div>
+      </div>
+
+      <h3 class="mt-32 mb-16 h-card">Quick actions</h3>
+      <div class="qa-grid">
+        <a href="{% url 'application_create' %}" class="qa"><i class="bi bi-arrow-right-circle" aria-hidden="true"></i><span>{% if application %}Application{% else %}Continue Application{% endif %}</span></a>
+        {% if application %}
+          <a href="{% url 'payment_upload' application.id %}" class="qa"><i class="bi bi-credit-card" aria-hidden="true"></i><span>Payment</span></a>
+        {% else %}
+          <a href="{% url 'membership_status' %}" class="qa"><i class="bi bi-credit-card" aria-hidden="true"></i><span>Payment</span></a>
+        {% endif %}
+        <a href="{% if member and member.is_active %}{% url 'membership_card' %}{% else %}#downloads{% endif %}" class="qa"><i class="bi bi-download" aria-hidden="true"></i><span>Download Card</span></a>
+        <a href="{% url 'member_profile' %}" class="qa"><i class="bi bi-person-gear" aria-hidden="true"></i><span>Profile</span></a>
+      </div>
+
+      <div class="grid grid-2 mt-32">
+        <div class="card" id="notifications">
+          <div class="flex between center mb-16">
+            <h3 class="h-card">Recent notifications</h3>
+          </div>
+          <div class="notif-list">
+            {% for note in notifications %}
+              <div class="notif {% if not note.read_at %}unread{% endif %}">
+                <div class="n-icon"><i class="bi bi-megaphone" aria-hidden="true"></i></div>
+                <div class="n-body">
+                  <div class="n-title">{{ note.title }}</div>
+                  <p>{{ note.message }}</p>
+                  <div class="n-time">{{ note.created_at|date:"d M Y, h:i A" }}</div>
+                </div>
+              </div>
+            {% empty %}
+              <p class="small">No notifications yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card" id="status">
+          <h3 class="h-card mb-16">Application status</h3>
+          <div class="tl">
+            <div class="tl-item {% if application %}done{% endif %}"><div class="tl-dot">{% if application %}<i class="bi bi-check"></i>{% endif %}</div><div><div class="tl-title">Submitted</div><div class="tl-meta">{% if application %}{{ application.created_at|date:"d M Y" }}{% else %}Pending{% endif %}</div></div></div>
+            <div class="tl-item {% if application and application.status != 'SUBMITTED' %}done{% elif application %}current{% endif %}"><div class="tl-dot"></div><div><div class="tl-title">Document review</div><div class="tl-meta">{% if application %}{{ application.get_status_display }}{% else %}Pending{% endif %}</div></div></div>
+            <div class="tl-item {% if payment %}done{% elif application.status == 'APPROVED_PENDING_PAYMENT' %}current{% endif %}"><div class="tl-dot"></div><div><div class="tl-title">Payment</div><div class="tl-meta">{% if payment %}{{ payment.get_status_display }}{% else %}Pending{% endif %}</div></div></div>
+            <div class="tl-item {% if member and member.is_active %}done{% endif %}"><div class="tl-dot"></div><div><div class="tl-title">Membership issued</div><div class="tl-meta">{% if member and member.is_active %}Active{% else %}Pending{% endif %}</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      {% if application %}
+      <div class="grid grid-2 mt-32">
+        <div class="card" id="profile">
+          <h3 class="h-card mb-16">Profile</h3>
+          <dl class="detail-grid">
+            <dt>Personal</dt><dd>{{ application.full_name }} / {{ application.mobile_number }}</dd>
+            <dt>Business</dt><dd>{{ application.shop_name }} - {{ application.excise_license_number }}</dd>
+            <dt>KYC</dt><dd><span class="status-pill">{{ application.get_status_display }}</span></dd>
+            {% if application.remarks %}<dt>Remarks</dt><dd>{{ application.remarks }}</dd>{% endif %}
+          </dl>
+        </div>
+        <div class="card" id="payment">
+          <h3 class="h-card mb-16">Payment</h3>
+          {% if application.status == "APPROVED_PENDING_PAYMENT" %}
+            <div class="payment-details mb-16">
+              <strong>Membership Fee: Rs. {{ MEMBERSHIP_FEE }}</strong>
+              <span><b>UPI:</b> {{ payment_settings.upi_id }}</span>
+              <span><b>Bank:</b> {{ payment_settings.bank_name }}</span>
+              <span><b>Account:</b> {{ payment_settings.account_name }} - {{ payment_settings.account_number }}</span>
+              <span><b>IFSC:</b> {{ payment_settings.ifsc }}</span>
+            </div>
+            <a class="btn btn-primary" href="{% url 'payment_upload' application.id %}">{% if payment %}Update Payment Proof{% else %}Upload Payment Proof{% endif %}</a>
+          {% elif payment %}
+            <dl class="detail-grid">
+              <dt>UTR</dt><dd>{{ payment.utr_number }}</dd>
+              <dt>Date</dt><dd>{{ payment.payment_date }}</dd>
+              <dt>Bank</dt><dd>{{ payment.bank_name }}</dd>
+              <dt>Status</dt><dd>{{ payment.get_status_display }}</dd>
+            </dl>
+            {% if payment.status == "APPROVED" %}<a class="btn btn-secondary mt-16" href="{% url 'payment_receipt' %}">Download Payment Receipt</a>{% endif %}
+          {% else %}
+            <p class="small">Payment details will unlock after document verification.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card mt-32" id="downloads">
+        <h3 class="h-card mb-16">Downloads</h3>
+        <div class="actions">
+          {% if member and member.is_active %}
+            <a class="btn btn-secondary" href="{% url 'membership_certificate' %}">Membership Certificate</a>
+            <a class="btn btn-secondary" href="{% url 'membership_card' %}">Digital Card</a>
+            <a class="btn btn-secondary" href="{% url 'membership_card_pdf' %}">Card PDF</a>
+            <a class="btn btn-secondary" href="{% url 'membership_card_image' %}">Card Image</a>
+          {% endif %}
+          {% if payment and payment.status == "APPROVED" %}
+            <a class="btn btn-secondary" href="{% url 'payment_receipt' %}">Payment Receipt</a>
+          {% endif %}
+          {% if not member or not member.is_active %}
+            <p class="small">Your certificate and card downloads will appear after final membership approval.</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
   </div>
-  {% if not application %}
-    <a class="button primary" href="{% url 'application_create' %}">Submit Application</a>
-  {% endif %}
-</section>
-
-<section class="grid two">
-  <article class="panel">
-    <h2>Application Status</h2>
-    {% if application %}
-      <dl class="details">
-        <dt>Status</dt><dd><span class="status">{{ application.get_status_display }}</span></dd>
-        <dt>Name</dt><dd>{{ application.full_name }}</dd>
-        <dt>Shop</dt><dd>{{ application.shop_name }}</dd>
-        <dt>District</dt><dd>{{ application.district }}</dd>
-        {% if application.remarks %}<dt>Remarks</dt><dd>{{ application.remarks }}</dd>{% endif %}
-      </dl>
-      {% if application.status == "ADDITIONAL_DOCUMENTS" %}
-        <div class="payment-box">
-          <h3>Documents Requested</h3>
-          <p>Please update the requested KYC documents and resubmit your application for admin verification.</p>
-          <a class="button primary" href="{% url 'application_create' %}">Update Documents</a>
-        </div>
-      {% endif %}
-      {% if application.status == "APPROVED_PENDING_PAYMENT" %}
-        <div class="payment-box">
-          <h3>Documents Verified</h3>
-          <p>Your documents are approved. Please complete the membership fee payment using the details below.</p>
-          <h3>Membership Fee: Rs. {{ MEMBERSHIP_FEE }}</h3>
-          <p><strong>UPI:</strong> {{ payment_settings.upi_id }}</p>
-          <p><strong>Bank:</strong> {{ payment_settings.bank_name }}</p>
-          <p><strong>Account:</strong> {{ payment_settings.account_name }} - {{ payment_settings.account_number }}</p>
-          <p><strong>IFSC:</strong> {{ payment_settings.ifsc }}</p>
-          <a class="button primary" href="{% url 'payment_upload' application.id %}">
-            {% if payment %}Update Payment Proof{% else %}Upload Payment Proof{% endif %}
-          </a>
-        </div>
-      {% endif %}
-      {% if application.status == "PAYMENT_SUBMITTED" %}
-        <div class="payment-box">
-          <h3>Payment Verification Pending</h3>
-          <p>Your payment details have been submitted. Admin will verify the screenshot and UTR with the bank.</p>
-          <a class="button" href="{% url 'payment_upload' application.id %}">Update Payment Proof</a>
-        </div>
-      {% endif %}
-    {% else %}
-      <p>No application submitted yet.</p>
-    {% endif %}
-  </article>
-
-  <article class="panel">
-    <h2>Membership</h2>
-    {% if member %}
-      <dl class="details">
-        <dt>Membership Number</dt><dd>{{ member.membership_number }}</dd>
-        <dt>Category</dt><dd>{{ member.category }}</dd>
-        <dt>Valid Till</dt><dd>{{ member.valid_till }}</dd>
-        <dt>Status</dt><dd>{% if member.is_active %}Active{% else %}Pending payment/final approval{% endif %}</dd>
-      </dl>
-      {% if member.qr_code and not member.is_active %}
-        <a class="button" href="{{ member.qr_code.url }}" download>Download QR Code</a>
-      {% endif %}
-      {% if member.is_active %}
-        <a class="button primary" href="{% url 'membership_card' %}">View Digital Card</a>
-      {% else %}
-        <p>Your digital membership card will appear after payment approval and final membership generation.</p>
-      {% endif %}
-    {% else %}
-      <p>Your membership card will appear after admin payment approval.</p>
-    {% endif %}
-  </article>
-</section>
-
-{% if application %}
-<section class="grid two">
-  <article class="panel">
-    <h2>Profile</h2>
-    <dl class="details">
-      <dt>Personal Information</dt><dd>{{ application.full_name }} / {{ application.mobile_number }}</dd>
-      <dt>Business Information</dt><dd>{{ application.shop_name }} - {{ application.excise_license_number }}</dd>
-      <dt>KYC Documents</dt><dd>{{ application.get_status_display }}</dd>
-    </dl>
-  </article>
-
-  <article class="panel">
-    <h2>Payment</h2>
-    {% if payment %}
-      <dl class="details">
-        <dt>UTR Number</dt><dd>{{ payment.utr_number }}</dd>
-        <dt>Payment Date</dt><dd>{{ payment.payment_date }}</dd>
-        <dt>Bank</dt><dd>{{ payment.bank_name }}</dd>
-        <dt>Status</dt><dd>{{ payment.get_status_display }}</dd>
-      </dl>
-      {% if payment.status == "APPROVED" %}
-        <a class="button" href="{% url 'payment_receipt' %}">Download Payment Receipt</a>
-      {% endif %}
-    {% else %}
-      <p>No payment submitted yet.</p>
-    {% endif %}
-  </article>
-</section>
-
-<section class="panel">
-  <h2>Downloads</h2>
-  <div class="actions">
-    {% if member and member.is_active %}
-      <a class="button" href="{% url 'membership_certificate' %}">Membership Certificate</a>
-      <a class="button" href="{% url 'membership_card' %}">Digital Card</a>
-      <a class="button" href="{% url 'membership_card_pdf' %}">Card PDF</a>
-      <a class="button" href="{% url 'membership_card_image' %}">Card Image</a>
-    {% endif %}
-    {% if payment and payment.status == "APPROVED" %}
-      <a class="button" href="{% url 'payment_receipt' %}">Payment Receipt</a>
-    {% endif %}
-    {% if not member or not member.is_active %}
-      <p>Your certificate and card downloads will appear after final membership approval.</p>
-    {% endif %}
-  </div>
-</section>
-{% endif %}
-
-<section class="panel">
-  <h2>Notifications</h2>
-  {% if notifications %}
-    <ul class="list">
-      {% for note in notifications %}
-        <li><strong>{{ note.title }}</strong><br>{{ note.message }}<span>{{ note.created_at|date:"d M Y, h:i A" }}</span></li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No notifications yet.</p>
-  {% endif %}
-</section>
+</div>
 {% endblock %}

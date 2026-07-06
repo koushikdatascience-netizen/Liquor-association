@@ -1,0 +1,27 @@
+<div class="sidebar-backdrop"></div>
+<aside class="sidebar">
+  <button class="sidebar-close" data-sidebar-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
+  <a href="{% url 'member_dashboard' %}" class="brand"><span class="brand-mark">W</span> WBFL Portal</a>
+  <div class="side-section">Overview</div>
+  <a href="{% url 'member_dashboard' %}" class="side-link {% if request.resolver_match.url_name == 'member_dashboard' %}active{% endif %}"><i class="bi bi-grid"></i> Dashboard</a>
+  <a href="{% url 'member_notifications' %}" class="side-link {% if request.resolver_match.url_name == 'member_notifications' %}active{% endif %}"><i class="bi bi-bell"></i> Notifications</a>
+  <div class="side-section">Membership</div>
+  <a href="{% url 'application_create' %}" class="side-link {% if request.resolver_match.url_name == 'application_create' %}active{% endif %}"><i class="bi bi-file-earmark-text"></i> Application</a>
+  <a href="{% url 'membership_status' %}" class="side-link {% if request.resolver_match.url_name == 'membership_status' %}active{% endif %}"><i class="bi bi-hourglass-split"></i> Status</a>
+  {% if application and application.id %}
+    <a href="{% url 'payment_upload' application.id %}" class="side-link {% if request.resolver_match.url_name == 'payment_upload' %}active{% endif %}"><i class="bi bi-credit-card"></i> Payment</a>
+  {% else %}
+    <a href="{% url 'member_dashboard' %}#payment" class="side-link"><i class="bi bi-credit-card"></i> Payment</a>
+  {% endif %}
+  <a href="{% url 'membership_card' %}" class="side-link {% if request.resolver_match.url_name == 'membership_card' %}active{% endif %}"><i class="bi bi-person-vcard"></i> Membership Card</a>
+  <div class="side-section">Account</div>
+  <a href="{% url 'member_profile' %}" class="side-link {% if request.resolver_match.url_name == 'member_profile' %}active{% endif %}"><i class="bi bi-person"></i> Profile</a>
+  {% if user.is_staff %}
+    <a href="{% url 'admin:index' %}" class="side-link"><i class="bi bi-shield-lock"></i> Admin</a>
+    <a href="{% url 'reports' %}" class="side-link"><i class="bi bi-bar-chart"></i> Reports</a>
+  {% endif %}
+  <form method="post" action="{% url 'logout' %}" class="side-logout">
+    {% csrf_token %}
+    <button class="side-link" type="submit"><i class="bi bi-box-arrow-right"></i> Sign out</button>
+  </form>
+</aside>
