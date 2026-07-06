@@ -14,6 +14,22 @@ class MembershipApplicationForm(forms.ModelForm):
             "declaration_accepted": forms.CheckboxInput(),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            widget = field.widget
+            if isinstance(widget, forms.CheckboxInput):
+                continue
+            if isinstance(widget, forms.FileInput):
+                widget.attrs.setdefault("hidden", True)
+                continue
+            if isinstance(widget, forms.Textarea):
+                widget.attrs["class"] = "textarea"
+            elif isinstance(widget, forms.Select):
+                widget.attrs["class"] = "select"
+            else:
+                widget.attrs["class"] = "input"
+
     def clean_declaration_accepted(self):
         accepted = self.cleaned_data["declaration_accepted"]
         if not accepted:

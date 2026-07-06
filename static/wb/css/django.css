@@ -200,6 +200,83 @@ body {
   color: #fff;
 }
 
+.application-wizard {
+  display: grid;
+  gap: 0;
+}
+
+.application-wizard .step-panel[hidden] {
+  display: none;
+}
+
+.application-wizard-footer {
+  margin-top: 0;
+}
+
+.application-wizard-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.django-upload {
+  display: block;
+}
+
+.django-upload .upload-drop {
+  min-height: 74px;
+  cursor: pointer;
+  flex-direction: column;
+  text-align: center;
+}
+
+.django-upload .upload-drop input {
+  display: none;
+}
+
+.review-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: 18px;
+  margin-top: 16px;
+}
+
+.review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.review-head h5 {
+  margin: 0;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.review-grid div {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-3);
+}
+
+.review-grid span {
+  display: block;
+  color: var(--text-3);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.review-grid b {
+  display: block;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
 .hero.container {
   min-height: auto;
   display: block;
@@ -274,7 +351,8 @@ body {
   }
 
   .hero-actions .btn,
-  .page-head .btn {
+  .page-head .btn,
+  .application-wizard-actions .btn {
     width: 100%;
     justify-content: center;
   }
@@ -323,6 +401,10 @@ body {
     align-items: flex-start;
     gap: 14px;
     text-align: left;
+  }
+
+  .review-grid {
+    grid-template-columns: 1fr;
   }
 }
 

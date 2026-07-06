@@ -146,6 +146,88 @@
     });
   });
 
+  // ---------- Django membership application wizard ----------
+  const applicationWizard = document.querySelector("[data-application-wizard]");
+  if(applicationWizard){
+    let currentStep = 1;
+    const totalSteps = 5;
+    const panels = Array.from(applicationWizard.querySelectorAll("[data-step-panel]"));
+    const indicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
+    const prevBtn = applicationWizard.querySelector("[data-prev-step]");
+    const nextBtn = applicationWizard.querySelector("[data-next-step]");
+    const submitBtn = applicationWizard.querySelector("[data-submit-application]");
+    const fieldLabels = {
+      full_name: "Full name",
+      mobile_number: "Mobile",
+      email: "Email",
+      residential_address: "Residential address",
+      shop_name: "Shop name",
+      excise_license_number: "Excise license",
+      excise_license_type: "License type",
+      district: "District",
+      state: "State"
+    };
+
+    function fieldValue(name){
+      const field = applicationWizard.querySelector("[name='" + name + "']");
+      if(!field) return "-";
+      if(field.type === "file") return field.files && field.files[0] ? field.files[0].name : "Not selected";
+      if(field.tagName === "SELECT") return field.options[field.selectedIndex]?.text || field.value || "-";
+      return field.value || "-";
+    }
+
+    function refreshReview(){
+      applicationWizard.querySelectorAll("[data-review-fields]").forEach(function(container){
+        const fields = container.dataset.reviewFields.split(",");
+        container.replaceChildren();
+        fields.forEach(function(name){
+          const item = document.createElement("div");
+          const label = document.createElement("span");
+          const value = document.createElement("b");
+          label.textContent = fieldLabels[name] || name;
+          value.textContent = fieldValue(name);
+          item.append(label, value);
+          container.appendChild(item);
+        });
+      });
+    }
+
+    function showStep(step){
+      currentStep = Math.max(1, Math.min(totalSteps, step));
+      panels.forEach(function(panel){
+        const active = Number(panel.dataset.stepPanel) === currentStep;
+        panel.hidden = !active;
+        panel.classList.toggle("active", active);
+      });
+      indicators.forEach(function(indicator){
+        const num = Number(indicator.dataset.stepIndicator);
+        indicator.classList.toggle("active", num === currentStep);
+        indicator.classList.toggle("done", num < currentStep);
+        const stepNum = indicator.querySelector(".st-num");
+        if(stepNum) stepNum.innerHTML = num < currentStep ? '<i class="bi bi-check" aria-hidden="true"></i>' : String(num);
+      });
+      if(prevBtn) prevBtn.disabled = currentStep === 1;
+      if(nextBtn) nextBtn.hidden = currentStep === totalSteps;
+      if(submitBtn) submitBtn.hidden = currentStep !== totalSteps;
+      if(currentStep === totalSteps) refreshReview();
+      applicationWizard.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    nextBtn && nextBtn.addEventListener("click", function(){ showStep(currentStep + 1); });
+    prevBtn && prevBtn.addEventListener("click", function(){ showStep(currentStep - 1); });
+    applicationWizard.querySelectorAll("[data-go-step]").forEach(function(btn){
+      btn.addEventListener("click", function(){ showStep(Number(btn.dataset.goStep)); });
+    });
+    applicationWizard.querySelectorAll("input[type='file']").forEach(function(input){
+      input.addEventListener("change", function(){
+        const label = input.closest(".upload-drop")?.querySelector("[data-file-label]");
+        if(label) label.textContent = input.files && input.files[0] ? input.files[0].name : "Drag & drop or click to upload";
+      });
+    });
+    const errorPanel = panels.find(function(panel){ return panel.querySelector(".errorlist"); });
+    showStep(errorPanel ? Number(errorPanel.dataset.stepPanel) : 1);
+  }
+
   // ---------- Upload widgets (drag/drop + preview) ----------
   document.querySelectorAll(".upload").forEach(function(root){
     const input = root.querySelector('input[type="file"]');
@@ -158,6 +240,8 @@
 
     root.addEventListener("click", function(e){
       if(rmBtn && (e.target === rmBtn || rmBtn.contains(e.target))) return;
+      if(e.target === input) return;
+      if(root.classList.contains("django-upload") && e.target.closest(".upload-drop")) return;
       input.click();
     });
     root.addEventListener("dragover", function(e){ e.preventDefault(); root.classList.add("is-drag"); });

@@ -17,27 +17,79 @@
       <div class="page-head">
         <div>
           <h1 class="page-title">{% if is_update %}Update documents{% else %}Membership application{% endif %}</h1>
-          <p class="small mt-8">Complete the form to submit your application for review.</p>
+          <p class="small mt-8">Complete all steps to submit your application for review.</p>
         </div>
       </div>
-      <div class="stepper" role="navigation" aria-label="Application steps">
-        <div class="st active"><div class="st-num">1</div><div class="st-label">Personal</div></div><div class="st-sep"></div>
-        <div class="st active"><div class="st-num">2</div><div class="st-label">Business</div></div><div class="st-sep"></div>
-        <div class="st active"><div class="st-num">3</div><div class="st-label">KYC</div></div><div class="st-sep"></div>
-        <div class="st active"><div class="st-num">4</div><div class="st-label">Declaration</div></div>
+      <div class="stepper application-stepper" role="navigation" aria-label="Application steps">
+        <div class="st active" data-step-indicator="1"><div class="st-num">1</div><div class="st-label">Personal</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="2"><div class="st-num">2</div><div class="st-label">Business</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="3"><div class="st-num">3</div><div class="st-label">Documents</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="4"><div class="st-num">4</div><div class="st-label">Declaration</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="5"><div class="st-num">5</div><div class="st-label">Review</div></div>
       </div>
-      <div class="wizard-card">
-        <h3>{% if is_update %}Requested document update{% else %}Application details{% endif %}</h3>
-        <p class="sub">Your information remains protected and will be reviewed by the association office.</p>
-        <form method="post" enctype="multipart/form-data" class="form django-form columns">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <div class="wiz-footer">
-            <a class="btn btn-secondary" href="{% url 'member_dashboard' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
-            <button class="btn btn-primary" type="submit">{% if is_update %}Resubmit Documents{% else %}Submit Application{% endif %} <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+      {% if form.non_field_errors %}<div class="card card-tight mb-16">{{ form.non_field_errors }}</div>{% endif %}
+      <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard>
+        {% csrf_token %}
+        <div class="wizard-card step-panel active" data-step-panel="1">
+          <h3>Personal details</h3>
+          <p class="sub">Applicant identity and contact information.</p>
+          <div class="form">
+            <div class="form-row"><div class="field">{{ form.full_name.label_tag }}{{ form.full_name }}{{ form.full_name.errors }}</div><div class="field">{{ form.father_or_husband_name.label_tag }}{{ form.father_or_husband_name }}{{ form.father_or_husband_name.errors }}</div></div>
+            <div class="form-row"><div class="field">{{ form.date_of_birth.label_tag }}{{ form.date_of_birth }}{{ form.date_of_birth.errors }}</div><div class="field">{{ form.gender.label_tag }}{{ form.gender }}{{ form.gender.errors }}</div></div>
+            <div class="form-row"><div class="field">{{ form.mobile_number.label_tag }}{{ form.mobile_number }}{{ form.mobile_number.errors }}</div><div class="field">{{ form.email.label_tag }}{{ form.email }}{{ form.email.errors }}</div></div>
+            <div class="field">{{ form.residential_address.label_tag }}{{ form.residential_address }}{{ form.residential_address.errors }}</div>
+            <div class="field">{{ form.office_address.label_tag }}{{ form.office_address }}{{ form.office_address.errors }}</div>
           </div>
-        </form>
-      </div>
+        </div>
+        <div class="wizard-card step-panel" data-step-panel="2" hidden>
+          <h3>Business details</h3>
+          <p class="sub">Details of the licensed establishment.</p>
+          <div class="form">
+            <div class="form-row"><div class="field">{{ form.shop_name.label_tag }}{{ form.shop_name }}{{ form.shop_name.errors }}</div><div class="field">{{ form.years_in_business.label_tag }}{{ form.years_in_business }}{{ form.years_in_business.errors }}</div></div>
+            <div class="form-row"><div class="field">{{ form.trade_license_number.label_tag }}{{ form.trade_license_number }}{{ form.trade_license_number.errors }}</div><div class="field">{{ form.excise_license_number.label_tag }}{{ form.excise_license_number }}{{ form.excise_license_number.errors }}</div></div>
+            <div class="form-row"><div class="field">{{ form.excise_license_type.label_tag }}{{ form.excise_license_type }}{{ form.excise_license_type.errors }}</div><div class="field">{{ form.gst_number.label_tag }}{{ form.gst_number }}{{ form.gst_number.errors }}</div></div>
+            <div class="form-row"><div class="field">{{ form.pan_number.label_tag }}{{ form.pan_number }}{{ form.pan_number.errors }}</div><div class="field">{{ form.district.label_tag }}{{ form.district }}{{ form.district.errors }}</div></div>
+            <div class="field">{{ form.state.label_tag }}{{ form.state }}{{ form.state.errors }}</div>
+          </div>
+        </div>
+        <div class="wizard-card step-panel" data-step-panel="3" hidden>
+          <h3>KYC documents</h3>
+          <p class="sub">Upload clear scans or photographs. Accepted formats: PDF, JPG, PNG.</p>
+          <div class="upload-grid">
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-person-badge"></i></div><div><h5>Passport Size Photograph</h5><p>Recent member photo</p></div></div><label class="upload-drop">{{ form.passport_photo }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.passport_photo.errors }}</div>
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-fingerprint"></i></div><div><h5>Aadhaar Card</h5><p>Identity proof</p></div></div><label class="upload-drop">{{ form.aadhaar_card }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.aadhaar_card.errors }}</div>
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-card-text"></i></div><div><h5>PAN Card</h5><p>Applicant PAN</p></div></div><label class="upload-drop">{{ form.pan_card }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.pan_card.errors }}</div>
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Excise License</h5><p>Current excise license</p></div></div><label class="upload-drop">{{ form.excise_license }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.excise_license.errors }}</div>
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-check"></i></div><div><h5>Trade License</h5><p>Current trade license</p></div></div><label class="upload-drop">{{ form.trade_license }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.trade_license.errors }}</div>
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-receipt"></i></div><div><h5>GST Certificate</h5><p>If applicable</p></div></div><label class="upload-drop">{{ form.gst_certificate }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.gst_certificate.errors }}</div>
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-geo-alt"></i></div><div><h5>Address Proof</h5><p>Residential or office proof</p></div></div><label class="upload-drop">{{ form.address_proof }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.address_proof.errors }}</div>
+            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-pencil-square"></i></div><div><h5>Signature</h5><p>Applicant signature image</p></div></div><label class="upload-drop">{{ form.signature }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.signature.errors }}</div>
+          </div>
+        </div>
+        <div class="wizard-card step-panel" data-step-panel="4" hidden>
+          <h3>Declaration</h3>
+          <p class="sub">Read and confirm the declaration before final review.</p>
+          <div class="card card-tight mb-16 declaration-box"><p>I hereby declare that all the information furnished by me is true and correct. I understand that the association office may verify all documents and may request additional documents if required.</p></div>
+          <label class="checkbox mb-16">{{ form.declaration_accepted }} <span>I hereby declare that all the information furnished by me is true and correct.</span></label>
+          {{ form.declaration_accepted.errors }}
+          <div class="field">{{ form.digital_signature.label_tag }}{{ form.digital_signature }}{{ form.digital_signature.errors }}</div>
+        </div>
+        <div class="wizard-card step-panel" data-step-panel="5" hidden>
+          <h3>Review &amp; submit</h3>
+          <p class="sub">Check your information once before sending it to the association office.</p>
+          <div class="review-block"><div class="review-head"><h5>Personal information</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="1">Edit</button></div><div class="review-grid" data-review-fields="full_name,mobile_number,email,residential_address"></div></div>
+          <div class="review-block"><div class="review-head"><h5>Business information</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="2">Edit</button></div><div class="review-grid" data-review-fields="shop_name,excise_license_number,excise_license_type,district,state"></div></div>
+          <div class="review-block"><div class="review-head"><h5>Submission</h5></div><div class="review-grid"><div><span>Application status</span><b>Ready for admin document verification</b></div><div><span>Payment</span><b>Unlocked after document approval</b></div></div></div>
+        </div>
+        <div class="wiz-footer application-wizard-footer">
+          <button class="btn btn-secondary" data-prev-step type="button"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
+          <div class="flex gap-8 application-wizard-actions">
+            <a class="btn btn-ghost" href="{% url 'member_dashboard' %}">Save draft</a>
+            <button class="btn btn-primary" data-next-step type="button">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            <button class="btn btn-primary" data-submit-application type="submit" hidden>{% if is_update %}Resubmit Documents{% else %}Submit Application{% endif %} <i class="bi bi-check2-circle" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>
