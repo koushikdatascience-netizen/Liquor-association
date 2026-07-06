@@ -3,9 +3,12 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 
+from .delivery import send_whatsapp_message
 from .utils import make_qr_file
 
 
@@ -21,7 +24,7 @@ class MembershipApplication(TimeStampedModel):
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         SUBMITTED = "SUBMITTED", "Application Submitted"
-        APPROVED_PENDING_PAYMENT = "APPROVED_PENDING_PAYMENT", "Approved - Pending Payment"
+        APPROVED_PENDING_PAYMENT = "APPROVED_PENDING_PAYMENT", "Documents Verified - Pending Payment"
         ADDITIONAL_DOCUMENTS = "ADDITIONAL_DOCUMENTS", "Additional Documents Requested"
         PAYMENT_SUBMITTED = "PAYMENT_SUBMITTED", "Payment Verification Pending"
         PAYMENT_APPROVED = "PAYMENT_APPROVED", "Payment Approved"
@@ -75,6 +78,7 @@ class MembershipApplication(TimeStampedModel):
         self.status = self.Status.APPROVED_PENDING_PAYMENT
         self.remarks = remarks
         self.save(update_fields=["status", "remarks", "updated_at"])
+        Member.objects.create_pending_from_application(self)
 
     def reject_application(self, remarks=""):
         self.status = self.Status.REJECTED
@@ -112,10 +116,33 @@ class PaymentProof(TimeStampedModel):
         self.save(update_fields=["status", "verified_by", "verified_at", "updated_at"])
         self.application.status = MembershipApplication.Status.PAYMENT_APPROVED
         self.application.save(update_fields=["status", "updated_at"])
-        return Member.objects.create_from_application(self.application)
+        return self.application
 
 
 class MemberManager(models.Manager):
+    def create_pending_from_application(self, application):
+        member, created = self.get_or_create(
+            application=application,
+            defaults={
+                "user": application.applicant,
+                "membership_number": self.next_membership_number(),
+                "membership_since": timezone.localdate(),
+                "valid_till": timezone.localdate() + timedelta(days=365),
+                "category": "Regular",
+                "is_active": False,
+            },
+        )
+        if not member.qr_code:
+            member.qr_code.save(
+                f"{member.membership_number}.png",
+                make_qr_file(member.verification_payload, f"{member.membership_number}.png"),
+                save=False,
+            )
+            member.save(update_fields=["qr_code", "updated_at"])
+        if not created and member.is_active:
+            return member
+        return member
+
     def create_from_application(self, application):
         member, created = self.get_or_create(
             application=application,
@@ -127,18 +154,21 @@ class MemberManager(models.Manager):
                 "category": "Regular",
             },
         )
-        if created:
+        if not member.qr_code:
             member.qr_code.save(
                 f"{member.membership_number}.png",
                 make_qr_file(member.verification_payload, f"{member.membership_number}.png"),
                 save=False,
             )
-            member.save()
-            application.status = MembershipApplication.Status.MEMBER_ACTIVE
-            application.save(update_fields=["status", "updated_at"])
-            profile = application.applicant.profile
-            profile.role = "MEMBER"
-            profile.save(update_fields=["role"])
+        member.is_active = True
+        member.membership_since = timezone.localdate()
+        member.valid_till = timezone.localdate() + timedelta(days=365)
+        member.save(update_fields=["qr_code", "is_active", "membership_since", "valid_till", "updated_at"])
+        application.status = MembershipApplication.Status.MEMBER_ACTIVE
+        application.save(update_fields=["status", "updated_at"])
+        profile = application.applicant.profile
+        profile.role = "MEMBER"
+        profile.save(update_fields=["role"])
         return member
 
     def next_membership_number(self):
@@ -173,13 +203,127 @@ class Member(TimeStampedModel):
 
 
 class Notification(TimeStampedModel):
+    class Channel(models.TextChoices):
+        IN_APP = "IN_APP", "In-app"
+        EMAIL = "EMAIL", "Email"
+        WHATSAPP = "WHATSAPP", "WhatsApp"
+        EMAIL_WHATSAPP = "EMAIL_WHATSAPP", "Email + WhatsApp"
+
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
     title = models.CharField(max_length=160)
     message = models.TextField()
+    channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.IN_APP)
     read_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.title
+
+
+def notify_staff(title, message):
+    staff_users = User.objects.filter(is_staff=True, is_active=True)
+    Notification.objects.bulk_create(
+        [Notification(recipient=user, title=title, message=message) for user in staff_users]
+    )
+
+
+class BroadcastMessage(TimeStampedModel):
+    class Audience(models.TextChoices):
+        ALL_MEMBERS = "ALL_MEMBERS", "All Members"
+        DISTRICT = "DISTRICT", "District-wise"
+        INDIVIDUAL = "INDIVIDUAL", "Individual Member"
+        PENDING_APPLICANTS = "PENDING_APPLICANTS", "Pending Applicants"
+
+    class Channel(models.TextChoices):
+        IN_APP = "IN_APP", "In-app"
+        EMAIL = "EMAIL", "Email"
+        WHATSAPP = "WHATSAPP", "WhatsApp"
+        EMAIL_WHATSAPP = "EMAIL_WHATSAPP", "Email + WhatsApp"
+
+    title = models.CharField(max_length=160)
+    message = models.TextField()
+    audience = models.CharField(max_length=30, choices=Audience.choices)
+    channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.IN_APP)
+    district = models.CharField(max_length=100, blank=True)
+    recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="sent_broadcasts")
+    sent_at = models.DateTimeField(null=True, blank=True)
+    sent_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        errors = {}
+        if self.audience == self.Audience.DISTRICT and not self.district:
+            errors["district"] = "District is required for district-wise broadcasts."
+        if self.audience == self.Audience.INDIVIDUAL and not self.recipient:
+            errors["recipient"] = "Recipient is required for individual broadcasts."
+        if errors:
+            raise ValidationError(errors)
+
+    def recipients(self):
+        if self.audience == self.Audience.ALL_MEMBERS:
+            return User.objects.filter(member_record__is_active=True, is_active=True)
+        if self.audience == self.Audience.DISTRICT:
+            return User.objects.filter(
+                member_record__is_active=True,
+                member_record__application__district__iexact=self.district,
+                is_active=True,
+            )
+        if self.audience == self.Audience.INDIVIDUAL and self.recipient:
+            return User.objects.filter(pk=self.recipient_id, is_active=True)
+        if self.audience == self.Audience.PENDING_APPLICANTS:
+            return User.objects.filter(
+                applications__status__in=[
+                    MembershipApplication.Status.SUBMITTED,
+                    MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+                    MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+                    MembershipApplication.Status.PAYMENT_SUBMITTED,
+                ],
+                is_active=True,
+            ).distinct()
+        return User.objects.none()
+
+    def send(self, actor=None):
+        users = list(self.recipients())
+        broadcast_body = f"{self.title}\n\n{self.message}"
+        Notification.objects.bulk_create(
+            [
+                Notification(
+                    recipient=user,
+                    title=self.title,
+                    message=self.message,
+                    channel=self.channel,
+                )
+                for user in users
+            ]
+        )
+        if self.channel in [self.Channel.EMAIL, self.Channel.EMAIL_WHATSAPP]:
+            for user in users:
+                if user.email:
+                    send_mail(
+                        subject=f"{settings.ASSOCIATION_NAME} - {self.title}",
+                        message=self.message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=True,
+                    )
+        if self.channel in [self.Channel.WHATSAPP, self.Channel.EMAIL_WHATSAPP]:
+            for user in users:
+                mobile_number = ""
+                if hasattr(user, "profile"):
+                    mobile_number = user.profile.mobile_number
+                if not mobile_number and hasattr(user, "member_record"):
+                    mobile_number = user.member_record.application.mobile_number
+                if not mobile_number:
+                    latest_application = user.applications.order_by("-created_at").first()
+                    mobile_number = latest_application.mobile_number if latest_application else ""
+                send_whatsapp_message(mobile_number, broadcast_body)
+        self.sent_by = actor
+        self.sent_at = timezone.now()
+        self.sent_count = len(users)
+        self.save(update_fields=["sent_by", "sent_at", "sent_count", "updated_at"])
+        return self.sent_count
 
 
 class AuditLog(TimeStampedModel):

@@ -12,6 +12,10 @@
   <article><strong>{{ stats.active_members }}</strong><span>Active Members</span></article>
   <article><strong>{{ stats.pending_applications }}</strong><span>Pending Applications</span></article>
   <article><strong>{{ stats.pending_payments }}</strong><span>Pending Payments</span></article>
+  <article><strong>{{ stats.expired_members }}</strong><span>Expired Members</span></article>
+  <article><strong>{{ stats.renewals_due }}</strong><span>Renewals Due</span></article>
+  <article><strong>Rs. {{ stats.payment_collection }}</strong><span>Payment Collection</span></article>
+  <article><strong>{{ stats.pending_kyc }}</strong><span>Pending KYC</span></article>
 </section>
 <section class="grid two">
   <article class="panel">
@@ -30,5 +34,20 @@
       {% endfor %}
     </ul>
   </article>
+</section>
+<section class="panel">
+  <h2>Exports</h2>
+  <div class="report-actions">
+    <a class="button" href="{% url 'export_report' 'district-wise-members' 'excel' %}">District-wise Excel</a>
+    <a class="button" href="{% url 'export_report' 'district-wise-members' 'pdf' %}">District-wise PDF</a>
+    <a class="button" href="{% url 'export_report' 'license-type-members' 'excel' %}">License Type Excel</a>
+    <a class="button" href="{% url 'export_report' 'license-type-members' 'pdf' %}">License Type PDF</a>
+    <a class="button" href="{% url 'export_report' 'payment-collection' 'excel' %}">Payment Collection Excel</a>
+    <a class="button" href="{% url 'export_report' 'payment-collection' 'pdf' %}">Payment Collection PDF</a>
+    <a class="button" href="{% url 'export_report' 'pending-payments' 'excel' %}">Pending Payments Excel</a>
+    <a class="button" href="{% url 'export_report' 'pending-kyc' 'excel' %}">Pending KYC Excel</a>
+    <a class="button" href="{% url 'export_report' 'renewal-report' 'excel' %}">Renewal Report Excel</a>
+    <a class="button" href="{% url 'export_report' 'gst-report' 'excel' %}">GST Report Excel</a>
+  </div>
 </section>
 {% endblock %}

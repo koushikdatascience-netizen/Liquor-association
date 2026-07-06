@@ -53,6 +53,10 @@ docker compose exec web python manage.py createsuperuser
 - Use HTTPS at the reverse proxy/load balancer.
 - Restrict Django Admin access to staff accounts only.
 
+## Deployment
+
+Render deployment and GitHub Actions CI/CD are documented in [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Suggested One-Week Build Plan
 
 - Day 1: Confirm fields, status flow, and deploy Docker/Postgres.

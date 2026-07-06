@@ -2,7 +2,7 @@
 {% block title %}Application Form - {{ ASSOCIATION_NAME }}{% endblock %}
 {% block content %}
 <section class="panel">
-  <h1>Membership Application Form</h1>
+  <h1>{% if is_update %}Update Documents{% else %}Membership Application Form{% endif %}</h1>
   <form method="post" enctype="multipart/form-data" class="form-grid columns">
     {% csrf_token %}
     {{ form.as_p }}

@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Liquor Association Admin{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div class="admin-brand">
+  <div class="admin-brand__mark" aria-hidden="true">LA</div>
+  <div>
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">Liquor Association</a></h1>
+    <p>Membership Operations Dashboard</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block nav-global %}
+<a class="admin-portal-link" href="{% url 'home' %}">Member Portal</a>
+{% endblock %}

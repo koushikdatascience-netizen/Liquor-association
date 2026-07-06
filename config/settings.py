@@ -13,7 +13,19 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="unsafe-dev-secret-key")
 DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+RENDER_EXTERNAL_HOSTNAME = env("RENDER_EXTERNAL_HOSTNAME", default="")
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+if ".onrender.com" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(".onrender.com")
+
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["http://localhost:8000"])
+if RENDER_EXTERNAL_HOSTNAME:
+    render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+    if render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_origin)
+if "https://*.onrender.com" not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append("https://*.onrender.com")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -98,7 +110,38 @@ PAYMENT_BANK_NAME = env("PAYMENT_BANK_NAME", default="")
 PAYMENT_ACCOUNT_NAME = env("PAYMENT_ACCOUNT_NAME", default="")
 PAYMENT_ACCOUNT_NUMBER = env("PAYMENT_ACCOUNT_NUMBER", default="")
 PAYMENT_IFSC = env("PAYMENT_IFSC", default="")
-SITE_URL = env("SITE_URL", default="http://localhost:8000").rstrip("/")
+SITE_URL = env(
+    "SITE_URL",
+    default=f"https://{RENDER_EXTERNAL_HOSTNAME}" if RENDER_EXTERNAL_HOSTNAME else "http://localhost:8000",
+).rstrip("/")
+
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default=env("SMTP_HOST", default="smtp.gmail.com"))
+EMAIL_PORT = env.int("EMAIL_PORT", default=env.int("SMTP_PORT", default=587))
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=env.bool("SMTP_USE_SSL", default=False))
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=not EMAIL_USE_SSL)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=env("SMTP_USERNAME", default=""))
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=env("SMTP_PASSWORD", default=""))
+SMTP_FROM_EMAIL = env("SMTP_FROM_EMAIL", default="")
+SMTP_FROM_NAME = env("SMTP_FROM_NAME", default="")
+SMTP_DEFAULT_FROM_EMAIL = (
+    f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>" if SMTP_FROM_EMAIL and SMTP_FROM_NAME else SMTP_FROM_EMAIL
+)
+DEFAULT_FROM_EMAIL = env(
+    "DEFAULT_FROM_EMAIL",
+    default=SMTP_DEFAULT_FROM_EMAIL or EMAIL_HOST_USER or "noreply@example.com",
+)
+SMTP_ADMIN_RECIPIENTS = env.list("SMTP_ADMIN_RECIPIENTS", default=[])
+
+OTP_EXPIRY_MINUTES = env.int("OTP_EXPIRY_MINUTES", default=10)
+OTP_LENGTH = env.int("OTP_LENGTH", default=6)
+WHATSAPP_OTP_ENABLED = env.bool("WHATSAPP_OTP_ENABLED", default=False)
+WHATSAPP_OTP_API_URL = env("WHATSAPP_OTP_API_URL", default="")
+WHATSAPP_OTP_TOKEN = env("WHATSAPP_OTP_TOKEN", default="")
+WHATSAPP_OTP_FROM = env("WHATSAPP_OTP_FROM", default="")
+WHATSAPP_API_URL = env("WHATSAPP_API_URL", default=WHATSAPP_OTP_API_URL)
+WHATSAPP_API_TOKEN = env("WHATSAPP_API_TOKEN", default=WHATSAPP_OTP_TOKEN)
+WHATSAPP_FROM = env("WHATSAPP_FROM", default=WHATSAPP_OTP_FROM)
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_HTTPONLY = True

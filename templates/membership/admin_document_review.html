@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Review {{ label }} - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block content %}
+<section class="document-review">
+  <div class="document-review__header">
+    <div>
+      <p class="eyebrow">Admin Document Review</p>
+      <h1>{{ label }}</h1>
+      <p class="muted">{{ owner }}</p>
+    </div>
+    <div class="document-review__actions">
+      <a class="button" href="{{ back_url }}">Back</a>
+      <a class="button primary" href="{{ file.url }}" download>Download</a>
+      <a class="button" href="{{ file.url }}" target="_blank">Open in New Tab</a>
+    </div>
+  </div>
+
+  <div class="document-review__stage">
+    {% if is_image %}
+      <img src="{{ file.url }}" alt="{{ label }}">
+    {% elif is_pdf %}
+      <iframe src="{{ file.url }}" title="{{ label }}"></iframe>
+    {% else %}
+      <div class="document-review__fallback">
+        <h2>Preview unavailable</h2>
+        <p>This file type may not preview in the browser. Use Download or Open in New Tab.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
