@@ -8,8 +8,58 @@
     <p class="subtitle">Submitted {{ application.created_at|date:"d M Y" }} - <span class="badge {% if application.status == 'REJECTED' %}rejected{% elif application.status == 'APPROVED_PENDING_PAYMENT' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}approved{% elif application.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}" style="margin-left:8px;">{{ application.get_status_display }}</span></p>
   </div>
   <div class="page-actions">
+    <button class="btn" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
     {% if member %}<a class="btn" href="{% url 'staff_member_detail' member.id %}"><i class="bi bi-person-badge"></i> Member</a>{% endif %}
-    <a class="btn" href="{% url 'export_report' 'pending-kyc' 'excel' %}"><i class="bi bi-download"></i> Download</a>
+    <a class="btn" href="{% url 'staff_applications' %}"><i class="bi bi-arrow-left"></i> Back</a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <div class="card__head">
+    <div>
+      <div class="card__title">Admin Workflow</div>
+      <div class="card__sub">
+        {% if application.status == 'SUBMITTED' %}Review uploaded documents and approve, reject, or ask for updated documents.
+        {% elif application.status == 'ADDITIONAL_DOCUMENTS' %}Updated documents have been requested. Wait for the applicant to resubmit, or review resubmitted documents if available.
+        {% elif application.status == 'APPROVED_PENDING_PAYMENT' %}Documents are approved. Applicant must now upload payment proof.
+        {% elif application.status == 'PAYMENT_SUBMITTED' %}Payment proof has been submitted. Verify the payment details.
+        {% elif application.status == 'PAYMENT_APPROVED' %}Payment is approved. Generate/activate the membership.
+        {% elif application.status == 'MEMBER_ACTIVE' %}Membership is active.
+        {% elif application.status == 'REJECTED' %}Application is rejected.
+        {% else %}Current status: {{ application.get_status_display }}{% endif %}
+      </div>
+    </div>
+    <span class="badge {% if application.status == 'REJECTED' %}rejected{% elif application.status == 'MEMBER_ACTIVE' or application.status == 'PAYMENT_APPROVED' or application.status == 'APPROVED_PENDING_PAYMENT' %}approved{% elif application.status == 'PAYMENT_SUBMITTED' or application.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ application.get_status_display }}</span>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    {% if application.status == 'SUBMITTED' or application.status == 'ADDITIONAL_DOCUMENTS' %}
+      <form method="post" action="{% url 'staff_application_action' application.id %}" style="display:flex;gap:10px;flex-wrap:wrap;width:100%;">
+        {% csrf_token %}
+        <input type="hidden" name="remarks" value="{{ application.remarks }}">
+        <button class="btn" name="action" value="request_documents" type="submit"><i class="bi bi-envelope"></i> Request Updated Documents</button>
+        <button class="btn danger" name="action" value="reject_documents" type="submit"><i class="bi bi-x-lg"></i> Reject Application</button>
+        <button class="btn primary" name="action" value="approve_documents" type="submit"><i class="bi bi-check-lg"></i> Approve Documents & Ask Payment</button>
+      </form>
+    {% elif application.status == 'APPROVED_PENDING_PAYMENT' %}
+      <span class="badge payment-pending"><i class="bi bi-hourglass-split"></i> Waiting for applicant payment proof</span>
+      {% if payment %}<a class="btn primary" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-receipt"></i> View Payment</a>{% endif %}
+    {% elif application.status == 'PAYMENT_SUBMITTED' %}
+      {% if payment %}
+        <a class="btn primary" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-shield-check"></i> Verify Payment Details</a>
+      {% else %}
+        <span class="badge payment-pending">Payment status submitted, but no proof record found</span>
+      {% endif %}
+    {% elif application.status == 'PAYMENT_APPROVED' %}
+      <form method="post" action="{% url 'staff_application_action' application.id %}">
+        {% csrf_token %}
+        <button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate / Activate Membership</button>
+      </form>
+    {% elif application.status == 'MEMBER_ACTIVE' %}
+      {% if member %}<a class="btn primary" href="{% url 'staff_member_detail' member.id %}"><i class="bi bi-person-badge"></i> Open Active Member</a>{% endif %}
+    {% elif application.status == 'REJECTED' %}
+      <span class="badge rejected"><i class="bi bi-x-circle"></i> Rejected - no pending admin action</span>
+    {% endif %}
   </div>
 </div>
 
@@ -51,8 +101,8 @@
     <div class="card__head"><div class="card__title">Remarks</div></div>
     <form method="post" action="{% url 'staff_application_action' application.id %}">
       {% csrf_token %}
-      <textarea class="textarea" name="remarks" placeholder="Add internal remarks visible to admins only...">{{ application.remarks }}</textarea>
-      <button class="btn primary sm" name="action" value="request_documents" type="submit" style="margin-top:12px;"><i class="bi bi-plus-lg"></i> Add remark</button>
+      <textarea class="textarea" name="remarks" placeholder="Add internal/admin remarks...">{{ application.remarks }}</textarea>
+      <button class="btn primary sm" name="action" value="save_remarks" type="submit" style="margin-top:12px;"><i class="bi bi-plus-lg"></i> Save Remark</button>
     </form>
   </div>
 </div>
@@ -61,17 +111,25 @@
   <div class="card__head"><div><div class="card__title">Documents</div><div class="card__sub">{{ documents|length }} files uploaded</div></div><a class="btn sm" href="{% url 'staff_applications' %}"><i class="bi bi-arrow-left"></i> Back</a></div>
   <div class="grid cols-4">
     {% for doc in documents %}
-    <div class="doc-card"><div class="thumb">{% if doc.file and doc.is_image %}<img src="{{ doc.file.url }}" alt="{{ doc.label }}" style="width:100%;height:100%;object-fit:cover;">{% else %}<i class="bi {% if doc.file %}bi-file-earmark-pdf{% else %}bi-file-earmark-x{% endif %}"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.file %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.file %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
+    <div class="doc-card"><div class="thumb">{% if doc.file and doc.is_image %}<img src="{{ doc.file.url }}" alt="{{ doc.label }}" style="width:100%;height:100%;object-fit:cover;">{% else %}<i class="bi {% if doc.file %}bi-file-earmark-pdf{% else %}bi-file-earmark-x{% endif %}"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.file %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.file %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}" title="View {{ doc.label }}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
     {% endfor %}
   </div>
 </div>
 
+{% if payment %}
+<div class="card" style="margin-top:20px;">
+  <div class="card__head"><div><div class="card__title">Payment Status</div><div class="card__sub">UTR {{ payment.utr_number }} - {{ payment.get_status_display }}</div></div><a class="btn primary sm" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-shield-check"></i> Open Payment Verification</a></div>
+  <dl class="kv"><dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd><dt>Bank/Method</dt><dd>{{ payment.bank_name }}</dd><dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd><dt>Remarks</dt><dd>{{ payment.remarks|default:"No remarks" }}</dd></dl>
+</div>
+{% endif %}
+
+{% if application.status == 'SUBMITTED' or application.status == 'ADDITIONAL_DOCUMENTS' %}
 <form class="action-bar" method="post" action="{% url 'staff_application_action' application.id %}">
   {% csrf_token %}
   <input type="hidden" name="remarks" value="{{ application.remarks }}">
   <button class="btn" name="action" value="request_documents" type="submit"><i class="bi bi-envelope"></i> Request Documents</button>
   <button class="btn danger" name="action" value="reject_documents" type="submit"><i class="bi bi-x-lg"></i> Reject</button>
   <button class="btn primary" name="action" value="approve_documents" type="submit"><i class="bi bi-check-lg"></i> Approve Application</button>
-  <button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate Membership</button>
 </form>
+{% endif %}
 {% endblock %}

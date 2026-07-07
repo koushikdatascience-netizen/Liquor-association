@@ -3,8 +3,27 @@
 {% block page_title %}Payment Verification{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Payment Verification</h1><p class="subtitle">Reconcile UPI &amp; bank transfers with member payments.</p></div>
-  <div class="page-actions"><a class="btn" href="{% url 'staff_payments' %}"><i class="bi bi-arrow-left"></i> Back</a><a class="btn primary" href="{% url 'admin_document_review' 'payment' payment.id 'screenshot' %}"><i class="bi bi-arrows-fullscreen"></i> Open Proof</a></div>
+  <div><h1>Payment Verification</h1><p class="subtitle">#APP-{{ application.id|stringformat:"04d" }} - {{ application.full_name }} - <span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></p></div>
+  <div class="page-actions"><a class="btn" href="{% url 'staff_application_detail' application.id %}"><i class="bi bi-file-text"></i> Application</a><a class="btn" href="{% url 'staff_payments' %}"><i class="bi bi-arrow-left"></i> Back</a>{% if payment.screenshot %}<a class="btn primary" href="{% url 'admin_document_review' 'payment' payment.id 'screenshot' %}"><i class="bi bi-arrows-fullscreen"></i> Open Proof</a>{% endif %}</div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <div class="card__head"><div><div class="card__title">Current Admin Action</div><div class="card__sub">
+    {% if payment.status == 'PENDING' %}Verify the uploaded payment proof, UTR and bank details.
+    {% elif payment.status == 'APPROVED' %}Payment is already approved. Membership should be active.
+    {% elif payment.status == 'REJECTED' %}Payment was rejected. Applicant can upload new proof from their dashboard.
+    {% elif payment.status == 'REUPLOAD_REQUESTED' %}Re-upload has been requested. Wait for applicant to submit corrected proof.
+    {% endif %}
+  </div></div></div>
+  {% if payment.status == 'PENDING' %}
+  <form method="post" action="{% url 'staff_payment_action' payment.id %}">
+    {% csrf_token %}
+    <textarea class="textarea" name="remarks" placeholder="Add payment verification remarks...">{{ payment.remarks }}</textarea>
+    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;"><button class="btn" name="action" value="request_reupload" type="submit"><i class="bi bi-envelope"></i> Request Re-upload</button><button class="btn danger" name="action" value="reject_payment" type="submit"><i class="bi bi-x"></i> Reject Payment</button><button class="btn primary" name="action" value="approve_payment" type="submit"><i class="bi bi-check2"></i> Approve Payment & Activate Membership</button></div>
+  </form>
+  {% else %}
+    <dl class="kv"><dt>Admin remarks</dt><dd>{{ payment.remarks|default:"No remarks" }}</dd><dt>Verified by</dt><dd>{{ payment.verified_by|default:"Not verified" }}</dd><dt>Verified at</dt><dd>{{ payment.verified_at|date:"d M Y, H:i"|default:"-" }}</dd>{% if member %}<dt>Membership</dt><dd><a href="{% url 'staff_member_detail' member.id %}">{{ member.membership_number }}</a></dd>{% endif %}</dl>
+  {% endif %}
 </div>
 
 <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;" class="admin-two-col">
@@ -17,12 +36,7 @@
 
   <div class="card">
     <div class="card__head"><div><div class="card__title">Payment Details</div><div class="card__sub">{{ application.full_name }} - {{ payment.utr_number }}</div></div></div>
-    <dl class="kv" style="margin-top:18px;"><dt>Member</dt><dd>{{ application.full_name }}</dd><dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd><dt>Method</dt><dd>{{ payment.bank_name }}</dd><dt>UTR</dt><dd>{{ payment.utr_number }}</dd><dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd></dl>
-    <form method="post" action="{% url 'staff_payment_action' payment.id %}" style="margin-top:18px;">
-      {% csrf_token %}
-      <textarea class="textarea" name="remarks" placeholder="Add payment remarks...">{{ payment.remarks }}</textarea>
-      <div style="display:flex;gap:8px;margin-top:18px;"><button class="btn" name="action" value="request_reupload" type="submit" style="flex:1;"><i class="bi bi-envelope"></i> Re-upload</button><button class="btn danger" name="action" value="reject_payment" type="submit" style="flex:1;"><i class="bi bi-x"></i> Reject</button><button class="btn primary" name="action" value="approve_payment" type="submit" style="flex:1;"><i class="bi bi-check2"></i> Approve</button></div>
-    </form>
+    <dl class="kv" style="margin-top:18px;"><dt>Member</dt><dd>{{ application.full_name }}</dd><dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd><dt>Method/Bank</dt><dd>{{ payment.bank_name }}</dd><dt>UTR</dt><dd>{{ payment.utr_number }}</dd><dt>Payment Date</dt><dd>{{ payment.payment_date|date:"d M Y" }}</dd><dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd><dt>Application Status</dt><dd>{{ application.get_status_display }}</dd></dl>
   </div>
 </div>
 {% endblock %}

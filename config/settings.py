@@ -91,29 +91,29 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Upload storage
-# Local media is used by default for development.
-# Set USE_CLOUDINARY=True and add Cloudinary env values on Render to store uploaded
-# documents, images, and payment proofs in Cloudinary instead of the Render filesystem.
 USE_CLOUDINARY = env.bool("USE_CLOUDINARY", default=False)
+
 if USE_CLOUDINARY:
     CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": env("CLOUDINARY_CLOUD_NAME"),
-        "API_KEY": env("CLOUDINARY_API_KEY"),
-        "API_SECRET": env("CLOUDINARY_API_SECRET"),
+        "CLOUD_NAME": env("CLOUDINARY_CLOUD_NAME", default=""),
+        "API_KEY": env("CLOUDINARY_API_KEY", default=""),
+        "API_SECRET": env("CLOUDINARY_API_SECRET", default=""),
         "SECURE": True,
     }
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
     STORAGES = {
         "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    }
+else:
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
 

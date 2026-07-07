@@ -577,7 +577,12 @@ def staff_application_action(request, pk):
     action = request.POST.get("action")
     remarks = request.POST.get("remarks", "").strip()
 
-    if action == "approve_documents":
+    if action == "save_remarks":
+        application.remarks = remarks
+        application.save(update_fields=["remarks", "updated_at"])
+        AuditLog.objects.create(actor=request.user, action="Remark saved", target=str(application), notes=remarks)
+        messages.success(request, "Remark saved without changing application status.")
+    elif action == "approve_documents":
         remarks = remarks or "Documents verified successfully."
         application.approve_application(remarks)
         notify_member(
@@ -676,14 +681,15 @@ def staff_payment_action(request, pk):
             payment.remarks = remarks
             payment.save(update_fields=["remarks", "updated_at"])
             payment.approve(request.user)
+            member = Member.objects.create_from_application(payment.application)
             notify_member(
                 payment.application.applicant,
-                title="Payment approved",
-                message="Your payment has been approved. Final membership generation is pending.",
+                title="Membership activated",
+                message=f"Your payment has been approved and membership is active. Membership number: {member.membership_number}.",
                 remarks=remarks,
             )
-            AuditLog.objects.create(actor=request.user, action="Payment approved", target=payment.utr_number, notes=remarks)
-            messages.success(request, "Payment approved. Final membership can now be generated.")
+            AuditLog.objects.create(actor=request.user, action="Payment approved and membership activated", target=payment.utr_number, notes=remarks)
+            messages.success(request, f"Payment approved and membership activated: {member.membership_number}.")
     elif action == "reject_payment":
         remarks = remarks or "Payment proof could not be verified with the submitted details."
         payment.status = PaymentProof.Status.REJECTED

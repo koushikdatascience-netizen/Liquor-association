@@ -26,6 +26,14 @@ services:
         value: "5000.00"
       - key: ACCOUNT_REQUIRE_OTP_VERIFICATION
         value: "False"
+      - key: USE_CLOUDINARY
+        value: "True"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       - key: DJANGO_ADMIN_USERNAME
         value: admin
       - key: DJANGO_ADMIN_EMAIL
@@ -41,14 +49,6 @@ services:
       - key: PAYMENT_ACCOUNT_NUMBER
         sync: false
       - key: PAYMENT_IFSC
-        sync: false
-      - key: USE_CLOUDINARY
-        value: "True"
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
         sync: false
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
