@@ -15,6 +15,7 @@ from reportlab.pdfgen import canvas
 
 from .forms import MembershipApplicationForm, PaymentProofForm
 from .models import AuditLog, BroadcastMessage, Member, MembershipApplication, PaymentProof, notify_staff
+from .services import notify_member
 
 
 def home(request):
@@ -412,6 +413,146 @@ def staff_applications(request):
     )
 
 
+def application_documents(application):
+    documents = [
+        {"key": "passport_photo", "label": "Passport Photo", "file": application.passport_photo, "required": True},
+        {"key": "aadhaar_card", "label": "Aadhaar Card", "file": application.aadhaar_card, "required": True},
+        {"key": "pan_card", "label": "PAN Card", "file": application.pan_card, "required": True},
+        {"key": "excise_license", "label": "Excise License", "file": application.excise_license, "required": True},
+        {"key": "trade_license", "label": "Trade License", "file": application.trade_license, "required": True},
+        {"key": "gst_certificate", "label": "GST Certificate", "file": application.gst_certificate, "required": False},
+        {"key": "address_proof", "label": "Address Proof", "file": application.address_proof, "required": True},
+        {"key": "signature", "label": "Signature", "file": application.signature, "required": True},
+    ]
+    for document in documents:
+        file = document["file"]
+        document["is_image"] = bool(file and file.name.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")))
+    return documents
+
+
+def staff_application_status_context(application):
+    return [
+        {
+            "label": "Application Submitted",
+            "done": application.status
+            in [
+                MembershipApplication.Status.SUBMITTED,
+                MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+                MembershipApplication.Status.PAYMENT_SUBMITTED,
+                MembershipApplication.Status.PAYMENT_APPROVED,
+                MembershipApplication.Status.MEMBER_ACTIVE,
+                MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+                MembershipApplication.Status.REJECTED,
+            ],
+        },
+        {
+            "label": "Documents Verified",
+            "done": application.status
+            in [
+                MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+                MembershipApplication.Status.PAYMENT_SUBMITTED,
+                MembershipApplication.Status.PAYMENT_APPROVED,
+                MembershipApplication.Status.MEMBER_ACTIVE,
+            ],
+        },
+        {
+            "label": "Payment Submitted",
+            "done": application.status
+            in [
+                MembershipApplication.Status.PAYMENT_SUBMITTED,
+                MembershipApplication.Status.PAYMENT_APPROVED,
+                MembershipApplication.Status.MEMBER_ACTIVE,
+            ],
+        },
+        {
+            "label": "Membership Active",
+            "done": application.status == MembershipApplication.Status.MEMBER_ACTIVE,
+        },
+    ]
+
+
+@staff_member_required
+def staff_application_detail(request, pk):
+    application = get_object_or_404(MembershipApplication.objects.select_related("applicant"), pk=pk)
+    payment = PaymentProof.objects.filter(application=application).first()
+    member = Member.objects.filter(application=application).first()
+    return render(
+        request,
+        "admin_portal/application_detail.html",
+        {
+            "active_page": "applications",
+            "application": application,
+            "documents": application_documents(application),
+            "payment": payment,
+            "member": member,
+            "status_steps": staff_application_status_context(application),
+            "recent_logs": AuditLog.objects.filter(target__icontains=application.full_name).select_related("actor").order_by("-created_at")[:6],
+        },
+    )
+
+
+@staff_member_required
+def staff_application_action(request, pk):
+    if request.method != "POST":
+        return redirect("staff_application_detail", pk=pk)
+
+    application = get_object_or_404(MembershipApplication.objects.select_related("applicant"), pk=pk)
+    action = request.POST.get("action")
+    remarks = request.POST.get("remarks", "").strip()
+
+    if action == "approve_documents":
+        remarks = remarks or "Documents verified successfully."
+        application.approve_application(remarks)
+        notify_member(
+            application.applicant,
+            title="Documents verified",
+            message="Your documents have been verified. Payment details are now available on your dashboard.",
+            remarks=remarks,
+        )
+        AuditLog.objects.create(actor=request.user, action="Documents verified", target=str(application), notes=remarks)
+        messages.success(request, "Documents approved and payment stage unlocked.")
+    elif action == "request_documents":
+        remarks = remarks or "Please upload clearer or missing documents."
+        application.status = MembershipApplication.Status.ADDITIONAL_DOCUMENTS
+        application.remarks = remarks
+        application.save(update_fields=["status", "remarks", "updated_at"])
+        notify_member(
+            application.applicant,
+            title="Additional documents requested",
+            message="Additional documents are required for your membership application.",
+            remarks=remarks,
+        )
+        AuditLog.objects.create(actor=request.user, action="Additional documents requested", target=str(application), notes=remarks)
+        messages.warning(request, "Additional documents requested from applicant.")
+    elif action == "reject_documents":
+        remarks = remarks or "Documents did not meet verification requirements."
+        application.reject_application(remarks)
+        notify_member(
+            application.applicant,
+            title="Documents rejected",
+            message="Your submitted documents could not be verified. Please review the remarks and contact the association office if needed.",
+            remarks=remarks,
+        )
+        AuditLog.objects.create(actor=request.user, action="Documents rejected", target=str(application), notes=remarks)
+        messages.warning(request, "Application rejected and applicant notified.")
+    elif action == "generate_membership":
+        if application.status != MembershipApplication.Status.PAYMENT_APPROVED:
+            messages.error(request, "Payment must be approved before generating final membership.")
+        else:
+            member = Member.objects.create_from_application(application)
+            notify_member(
+                application.applicant,
+                title="Membership activated",
+                message=f"Your membership has been activated successfully. Membership number: {member.membership_number}.",
+            )
+            AuditLog.objects.create(actor=request.user, action="Membership generated", target=member.membership_number)
+            messages.success(request, f"Membership generated: {member.membership_number}.")
+    else:
+        messages.error(request, "Unknown application action.")
+
+    return redirect("staff_application_detail", pk=application.pk)
+
+
 @staff_member_required
 def staff_payments(request):
     return render(
@@ -422,6 +563,90 @@ def staff_payments(request):
             "payments": PaymentProof.objects.select_related("application").order_by("-created_at")[:50],
         },
     )
+
+
+@staff_member_required
+def staff_payment_detail(request, pk):
+    payment = get_object_or_404(PaymentProof.objects.select_related("application", "application__applicant"), pk=pk)
+    application = payment.application
+    member = Member.objects.filter(application=application).first()
+    return render(
+        request,
+        "admin_portal/payment_detail.html",
+        {
+            "active_page": "payments",
+            "payment": payment,
+            "application": application,
+            "member": member,
+            "recent_logs": AuditLog.objects.filter(target__icontains=payment.utr_number).select_related("actor").order_by("-created_at")[:6],
+        },
+    )
+
+
+@staff_member_required
+def staff_payment_action(request, pk):
+    if request.method != "POST":
+        return redirect("staff_payment_detail", pk=pk)
+
+    payment = get_object_or_404(PaymentProof.objects.select_related("application", "application__applicant"), pk=pk)
+    action = request.POST.get("action")
+    remarks = request.POST.get("remarks", "").strip()
+
+    if action == "approve_payment":
+        if payment.status == PaymentProof.Status.APPROVED:
+            messages.info(request, "This payment is already approved.")
+        else:
+            payment.remarks = remarks
+            payment.save(update_fields=["remarks", "updated_at"])
+            payment.approve(request.user)
+            notify_member(
+                payment.application.applicant,
+                title="Payment approved",
+                message="Your payment has been approved. Final membership generation is pending.",
+                remarks=remarks,
+            )
+            AuditLog.objects.create(actor=request.user, action="Payment approved", target=payment.utr_number, notes=remarks)
+            messages.success(request, "Payment approved. Final membership can now be generated.")
+    elif action == "reject_payment":
+        remarks = remarks or "Payment proof could not be verified with the submitted details."
+        payment.status = PaymentProof.Status.REJECTED
+        payment.remarks = remarks
+        payment.verified_by = request.user
+        payment.verified_at = timezone.now()
+        payment.save(update_fields=["status", "remarks", "verified_by", "verified_at", "updated_at"])
+        payment.application.status = MembershipApplication.Status.APPROVED_PENDING_PAYMENT
+        payment.application.remarks = remarks
+        payment.application.save(update_fields=["status", "remarks", "updated_at"])
+        notify_member(
+            payment.application.applicant,
+            title="Payment failed verification",
+            message="Your payment proof could not be verified. Please review the remarks and submit correct payment details again.",
+            remarks=remarks,
+        )
+        AuditLog.objects.create(actor=request.user, action="Payment rejected", target=payment.utr_number, notes=remarks)
+        messages.warning(request, "Payment rejected and applicant notified.")
+    elif action == "request_reupload":
+        remarks = remarks or "Please upload a clearer screenshot or correct UTR/payment details."
+        payment.status = PaymentProof.Status.REUPLOAD_REQUESTED
+        payment.remarks = remarks
+        payment.verified_by = request.user
+        payment.verified_at = timezone.now()
+        payment.save(update_fields=["status", "remarks", "verified_by", "verified_at", "updated_at"])
+        payment.application.status = MembershipApplication.Status.PAYMENT_SUBMITTED
+        payment.application.remarks = remarks
+        payment.application.save(update_fields=["status", "remarks", "updated_at"])
+        notify_member(
+            payment.application.applicant,
+            title="Payment re-upload requested",
+            message="Your payment proof requires re-upload before verification can be completed.",
+            remarks=remarks,
+        )
+        AuditLog.objects.create(actor=request.user, action="Payment re-upload requested", target=payment.utr_number, notes=remarks)
+        messages.warning(request, "Payment re-upload requested.")
+    else:
+        messages.error(request, "Unknown payment action.")
+
+    return redirect("staff_payment_detail", pk=payment.pk)
 
 
 @staff_member_required

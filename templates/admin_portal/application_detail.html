@@ -1,0 +1,146 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Application Review - Liquor Society Admin{% endblock %}
+{% block page_title %}Application Review{% endblock %}
+{% block content %}
+<div class="detail-hero">
+  <div class="detail-hero__main">
+    <a class="back-link" href="{% url 'staff_applications' %}"><i class="bi bi-arrow-left"></i> Applications</a>
+    <div class="detail-title">
+      <div class="avatar xl">{{ application.full_name|slice:":2"|upper }}</div>
+      <div>
+        <h1>{{ application.full_name }}</h1>
+        <p>{{ application.shop_name }} · {{ application.district }} · #APP-{{ application.id|stringformat:"04d" }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="detail-hero__side">
+    <span class="badge {% if application.status == 'REJECTED' %}rejected{% elif application.status == 'APPROVED_PENDING_PAYMENT' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}approved{% elif application.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ application.get_status_display }}</span>
+    <a class="btn" href="{% url 'admin:membership_membershipapplication_change' application.id %}"><i class="bi bi-sliders"></i> Advanced</a>
+  </div>
+</div>
+
+<div class="review-shell">
+  <section class="review-main">
+    <div class="review-card">
+      <div class="review-card__head">
+        <div><h2>Verification Timeline</h2><p>Current progress across application, documents, payment and membership.</p></div>
+      </div>
+      <div class="process-line">
+        {% for step in status_steps %}
+          <div class="process-step {% if step.done %}done{% endif %}">
+            <div class="process-step__dot"><i class="bi {% if step.done %}bi-check2{% else %}bi-circle{% endif %}"></i></div>
+            <span>{{ step.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="review-card__head">
+        <div><h2>KYC Documents</h2><p>Open, zoom, download and verify uploaded documents.</p></div>
+      </div>
+      <div class="document-grid">
+        {% for doc in documents %}
+          <article class="document-tile {% if not doc.file %}missing{% endif %}">
+            <div class="document-tile__preview">
+              {% if doc.file and doc.is_image %}
+                <img src="{{ doc.file.url }}" alt="{{ doc.label }}">
+              {% elif doc.file %}
+                <i class="bi bi-file-earmark-text"></i>
+              {% else %}
+                <i class="bi bi-exclamation-circle"></i>
+              {% endif %}
+            </div>
+            <div class="document-tile__body">
+              <div>
+                <h3>{{ doc.label }}</h3>
+                <p>{% if doc.file %}Uploaded{% elif doc.required %}Required missing{% else %}Optional missing{% endif %}</p>
+              </div>
+              {% if doc.file %}
+                <div class="document-tile__actions">
+                  <a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}" title="Review"><i class="bi bi-eye"></i></a>
+                  <a class="icon-btn" href="{{ doc.file.url }}" download title="Download"><i class="bi bi-download"></i></a>
+                </div>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="review-card">
+        <div class="review-card__head"><div><h2>Personal Information</h2><p>Applicant identity and contact details.</p></div></div>
+        <dl class="detail-list">
+          <dt>Father/Husband</dt><dd>{{ application.father_or_husband_name }}</dd>
+          <dt>Date of Birth</dt><dd>{{ application.date_of_birth|date:"d M Y" }}</dd>
+          <dt>Gender</dt><dd>{{ application.get_gender_display }}</dd>
+          <dt>Mobile</dt><dd>{{ application.mobile_number }}</dd>
+          <dt>Email</dt><dd>{{ application.email }}</dd>
+          <dt>Residential Address</dt><dd>{{ application.residential_address }}</dd>
+          <dt>Office Address</dt><dd>{{ application.office_address|default:"Not provided" }}</dd>
+        </dl>
+      </div>
+      <div class="review-card">
+        <div class="review-card__head"><div><h2>Business Information</h2><p>License, GST and shop records.</p></div></div>
+        <dl class="detail-list">
+          <dt>Trade License</dt><dd>{{ application.trade_license_number }}</dd>
+          <dt>Excise License</dt><dd>{{ application.excise_license_number }}</dd>
+          <dt>License Type</dt><dd>{{ application.excise_license_type }}</dd>
+          <dt>GST Number</dt><dd>{{ application.gst_number|default:"Not provided" }}</dd>
+          <dt>PAN Number</dt><dd>{{ application.pan_number }}</dd>
+          <dt>Years in Business</dt><dd>{{ application.years_in_business }}</dd>
+          <dt>State</dt><dd>{{ application.state }}</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <aside class="review-side">
+    <form class="action-panel" method="post" action="{% url 'staff_application_action' application.id %}">
+      {% csrf_token %}
+      <div class="action-panel__head">
+        <h2>Admin Decision</h2>
+        <p>Remarks are sent to the member portal and email notification.</p>
+      </div>
+      <label class="field">
+        <span>Remarks</span>
+        <textarea class="textarea" name="remarks" placeholder="Write clear remarks for applicant...">{{ application.remarks }}</textarea>
+      </label>
+      <div class="action-stack">
+        <button class="btn primary block" name="action" value="approve_documents" type="submit"><i class="bi bi-check2-circle"></i> Approve Documents</button>
+        <button class="btn block" name="action" value="request_documents" type="submit"><i class="bi bi-file-earmark-arrow-up"></i> Request Documents</button>
+        <button class="btn danger block" name="action" value="reject_documents" type="submit"><i class="bi bi-x-circle"></i> Reject Application</button>
+        <button class="btn gold block" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate Membership</button>
+      </div>
+    </form>
+
+    <div class="review-card compact">
+      <div class="review-card__head"><div><h2>Payment</h2><p>Manual payment verification status.</p></div></div>
+      {% if payment %}
+        <dl class="detail-list compact">
+          <dt>UTR</dt><dd>{{ payment.utr_number }}</dd>
+          <dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd>
+          <dt>Status</dt><dd>{{ payment.get_status_display }}</dd>
+        </dl>
+        <a class="btn block" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-shield-check"></i> Open Payment</a>
+      {% else %}
+        <div class="empty mini"><i class="bi bi-cash-coin"></i><div class="t">No payment submitted</div><div class="s">Payment will appear after document approval.</div></div>
+      {% endif %}
+    </div>
+
+    <div class="review-card compact">
+      <div class="review-card__head"><div><h2>Membership</h2><p>Generated card and validity.</p></div></div>
+      {% if member %}
+        <dl class="detail-list compact">
+          <dt>Number</dt><dd>{{ member.membership_number }}</dd>
+          <dt>Valid Till</dt><dd>{{ member.valid_till|date:"d M Y" }}</dd>
+          <dt>Status</dt><dd>{% if member.is_active %}Active{% else %}Inactive{% endif %}</dd>
+        </dl>
+      {% else %}
+        <div class="empty mini"><i class="bi bi-card-heading"></i><div class="t">Not generated</div><div class="s">Generate after payment approval.</div></div>
+      {% endif %}
+    </div>
+  </aside>
+</div>
+{% endblock %}

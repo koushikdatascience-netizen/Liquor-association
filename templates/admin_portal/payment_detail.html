@@ -1,0 +1,107 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Payment Verification - Liquor Society Admin{% endblock %}
+{% block page_title %}Payment Verification{% endblock %}
+{% block content %}
+<div class="detail-hero">
+  <div class="detail-hero__main">
+    <a class="back-link" href="{% url 'staff_payments' %}"><i class="bi bi-arrow-left"></i> Payments</a>
+    <div class="detail-title">
+      <div class="avatar xl">{{ application.full_name|slice:":2"|upper }}</div>
+      <div>
+        <h1>{{ application.full_name }}</h1>
+        <p>{{ application.shop_name }} · UTR {{ payment.utr_number }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="detail-hero__side">
+    <span class="badge {% if payment.status == 'APPROVED' %}verified{% elif payment.status == 'REJECTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span>
+    <a class="btn" href="{% url 'staff_application_detail' application.id %}"><i class="bi bi-file-earmark-text"></i> Application</a>
+  </div>
+</div>
+
+<div class="review-shell">
+  <section class="review-main">
+    <div class="review-card">
+      <div class="review-card__head">
+        <div><h2>Payment Proof</h2><p>Verify screenshot, UTR, amount, date and bank details before approval.</p></div>
+        <a class="btn" href="{% url 'admin_document_review' 'payment' payment.id 'screenshot' %}"><i class="bi bi-arrows-fullscreen"></i> Review Fullscreen</a>
+      </div>
+      <div class="payment-proof">
+        <div class="payment-proof__media">
+          {% if payment.screenshot %}
+            {% if payment.screenshot.name|lower|slice:"-4:" == ".pdf" %}
+              <div class="payment-proof__file"><i class="bi bi-file-earmark-pdf"></i><span>PDF payment proof</span></div>
+            {% else %}
+              <img src="{{ payment.screenshot.url }}" alt="Payment screenshot">
+            {% endif %}
+          {% else %}
+            <div class="payment-proof__file"><i class="bi bi-exclamation-circle"></i><span>No screenshot uploaded</span></div>
+          {% endif %}
+        </div>
+        <dl class="payment-summary">
+          <dt>UTR Number</dt><dd>{{ payment.utr_number }}</dd>
+          <dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd>
+          <dt>Payment Date</dt><dd>{{ payment.payment_date|date:"d M Y" }}</dd>
+          <dt>Bank Name</dt><dd>{{ payment.bank_name }}</dd>
+          <dt>Submitted</dt><dd>{{ payment.created_at|date:"d M Y, h:i A" }}</dd>
+          <dt>Verified By</dt><dd>{{ payment.verified_by|default:"Pending" }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="review-card">
+        <div class="review-card__head"><div><h2>Applicant</h2><p>Cross-check against application record.</p></div></div>
+        <dl class="detail-list">
+          <dt>Name</dt><dd>{{ application.full_name }}</dd>
+          <dt>Mobile</dt><dd>{{ application.mobile_number }}</dd>
+          <dt>Email</dt><dd>{{ application.email }}</dd>
+          <dt>Shop</dt><dd>{{ application.shop_name }}</dd>
+          <dt>District</dt><dd>{{ application.district }}</dd>
+          <dt>Application Status</dt><dd>{{ application.get_status_display }}</dd>
+        </dl>
+      </div>
+      <div class="review-card">
+        <div class="review-card__head"><div><h2>Membership Readiness</h2><p>Final membership can be generated after payment approval.</p></div></div>
+        {% if member %}
+          <dl class="detail-list">
+            <dt>Membership Number</dt><dd>{{ member.membership_number }}</dd>
+            <dt>Status</dt><dd>{% if member.is_active %}Active{% else %}Pending activation{% endif %}</dd>
+            <dt>Valid Till</dt><dd>{{ member.valid_till|date:"d M Y" }}</dd>
+          </dl>
+        {% else %}
+          <div class="empty mini"><i class="bi bi-card-heading"></i><div class="t">No membership generated</div><div class="s">Approve payment first, then generate from application page.</div></div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <aside class="review-side">
+    <form class="action-panel" method="post" action="{% url 'staff_payment_action' payment.id %}">
+      {% csrf_token %}
+      <div class="action-panel__head">
+        <h2>Payment Decision</h2>
+        <p>Admin remarks will be visible to the applicant and sent by email.</p>
+      </div>
+      <label class="field">
+        <span>Remarks</span>
+        <textarea class="textarea" name="remarks" placeholder="Example: UTR verified with bank statement...">{{ payment.remarks }}</textarea>
+      </label>
+      <div class="action-stack">
+        <button class="btn primary block" name="action" value="approve_payment" type="submit"><i class="bi bi-shield-check"></i> Approve Payment</button>
+        <button class="btn block" name="action" value="request_reupload" type="submit"><i class="bi bi-arrow-clockwise"></i> Request Re-upload</button>
+        <button class="btn danger block" name="action" value="reject_payment" type="submit"><i class="bi bi-x-circle"></i> Reject Payment</button>
+      </div>
+    </form>
+
+    <div class="review-card compact">
+      <div class="review-card__head"><div><h2>Quick Actions</h2><p>Useful verification links.</p></div></div>
+      <div class="action-stack">
+        <a class="btn block" href="{{ payment.screenshot.url }}" download><i class="bi bi-download"></i> Download Slip</a>
+        <a class="btn block" href="{% url 'admin:membership_paymentproof_change' payment.id %}"><i class="bi bi-sliders"></i> Advanced Admin</a>
+        <a class="btn block" href="{% url 'staff_application_detail' application.id %}"><i class="bi bi-file-earmark-text"></i> Application Review</a>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

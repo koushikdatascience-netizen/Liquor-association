@@ -3,6 +3,19 @@
 @media (max-width: 1200px) {
   .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .review-shell {
+    grid-template-columns: 1fr;
+  }
+  .review-side {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .action-panel {
+    grid-column: 1 / -1;
+  }
+  .document-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
@@ -25,6 +38,22 @@
   .form-grid { grid-template-columns: 1fr; }
   .kv { grid-template-columns: 1fr; gap: 4px 0; }
   .kv dt { margin-top: 8px; }
+  .detail-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .detail-hero__side {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .process-line,
+  .document-grid,
+  .payment-proof {
+    grid-template-columns: 1fr 1fr;
+  }
+  .review-side {
+    grid-template-columns: 1fr;
+  }
   .page-head {
     align-items: flex-start;
     margin-bottom: 22px;
@@ -196,6 +225,41 @@
   .segmented button {
     flex: 1;
     padding-inline: 8px;
+  }
+  .detail-title {
+    align-items: flex-start;
+  }
+  .detail-title h1 {
+    font-size: 22px;
+  }
+  .review-card,
+  .action-panel {
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .review-card__head {
+    flex-direction: column;
+  }
+  .process-line,
+  .document-grid,
+  .payment-proof {
+    grid-template-columns: 1fr;
+  }
+  .process-step {
+    min-height: auto;
+    flex-direction: row;
+    align-items: center;
+  }
+  .detail-list,
+  .detail-list.compact {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .detail-list dd {
+    margin-bottom: 8px;
+  }
+  .payment-proof__media {
+    min-height: 300px;
   }
 }
 

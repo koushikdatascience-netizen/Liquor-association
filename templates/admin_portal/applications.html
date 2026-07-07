@@ -31,7 +31,7 @@
         <td data-label="District">{{ app.district }}</td>
         <td data-label="Submitted">{{ app.created_at|date:"d M Y" }}</td>
         <td data-label="Status"><span class="badge {% if app.status == 'REJECTED' %}rejected{% elif app.status == 'APPROVED_PENDING_PAYMENT' or app.status == 'PAYMENT_APPROVED' or app.status == 'MEMBER_ACTIVE' %}approved{% elif app.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ app.get_status_display }}</span></td>
-        <td data-label="Actions"><div class="row-actions"><a class="icon-btn action-view" href="{% url 'admin:membership_membershipapplication_change' app.id %}" title="View application"><i class="bi bi-eye"></i><span>Review</span></a><a class="icon-btn action-review" href="{% url 'admin:membership_membershipapplication_change' app.id %}" title="Approve, reject or request documents"><i class="bi bi-check2-square"></i><span>Action</span></a></div></td>
+        <td data-label="Actions"><div class="row-actions"><a class="icon-btn action-view" href="{% url 'staff_application_detail' app.id %}" title="View application"><i class="bi bi-eye"></i><span>Review</span></a><a class="icon-btn action-review" href="{% url 'staff_application_detail' app.id %}" title="Approve, reject or request documents"><i class="bi bi-check2-square"></i><span>Action</span></a></div></td>
       </tr>
       {% empty %}
       <tr><td colspan="8">No applications yet.</td></tr>
