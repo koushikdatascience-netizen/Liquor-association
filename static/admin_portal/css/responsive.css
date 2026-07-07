@@ -25,6 +25,7 @@
   .form-grid { grid-template-columns: 1fr; }
   .kv { grid-template-columns: 1fr; gap: 4px 0; }
   .kv dt { margin-top: 8px; }
+  .admin-two-col { grid-template-columns: 1fr !important; }
 }
 
 @media (max-width: 640px) {

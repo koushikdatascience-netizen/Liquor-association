@@ -1,4 +1,4 @@
-﻿{% extends "admin_portal/base.html" %}
+{% extends "admin_portal/base.html" %}
 {% block title %}Payment Verification - Liquor Society Admin{% endblock %}
 {% block page_title %}Payment Verification{% endblock %}
 {% block content %}
@@ -9,14 +9,14 @@
 
 <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;" class="admin-two-col">
   <div class="card">
-    <div class="card__head"><div><div class="card__title">Payment Screenshot</div><div class="card__sub">#APP-{{ application.id|stringformat:"04d" }} · UTR {{ payment.utr_number }}</div></div><span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></div>
+    <div class="card__head"><div><div class="card__title">Payment Screenshot</div><div class="card__sub">#APP-{{ application.id|stringformat:"04d" }} - UTR {{ payment.utr_number }}</div></div><span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></div>
     <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);overflow:hidden;">
       {% if payment.screenshot %}<img src="{{ payment.screenshot.url }}" alt="Payment screenshot" style="max-width:100%;max-height:100%;object-fit:contain;">{% else %}<div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>{% endif %}
     </div>
   </div>
 
   <div class="card">
-    <div class="card__head"><div><div class="card__title">Payment Details</div><div class="card__sub">{{ application.full_name }} · {{ payment.utr_number }}</div></div></div>
+    <div class="card__head"><div><div class="card__title">Payment Details</div><div class="card__sub">{{ application.full_name }} - {{ payment.utr_number }}</div></div></div>
     <dl class="kv" style="margin-top:18px;"><dt>Member</dt><dd>{{ application.full_name }}</dd><dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd><dt>Method</dt><dd>{{ payment.bank_name }}</dd><dt>UTR</dt><dd>{{ payment.utr_number }}</dd><dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd></dl>
     <form method="post" action="{% url 'staff_payment_action' payment.id %}" style="margin-top:18px;">
       {% csrf_token %}
@@ -26,4 +26,3 @@
   </div>
 </div>
 {% endblock %}
-

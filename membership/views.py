@@ -4,6 +4,7 @@ import csv
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
@@ -789,6 +790,10 @@ def staff_masters(request):
 
 @staff_member_required
 def staff_settings(request):
+    if request.method == "POST":
+        messages.info(request, "Settings shown here are controlled by environment variables and deployment configuration.")
+        return redirect("staff_settings")
+
     return render(
         request,
         "admin_portal/settings.html",
@@ -811,6 +816,39 @@ def staff_settings(request):
 
 @staff_member_required
 def staff_profile(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "update_account":
+            full_name = request.POST.get("full_name", "").strip()
+            first_name, _, last_name = full_name.partition(" ")
+            request.user.first_name = first_name
+            request.user.last_name = last_name
+            request.user.email = request.POST.get("email", "").strip()
+            request.user.username = request.POST.get("username", request.user.username).strip() or request.user.username
+            request.user.save(update_fields=["first_name", "last_name", "email", "username"])
+            if hasattr(request.user, "profile"):
+                request.user.profile.mobile_number = request.POST.get("mobile_number", "").strip()
+                request.user.profile.save(update_fields=["mobile_number"])
+            AuditLog.objects.create(actor=request.user, action="Profile updated", target=request.user.username)
+            messages.success(request, "Profile updated successfully.")
+        elif action == "change_password":
+            current_password = request.POST.get("current_password", "")
+            new_password = request.POST.get("new_password", "")
+            confirm_password = request.POST.get("confirm_password", "")
+            if not request.user.check_password(current_password):
+                messages.error(request, "Current password is incorrect.")
+            elif len(new_password) < 8:
+                messages.error(request, "New password must be at least 8 characters.")
+            elif new_password != confirm_password:
+                messages.error(request, "New passwords do not match.")
+            else:
+                request.user.set_password(new_password)
+                request.user.save(update_fields=["password"])
+                update_session_auth_hash(request, request.user)
+                AuditLog.objects.create(actor=request.user, action="Password changed", target=request.user.username)
+                messages.success(request, "Password updated successfully.")
+        return redirect("staff_profile")
+
     return render(
         request,
         "admin_portal/profile.html",

@@ -2,7 +2,10 @@
 {% block title %}Settings - Liquor Society Admin{% endblock %}
 {% block page_title %}Settings{% endblock %}
 {% block content %}
-<div class="page-head"><div><h1>Settings</h1><p class="subtitle">Configure your Society's identity, payments and integrations.</p></div><div class="page-actions"><button class="btn primary" type="button"><i class="bi bi-check2"></i> Save changes</button></div></div>
+<div class="page-head">
+  <div><h1>Settings</h1><p class="subtitle">Configure your Society's identity, payments and integrations.</p></div>
+  <form class="page-actions" method="post">{% csrf_token %}<button class="btn primary" type="submit"><i class="bi bi-check2"></i> Save changes</button></form>
+</div>
 
 <div style="display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start;">
   <nav style="display:flex;flex-direction:column;gap:2px;position:sticky;top:88px;">
@@ -18,7 +21,7 @@
       <div class="form-grid">
         <div class="field full"><label>Name</label><input class="input" value="{{ association_name }}" readonly></div>
         <div class="field"><label>Site URL</label><input class="input" value="{{ site_url }}" readonly></div>
-        <div class="field"><label>Admin panel</label><input class="input" value="/admin/dashboard/" readonly></div>
+        <div class="field"><label>Admin panel</label><input class="input" value="/office/dashboard/" readonly></div>
       </div>
     </div>
 

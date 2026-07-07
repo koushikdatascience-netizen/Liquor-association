@@ -1,4 +1,4 @@
-﻿{% extends "admin_portal/base.html" %}
+{% extends "admin_portal/base.html" %}
 {% block title %}Reports - Liquor Society Admin{% endblock %}
 {% block page_title %}Reports{% endblock %}
 {% block content %}
@@ -14,12 +14,11 @@
 </div>
 
 <div class="grid cols-3">
-  <a class="card" href="{% url 'export_report' 'district-wise-members' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">District-wise Members</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph bars"></div><div class="card__sub" style="margin-top:12px;">{{ districts|length }} districts · updated today</div></a>
+  <a class="card" href="{% url 'export_report' 'district-wise-members' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">District-wise Members</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph bars"></div><div class="card__sub" style="margin-top:12px;">{{ districts|length }} districts - updated today</div></a>
   <a class="card" href="{% url 'export_report' 'license-type-members' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">License-wise Members</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph donut" style="width:160px;height:160px;"></div><div class="legend" style="justify-content:center;"><span><i class="dot" style="background:#111;"></i>FL-Off</span><span><i class="dot" style="background:#d4af37;"></i>FL-On</span><span><i class="dot" style="background:#ececec;"></i>IML</span></div></a>
-  <a class="card" href="{% url 'export_report' 'payment-collection' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Payment Collection</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph"></div><div class="card__sub" style="margin-top:12px;">?{{ stats.payment_collection }} collected FYTD</div></a>
+  <a class="card" href="{% url 'export_report' 'payment-collection' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Payment Collection</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph"></div><div class="card__sub" style="margin-top:12px;">&#8377;{{ stats.payment_collection }} collected FYTD</div></a>
   <a class="card" href="{% url 'export_report' 'pending-payments' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Pending Payments</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="stat__num" style="margin-top:0;">{{ stats.pending_payments }}</div><div class="stat__label">members with outstanding dues</div></a>
   <a class="card" href="{% url 'export_report' 'renewal-report' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Renewals</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="stat__num" style="margin-top:0;">{{ stats.renewals_due }}</div><div class="stat__label">Due in next 30 days</div></a>
   <a class="card" href="{% url 'export_report' 'pending-kyc' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Pending KYC</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="stat__num" style="margin-top:0;">{{ stats.pending_applications }}</div><div class="stat__label">Members awaiting document verification</div></a>
 </div>
 {% endblock %}
-

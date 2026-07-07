@@ -10,28 +10,36 @@
     <div style="font-size:18px;font-weight:600;">{{ request.user.get_full_name|default:request.user.username }}</div>
     <div style="font-size:13px;color:var(--text-3);margin-top:4px;">{% if request.user.is_superuser %}Super Admin{% else %}Admin{% endif %}</div>
     <div style="margin-top:14px;"><span class="badge active">Active</span></div>
-    <button class="btn block" style="margin-top:20px;" type="button"><i class="bi bi-camera"></i> Change photo</button>
+    <a class="btn block" style="margin-top:20px;" href="#account"><i class="bi bi-pencil"></i> Edit profile</a>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:20px;">
-    <div class="card">
+    <div class="card" id="account">
       <div class="card__head"><div class="card__title">Account Details</div></div>
-      <div class="form-grid">
-        <div class="field"><label>Full name</label><input class="input" value="{{ request.user.get_full_name|default:request.user.username }}" readonly></div>
-        <div class="field"><label>Email</label><input class="input" value="{{ request.user.email }}" readonly></div>
-        <div class="field"><label>Username</label><input class="input" value="{{ request.user.username }}" readonly></div>
+      <form method="post" class="form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_account">
+        <div class="field"><label>Full name</label><input class="input" name="full_name" value="{{ request.user.get_full_name|default:request.user.username }}"></div>
+        <div class="field"><label>Email</label><input class="input" name="email" type="email" value="{{ request.user.email }}"></div>
+        <div class="field"><label>Username</label><input class="input" name="username" value="{{ request.user.username }}"></div>
+        <div class="field"><label>Mobile</label><input class="input" name="mobile_number" value="{{ request.user.profile.mobile_number }}"></div>
         <div class="field"><label>Role</label><input class="input" value="{% if request.user.is_superuser %}Super Admin{% else %}Admin{% endif %}" readonly></div>
-      </div>
+        <div class="field" style="align-self:end;"><button class="btn primary" type="submit"><i class="bi bi-check2"></i> Save profile</button></div>
+      </form>
     </div>
 
     <div class="card">
       <div class="card__head"><div class="card__title">Change Password</div></div>
-      <div class="form-grid">
-        <div class="field"><label>Current password</label><input class="input" type="password"></div>
-        <div class="field"><label>New password</label><input class="input" type="password"></div>
-        <div class="field full"><label>Confirm password</label><input class="input" type="password"></div>
-      </div>
-      <button class="btn primary" style="margin-top:16px;" type="button">Update password</button>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password">
+        <div class="form-grid">
+          <div class="field"><label>Current password</label><input class="input" name="current_password" type="password" autocomplete="current-password"></div>
+          <div class="field"><label>New password</label><input class="input" name="new_password" type="password" autocomplete="new-password"></div>
+          <div class="field full"><label>Confirm password</label><input class="input" name="confirm_password" type="password" autocomplete="new-password"></div>
+        </div>
+        <button class="btn primary" style="margin-top:16px;" type="submit">Update password</button>
+      </form>
     </div>
 
     <div class="card">

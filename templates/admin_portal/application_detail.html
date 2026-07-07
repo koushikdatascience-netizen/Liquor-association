@@ -1,11 +1,11 @@
-﻿{% extends "admin_portal/base.html" %}
+{% extends "admin_portal/base.html" %}
 {% block title %}Application #APP-{{ application.id|stringformat:"04d" }} - Liquor Society Admin{% endblock %}
 {% block page_title %}Application details{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
     <h1>Application #APP-{{ application.id|stringformat:"04d" }}</h1>
-    <p class="subtitle">Submitted {{ application.created_at|date:"d M Y" }} · <span class="badge {% if application.status == 'REJECTED' %}rejected{% elif application.status == 'APPROVED_PENDING_PAYMENT' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}approved{% elif application.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}" style="margin-left:8px;">{{ application.get_status_display }}</span></p>
+    <p class="subtitle">Submitted {{ application.created_at|date:"d M Y" }} - <span class="badge {% if application.status == 'REJECTED' %}rejected{% elif application.status == 'APPROVED_PENDING_PAYMENT' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}approved{% elif application.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}" style="margin-left:8px;">{{ application.get_status_display }}</span></p>
   </div>
   <div class="page-actions">
     {% if member %}<a class="btn" href="{% url 'staff_member_detail' member.id %}"><i class="bi bi-person-badge"></i> Member</a>{% endif %}
@@ -42,7 +42,7 @@
     <div class="card__head"><div class="card__title">Representative</div></div>
     <div style="display:flex;align-items:center;gap:14px;">
       <div class="avatar" style="width:56px;height:56px;font-size:18px;">{{ application.full_name|slice:":2"|upper }}</div>
-      <div><div style="font-weight:600;">{{ application.full_name }}</div><div style="font-size:12px;color:var(--text-3);">Applicant · {{ application.mobile_number }}</div></div>
+      <div><div style="font-weight:600;">{{ application.full_name }}</div><div style="font-size:12px;color:var(--text-3);">Applicant - {{ application.mobile_number }}</div></div>
     </div>
     <dl class="kv" style="margin-top:20px;"><dt>Role</dt><dd>Authorised representative</dd><dt>Aadhaar</dt><dd>Uploaded in KYC</dd><dt>PAN</dt><dd>{{ application.pan_number }}</dd></dl>
   </div>
@@ -75,4 +75,3 @@
   <button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate Membership</button>
 </form>
 {% endblock %}
-

@@ -1,4 +1,4 @@
-﻿{% extends "admin_portal/base.html" %}
+{% extends "admin_portal/base.html" %}
 {% block title %}Payment Verification - Liquor Society Admin{% endblock %}
 {% block page_title %}Payment Verification{% endblock %}
 {% block search_target %}#paymentsTable{% endblock %}
@@ -18,7 +18,7 @@
   <div class="table-wrap">
     <div class="table-toolbar">
       <div class="search"><i class="bi bi-search"></i><input data-table-search="#paymentsTable" placeholder="Search by member, UTR..." /></div>
-      <select class="select"><option>All statuses</option><option>Pending</option><option>Verified</option><option>Re-upload</option></select>
+      <select class="select" data-table-filter="#paymentsTable" data-filter-column="4"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Approved">Verified</option><option value="Re-upload">Re-upload</option><option value="Rejected">Rejected</option></select>
     </div>
     <table class="table" id="paymentsTable">
       <thead><tr><th>Member</th><th>Amount</th><th>UTR</th><th>Date</th><th>Status</th></tr></thead>
@@ -60,4 +60,3 @@
   </div>
 </div>
 {% endblock %}
-

@@ -1,4 +1,4 @@
-﻿{% extends "admin_portal/base.html" %}
+{% extends "admin_portal/base.html" %}
 {% block title %}Applications - Liquor Society Admin{% endblock %}
 {% block page_title %}Applications{% endblock %}
 {% block search_target %}#applicationsTable{% endblock %}
@@ -24,11 +24,11 @@
 <div class="table-wrap">
   <div class="table-toolbar">
     <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..." /></div>
-    <select class="select"><option>All statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Docs Requested</option></select>
-    <select class="select"><option>All districts</option>{% for app in applications %}<option>{{ app.district }}</option>{% endfor %}</select>
-    <select class="select"><option>All licenses</option>{% for app in applications %}<option>{{ app.excise_license_type }}</option>{% endfor %}</select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="6"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option><option value="Additional">Docs Requested</option></select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="4"><option value="">All districts</option>{% for app in applications %}<option value="{{ app.district }}">{{ app.district }}</option>{% endfor %}</select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="3"><option value="">All licenses</option>{% for app in applications %}<option value="{{ app.excise_license_type }}">{{ app.excise_license_type }}</option>{% endfor %}</select>
     <input class="input" style="max-width:180px;" type="date" />
-    <button class="btn" style="margin-left:auto;" type="button"><i class="bi bi-funnel"></i> More filters</button>
+    <button class="btn" style="margin-left:auto;" type="button" data-table-reset="#applicationsTable"><i class="bi bi-funnel"></i> Clear filters</button>
   </div>
 
   <table class="table" id="applicationsTable">
@@ -56,4 +56,3 @@
   <div class="table-footer"><span>Showing latest {{ applications|length }} applications</span><div class="pagination"><button class="pg"><i class="bi bi-chevron-left"></i></button><button class="pg active">1</button><button class="pg"><i class="bi bi-chevron-right"></i></button></div></div>
 </div>
 {% endblock %}
-
