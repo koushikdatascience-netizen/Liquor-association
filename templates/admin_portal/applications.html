@@ -32,7 +32,7 @@
   </div>
 
   <table class="table" id="applicationsTable">
-    <thead><tr><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
       {% for app in applications %}
       <tr>
@@ -44,9 +44,7 @@
         <td data-label="Submitted">{{ app.created_at|date:"d M Y" }}</td>
         <td data-label="Status"><span class="badge {% if app.status == 'REJECTED' %}rejected{% elif app.status == 'APPROVED_PENDING_PAYMENT' or app.status == 'PAYMENT_APPROVED' or app.status == 'MEMBER_ACTIVE' %}approved{% elif app.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ app.get_status_display }}</span></td>
         <td data-label="Actions"><div class="row-actions">
-          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="View"><i class="bi bi-eye"></i></a>
-          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Approve"><i class="bi bi-check2"></i></a>
-          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Reject"><i class="bi bi-x"></i></a>
+          <a class="btn sm primary" href="{% url 'staff_application_detail' app.id %}"><i class="bi bi-eye"></i> Open / Verify Docs</a>
         </div></td>
       </tr>
       {% empty %}<tr><td colspan="8">No applications yet.</td></tr>{% endfor %}

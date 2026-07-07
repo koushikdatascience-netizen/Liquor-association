@@ -80,14 +80,8 @@ REUPLOAD_PAYMENT_PROOF_STATUSES = {
 
 
 def is_document_review_status(status):
-    non_document_statuses = (
-        PAYMENT_WAITING_STATUSES
-        | PAYMENT_REVIEW_STATUSES
-        | PAYMENT_APPROVED_STATUSES
-        | MEMBERSHIP_ACTIVE_STATUSES
-        | REJECTED_APPLICATION_STATUSES
-    )
-    return status not in non_document_statuses
+    """Return True only when admins should review KYC/application documents."""
+    return status in DOCUMENT_REVIEW_STATUSES
 
 
 def storage_url(file):
@@ -570,9 +564,9 @@ def staff_applications(request):
         "admin_portal/applications.html",
         {
             "active_page": "applications",
-            "applications": MembershipApplication.objects.select_related("applicant").order_by("-created_at")[:50],
+            "applications": MembershipApplication.objects.select_related("applicant").order_by("-created_at")[:200],
             "counts": {
-                "pending": MembershipApplication.objects.filter(status=MembershipApplication.Status.SUBMITTED).count(),
+                "pending": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
                 "approved": MembershipApplication.objects.filter(
                     status__in=[
                         MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
@@ -624,11 +618,8 @@ def staff_application_action_context(application, payment=None, member=None):
     waiting_for_payment_reupload = bool(payment and payment.status in REUPLOAD_PAYMENT_PROOF_STATUSES)
     show_document_actions = bool(
         is_document_review_status(application.status)
-        and not show_payment_actions
-        and not waiting_for_payment
-        and not can_activate_membership
-        and not membership_active
         and application.status not in REJECTED_APPLICATION_STATUSES
+        and not membership_active
     )
     return {
         "show_document_actions": show_document_actions,
