@@ -4,6 +4,7 @@ import csv
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.db.models import Count, Sum
@@ -229,6 +230,63 @@ def card_pdf(request):
 @login_required
 def card_image(request):
     member = get_object_or_404(Member.objects.select_related("application"), user=request.user, is_active=True)
+    return render_member_card_image(member)
+
+
+@staff_member_required
+def staff_member_card_pdf(request, pk):
+    member = get_object_or_404(Member.objects.select_related("application"), pk=pk)
+    return render_member_card_pdf(member)
+
+
+@staff_member_required
+def staff_member_card_image(request, pk):
+    member = get_object_or_404(Member.objects.select_related("application"), pk=pk)
+    return render_member_card_image(member)
+
+
+def render_member_card_pdf(member):
+    application = member.application
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{member.membership_number}.pdf"'
+
+    page = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    y = height - 72
+
+    page.setFont("Helvetica-Bold", 18)
+    page.drawString(72, y, settings.ASSOCIATION_NAME)
+    page.setFont("Helvetica", 12)
+    page.drawString(72, y - 28, "Digital Membership Card")
+    page.line(72, y - 42, width - 72, y - 42)
+
+    rows = [
+        ("Member Name", application.full_name),
+        ("Membership Number", member.membership_number),
+        ("Shop Name", application.shop_name),
+        ("District", application.district),
+        ("Mobile", application.mobile_number),
+        ("Category", member.category),
+        ("Membership Since", member.membership_since.strftime("%d %b %Y")),
+        ("Valid Till", member.valid_till.strftime("%d %b %Y")),
+        ("Verification", member.verification_payload),
+    ]
+    y -= 78
+    for label, value in rows:
+        page.setFont("Helvetica-Bold", 11)
+        page.drawString(72, y, f"{label}:")
+        page.setFont("Helvetica", 11)
+        page.drawString(220, y, str(value))
+        y -= 24
+
+    page.setFont("Helvetica-Bold", 11)
+    page.drawString(72, 96, f"Digitally signed by {settings.ASSOCIATION_NAME}")
+    page.showPage()
+    page.save()
+    return response
+
+
+def render_member_card_image(member):
     application = member.application
     image = Image.new("RGB", (900, 540), "#ffffff")
     draw = ImageDraw.Draw(image)
@@ -662,7 +720,127 @@ def staff_members(request):
 
 
 @staff_member_required
+def staff_member_detail(request, pk):
+    member = get_object_or_404(Member.objects.select_related("application", "user"), pk=pk)
+    application = member.application
+    payment = PaymentProof.objects.filter(application=application).first()
+    documents = application_documents(application)
+    recent_logs = AuditLog.objects.filter(target__icontains=application.full_name).select_related("actor").order_by("-created_at")[:8]
+    return render(
+        request,
+        "admin_portal/member_detail.html",
+        {
+            "active_page": "members",
+            "member": member,
+            "application": application,
+            "payment": payment,
+            "documents": documents,
+            "recent_logs": recent_logs,
+        },
+    )
+
+
+@staff_member_required
+def staff_membership_cards(request):
+    members = Member.objects.select_related("application").order_by("-created_at")[:50]
+    selected_member = members[0] if members else None
+    selected_id = request.GET.get("member")
+    if selected_id:
+        selected_member = get_object_or_404(Member.objects.select_related("application"), pk=selected_id)
+    return render(
+        request,
+        "admin_portal/membership_card.html",
+        {
+            "active_page": "cards",
+            "members": members,
+            "selected_member": selected_member,
+        },
+    )
+
+
+@staff_member_required
+def staff_masters(request):
+    districts = MembershipApplication.objects.values("district").annotate(total=Count("id")).order_by("district")
+    license_types = MembershipApplication.objects.values("excise_license_type").annotate(total=Count("id")).order_by("excise_license_type")
+    categories = Member.objects.values("category").annotate(total=Count("id")).order_by("category")
+    document_types = [
+        ("Passport Photo", "Yes", "JPG, PNG"),
+        ("Aadhaar Card", "Yes", "PDF, JPG, PNG"),
+        ("PAN Card", "Yes", "PDF, JPG, PNG"),
+        ("Excise License", "Yes", "PDF, JPG, PNG"),
+        ("Trade License", "Yes", "PDF, JPG, PNG"),
+        ("GST Certificate", "No", "PDF, JPG, PNG"),
+        ("Address Proof", "Yes", "PDF, JPG, PNG"),
+        ("Signature", "Yes", "JPG, PNG"),
+    ]
+    return render(
+        request,
+        "admin_portal/masters.html",
+        {
+            "active_page": "masters",
+            "districts": districts,
+            "license_types": license_types,
+            "categories": categories,
+            "document_types": document_types,
+            "membership_fee": settings.MEMBERSHIP_FEE,
+        },
+    )
+
+
+@staff_member_required
+def staff_settings(request):
+    return render(
+        request,
+        "admin_portal/settings.html",
+        {
+            "active_page": "settings",
+            "association_name": settings.ASSOCIATION_NAME,
+            "membership_fee": settings.MEMBERSHIP_FEE,
+            "payment_settings": {
+                "upi_id": settings.PAYMENT_UPI_ID,
+                "bank_name": settings.PAYMENT_BANK_NAME,
+                "account_name": settings.PAYMENT_ACCOUNT_NAME,
+                "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
+                "ifsc": settings.PAYMENT_IFSC,
+            },
+            "otp_required": settings.ACCOUNT_REQUIRE_OTP_VERIFICATION,
+            "site_url": settings.SITE_URL,
+        },
+    )
+
+
+@staff_member_required
+def staff_profile(request):
+    return render(
+        request,
+        "admin_portal/profile.html",
+        {
+            "active_page": "profile",
+            "recent_logs": AuditLog.objects.filter(actor=request.user).order_by("-created_at")[:8],
+        },
+    )
+
+
+@staff_member_required
 def staff_notifications(request):
+    if request.method == "POST":
+        broadcast = BroadcastMessage(
+            title=request.POST.get("title", "").strip(),
+            message=request.POST.get("message", "").strip(),
+            audience=request.POST.get("audience", BroadcastMessage.Audience.ALL_MEMBERS),
+            channel=request.POST.get("channel", BroadcastMessage.Channel.IN_APP),
+            district=request.POST.get("district", "").strip(),
+            recipient_id=request.POST.get("recipient") or None,
+        )
+        try:
+            broadcast.full_clean()
+            sent_count = broadcast.send(actor=request.user)
+            AuditLog.objects.create(actor=request.user, action="Broadcast sent", target=broadcast.title, notes=f"{sent_count} recipients")
+            messages.success(request, f"Broadcast sent to {sent_count} recipient(s).")
+        except Exception as exc:
+            messages.error(request, f"Could not send broadcast: {exc}")
+        return redirect("staff_notifications")
+
     broadcasts = BroadcastMessage.objects.select_related("sent_by", "recipient").order_by("-created_at")[:20]
     return render(
         request,
@@ -670,6 +848,8 @@ def staff_notifications(request):
         {
             "active_page": "notifications",
             "broadcasts": broadcasts,
+            "members": User.objects.filter(is_active=True).order_by("first_name", "username")[:100],
+            "districts": MembershipApplication.objects.values_list("district", flat=True).distinct().order_by("district"),
             "email_count": BroadcastMessage.objects.filter(
                 channel__in=[BroadcastMessage.Channel.EMAIL, BroadcastMessage.Channel.EMAIL_WHATSAPP]
             ).count(),

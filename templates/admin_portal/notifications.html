@@ -1,19 +1,33 @@
-{% extends "admin_portal/base.html" %}
+﻿{% extends "admin_portal/base.html" %}
 {% block title %}Notifications - Liquor Society Admin{% endblock %}
 {% block page_title %}Notifications{% endblock %}
 {% block content %}
-<div class="page-head"><div><h1>Notifications</h1><p class="subtitle">Send manual Email, WhatsApp, or Email + WhatsApp broadcasts.</p></div><div class="page-actions"><a class="btn primary" href="{% url 'admin:membership_broadcastmessage_add' %}"><i class="bi bi-plus-lg"></i> New Broadcast</a></div></div>
+<div class="page-head"><div><h1>Notifications</h1><p class="subtitle">Send manual Email, WhatsApp, or Email + WhatsApp broadcasts.</p></div><div class="page-actions"><a class="btn primary" href="#compose"><i class="bi bi-plus-lg"></i> New Broadcast</a></div></div>
 <div class="grid cols-3" style="margin-bottom:24px;">
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-envelope"></i></div></div><div class="stat__num">{{ email_count }}</div><div class="stat__label">Email Broadcasts</div></div>
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-whatsapp"></i></div></div><div class="stat__num">{{ whatsapp_count }}</div><div class="stat__label">WhatsApp Broadcasts</div></div>
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-megaphone"></i></div></div><div class="stat__num">{{ broadcasts|length }}</div><div class="stat__label">Recent Broadcasts</div></div>
 </div>
+<div class="card" id="compose" style="margin-bottom:24px;">
+  <div class="card__head"><div><div class="card__title">Compose Broadcast</div><div class="card__sub">Send circulars without leaving the custom panel.</div></div></div>
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+    <div class="field full"><label>Title</label><input class="input" name="title" required placeholder="Renewal reminder"></div>
+    <div class="field"><label>Channel</label><select class="select" name="channel"><option value="IN_APP">In-app</option><option value="EMAIL">Email</option><option value="WHATSAPP">WhatsApp</option><option value="EMAIL_WHATSAPP">Email + WhatsApp</option></select></div>
+    <div class="field"><label>Audience</label><select class="select" name="audience"><option value="ALL_MEMBERS">All Members</option><option value="DISTRICT">District-wise</option><option value="INDIVIDUAL">Individual Member</option><option value="PENDING_APPLICANTS">Pending Applicants</option></select></div>
+    <div class="field"><label>District</label><select class="select" name="district"><option value="">Select district</option>{% for district in districts %}<option value="{{ district }}">{{ district }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Recipient</label><select class="select" name="recipient"><option value="">Select member/applicant</option>{% for member_user in members %}<option value="{{ member_user.id }}">{{ member_user.get_full_name|default:member_user.username }}</option>{% endfor %}</select></div>
+    <div class="field full"><label>Message</label><textarea class="textarea" name="message" required placeholder="Write the circular message..."></textarea></div>
+    <div class="field full"><button class="btn primary" type="submit"><i class="bi bi-send"></i> Send Broadcast</button></div>
+  </form>
+</div>
 <div class="card">
-  <div class="card__head"><div><div class="card__title">Recent Broadcasts</div><div class="card__sub">Manual templates sent by admin</div></div><a class="btn sm" href="{% url 'admin:membership_broadcastmessage_changelist' %}">Manage all</a></div>
+  <div class="card__head"><div><div class="card__title">Recent Broadcasts</div><div class="card__sub">Manual templates sent by admin</div></div></div>
   <div class="timeline">
     {% for broadcast in broadcasts %}
-      <div class="item"><div class="ic gold"><i class="bi bi-megaphone"></i></div><div><div class="t">{{ broadcast.title }}</div><div class="d">{{ broadcast.get_channel_display }} to {{ broadcast.get_audience_display }} · {{ broadcast.sent_count }} recipients</div></div><div class="when">{% if broadcast.sent_at %}{{ broadcast.sent_at|timesince }} ago{% else %}Draft{% endif %}</div></div>
+      <div class="item"><div class="ic gold"><i class="bi bi-megaphone"></i></div><div><div class="t">{{ broadcast.title }}</div><div class="d">{{ broadcast.get_channel_display }} to {{ broadcast.get_audience_display }} - {{ broadcast.sent_count }} recipients</div></div><div class="when">{% if broadcast.sent_at %}{{ broadcast.sent_at|timesince }} ago{% else %}Draft{% endif %}</div></div>
     {% empty %}<p>No broadcasts yet.</p>{% endfor %}
   </div>
 </div>
 {% endblock %}
+

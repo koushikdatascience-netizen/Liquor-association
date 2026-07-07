@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Members — Liquor Society Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/responsive.css" />
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="page-head">
+    <div>
+      <h1>Members</h1>
+      <p class="subtitle">All active, pending and expired members across the Society.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn"><i class="bi bi-download"></i> Export</button>
+      <button class="btn primary"><i class="bi bi-person-plus"></i> Add Member</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-toolbar">
+      <div class="search"><i class="bi bi-search"></i><input data-table-search="#membersTable" placeholder="Search members…" /></div>
+      <select class="select"><option>All statuses</option><option>Active</option><option>Expired</option><option>Suspended</option></select>
+      <select class="select"><option>All districts</option><option>Kolkata</option><option>Howrah</option></select>
+      <select class="select"><option>All categories</option><option>Gold</option><option>Silver</option><option>Regular</option></select>
+    </div>
+    <table class="table" id="membersTable">
+      <thead><tr><th>Membership</th><th>Member</th><th>Shop</th><th>District</th><th>Mobile</th><th>Validity</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr>
+          <td data-label="No">MB-3021</td>
+          <td data-label="Member"><div class="who"><div class="avatar">SG</div><div><div class="n">Suman Ghosh</div><div class="s">Gold member</div></div></div></td>
+          <td data-label="Shop">Suman Enterprise</td>
+          <td data-label="District">Kolkata</td>
+          <td data-label="Mobile">+91 98765 43210</td>
+          <td data-label="Validity">31 Mar 2027</td>
+          <td data-label="Status"><span class="badge active">Active</span></td>
+          <td data-label="Actions"><div class="row-actions">
+            <a class="icon-btn" href="member-details.html"><i class="bi bi-eye"></i></a>
+            <button class="icon-btn"><i class="bi bi-printer"></i></button>
+            <button class="icon-btn"><i class="bi bi-three-dots"></i></button>
+          </div></td>
+        </tr>
+        <tr>
+          <td data-label="No">MB-3020</td>
+          <td data-label="Member"><div class="who"><div class="avatar">AP</div><div><div class="n">Arundhati Pal</div><div class="s">Silver member</div></div></div></td>
+          <td data-label="Shop">Pal Wines</td>
+          <td data-label="District">Howrah</td>
+          <td data-label="Mobile">+91 98301 22114</td>
+          <td data-label="Validity">31 Mar 2027</td>
+          <td data-label="Status"><span class="badge active">Active</span></td>
+          <td data-label="Actions"><div class="row-actions">
+            <a class="icon-btn" href="member-details.html"><i class="bi bi-eye"></i></a>
+            <button class="icon-btn"><i class="bi bi-printer"></i></button>
+            <button class="icon-btn"><i class="bi bi-three-dots"></i></button>
+          </div></td>
+        </tr>
+        <tr>
+          <td data-label="No">MB-2892</td>
+          <td data-label="Member"><div class="who"><div class="avatar">KB</div><div><div class="n">Kabir Bose</div><div class="s">Regular</div></div></div></td>
+          <td data-label="Shop">Bose Beverages</td>
+          <td data-label="District">Bardhaman</td>
+          <td data-label="Mobile">+91 90007 88123</td>
+          <td data-label="Validity">31 Mar 2026</td>
+          <td data-label="Status"><span class="badge expired">Expired</span></td>
+          <td data-label="Actions"><div class="row-actions">
+            <a class="icon-btn" href="member-details.html"><i class="bi bi-eye"></i></a>
+            <button class="icon-btn"><i class="bi bi-arrow-repeat"></i></button>
+          </div></td>
+        </tr>
+        <tr>
+          <td data-label="No">MB-2814</td>
+          <td data-label="Member"><div class="who"><div class="avatar">RM</div><div><div class="n">Rajat Mondal</div><div class="s">Regular</div></div></div></td>
+          <td data-label="Shop">Mondal Bar</td>
+          <td data-label="District">Hooghly</td>
+          <td data-label="Mobile">+91 96741 20031</td>
+          <td data-label="Validity">—</td>
+          <td data-label="Status"><span class="badge rejected">Suspended</span></td>
+          <td data-label="Actions"><div class="row-actions">
+            <a class="icon-btn" href="member-details.html"><i class="bi bi-eye"></i></a>
+            <button class="icon-btn"><i class="bi bi-three-dots"></i></button>
+          </div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="table-footer">
+      <span>Showing 1–4 of 3,482</span>
+      <div class="pagination">
+        <button class="pg"><i class="bi bi-chevron-left"></i></button>
+        <button class="pg active">1</button><button class="pg">2</button><button class="pg">3</button>
+        <button class="pg"><i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/modal.js"></script>
+<script src="assets/js/table.js"></script>
+<script>
+  mountShell({ page: "members", title: "Members", crumbs: [{ label: "Home", href: "dashboard.html" }] });
+</script>
+</body>
+</html>

@@ -1,42 +1,25 @@
-{% extends "admin_portal/base.html" %}
+﻿{% extends "admin_portal/base.html" %}
 {% block title %}Reports - Liquor Society Admin{% endblock %}
 {% block page_title %}Reports{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
     <h1>Reports</h1>
-    <p class="subtitle">Analytics dashboard, report exports, KYC, payments, renewals and GST data.</p>
+    <p class="subtitle">Financial &amp; operational insights across the Society.</p>
   </div>
   <div class="page-actions">
-    <a class="btn" href="{% url 'export_report' 'district-wise-members' 'excel' %}"><i class="bi bi-download"></i> Export Excel</a>
-    <a class="btn primary" href="{% url 'export_report' 'district-wise-members' 'pdf' %}"><i class="bi bi-filetype-pdf"></i> Export PDF</a>
+    <a class="btn" href="{% url 'export_report' 'district-wise-members' 'excel' %}"><i class="bi bi-file-earmark-excel"></i> Export Excel</a>
+    <a class="btn primary" href="{% url 'export_report' 'district-wise-members' 'pdf' %}"><i class="bi bi-file-earmark-pdf"></i> Export PDF</a>
   </div>
 </div>
-<div class="grid cols-4" style="margin-bottom:24px;">
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-people"></i></div></div><div class="stat__num">{{ stats.total_members }}</div><div class="stat__label">Total Members</div></div>
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-shield-check"></i></div></div><div class="stat__num">{{ stats.active_members }}</div><div class="stat__label">Active Members</div></div>
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-cash-stack"></i></div></div><div class="stat__num">₹{{ stats.payment_collection }}</div><div class="stat__label">Payment Collection</div></div>
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-arrow-repeat"></i></div></div><div class="stat__num">{{ stats.renewals_due }}</div><div class="stat__label">Renewals Due</div></div>
-</div>
-<div class="grid cols-2" style="margin-bottom:24px;">
-  <div class="card">
-    <div class="card__head"><div><div class="card__title">District-wise Members</div><div class="card__sub">Exportable district report</div></div></div>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      {% for item in districts %}
-      <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>{{ item.district|default:"Not provided" }}</span><span style="color:var(--text-3);">{{ item.total }}</span></div><div style="height:8px;background:#f2f2f2;border-radius:99px;overflow:hidden;"><div style="width:{% widthratio item.total max_district_total 100 %}%;height:100%;background:#111;"></div></div></div>
-      {% empty %}<p>No district data yet.</p>{% endfor %}
-    </div>
-  </div>
-  <div class="card">
-    <div class="card__head"><div><div class="card__title">Report Exports</div><div class="card__sub">Excel and PDF downloads</div></div></div>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <a class="quick-tile" href="{% url 'export_report' 'district-wise-members' 'excel' %}"><div class="ic"><i class="bi bi-geo-alt"></i></div><div><div class="t">District-wise Members</div><div class="s">Excel export</div></div><i class="bi bi-arrow-right arrow"></i></a>
-      <a class="quick-tile" href="{% url 'export_report' 'license-type-members' 'excel' %}"><div class="ic"><i class="bi bi-card-checklist"></i></div><div><div class="t">License Type-wise Members</div><div class="s">Excel export</div></div><i class="bi bi-arrow-right arrow"></i></a>
-      <a class="quick-tile" href="{% url 'export_report' 'payment-collection' 'excel' %}"><div class="ic"><i class="bi bi-currency-rupee"></i></div><div><div class="t">Payment Collection</div><div class="s">Excel export</div></div><i class="bi bi-arrow-right arrow"></i></a>
-      <a class="quick-tile" href="{% url 'export_report' 'pending-kyc' 'excel' %}"><div class="ic"><i class="bi bi-file-earmark-warning"></i></div><div><div class="t">Pending KYC</div><div class="s">Excel export</div></div><i class="bi bi-arrow-right arrow"></i></a>
-      <a class="quick-tile" href="{% url 'export_report' 'renewal-report' 'excel' %}"><div class="ic"><i class="bi bi-arrow-repeat"></i></div><div><div class="t">Renewal Report</div><div class="s">Excel export</div></div><i class="bi bi-arrow-right arrow"></i></a>
-      <a class="quick-tile" href="{% url 'export_report' 'gst-report' 'excel' %}"><div class="ic"><i class="bi bi-receipt"></i></div><div><div class="t">GST Report</div><div class="s">Excel export</div></div><i class="bi bi-arrow-right arrow"></i></a>
-    </div>
-  </div>
+
+<div class="grid cols-3">
+  <a class="card" href="{% url 'export_report' 'district-wise-members' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">District-wise Members</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph bars"></div><div class="card__sub" style="margin-top:12px;">{{ districts|length }} districts · updated today</div></a>
+  <a class="card" href="{% url 'export_report' 'license-type-members' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">License-wise Members</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph donut" style="width:160px;height:160px;"></div><div class="legend" style="justify-content:center;"><span><i class="dot" style="background:#111;"></i>FL-Off</span><span><i class="dot" style="background:#d4af37;"></i>FL-On</span><span><i class="dot" style="background:#ececec;"></i>IML</span></div></a>
+  <a class="card" href="{% url 'export_report' 'payment-collection' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Payment Collection</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="chart-ph"></div><div class="card__sub" style="margin-top:12px;">?{{ stats.payment_collection }} collected FYTD</div></a>
+  <a class="card" href="{% url 'export_report' 'pending-payments' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Pending Payments</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="stat__num" style="margin-top:0;">{{ stats.pending_payments }}</div><div class="stat__label">members with outstanding dues</div></a>
+  <a class="card" href="{% url 'export_report' 'renewal-report' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Renewals</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="stat__num" style="margin-top:0;">{{ stats.renewals_due }}</div><div class="stat__label">Due in next 30 days</div></a>
+  <a class="card" href="{% url 'export_report' 'pending-kyc' 'excel' %}" style="display:block;"><div class="card__head"><div class="card__title">Pending KYC</div><i class="bi bi-arrow-up-right" style="color:var(--text-3);"></i></div><div class="stat__num" style="margin-top:0;">{{ stats.pending_applications }}</div><div class="stat__label">Members awaiting document verification</div></a>
 </div>
 {% endblock %}
+

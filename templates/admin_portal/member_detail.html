@@ -1,0 +1,69 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}{{ member.membership_number }} - Liquor Society Admin{% endblock %}
+{% block page_title %}Member details{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div style="display:flex;gap:16px;align-items:center;">
+    <div class="avatar" style="width:64px;height:64px;font-size:20px;">{{ application.full_name|slice:":2"|upper }}</div>
+    <div>
+      <h1>{{ application.full_name }}</h1>
+      <p class="subtitle">{{ member.membership_number }} - {{ application.shop_name }} - {{ application.district }} <span class="badge {% if member.is_active %}active{% else %}pending{% endif %}" style="margin-left:6px;">{% if member.is_active %}Active{% else %}Inactive{% endif %}</span></p>
+    </div>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'staff_application_detail' application.id %}"><i class="bi bi-file-earmark-text"></i> Application</a>
+    <a class="btn" href="{% url 'staff_membership_cards' %}?member={{ member.id }}"><i class="bi bi-card-heading"></i> Generate Card</a>
+    <a class="btn primary" href="{% url 'verify_member' member.public_id %}"><i class="bi bi-shield-check"></i> Verify</a>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="overview">Overview</button>
+  <button class="tab" data-tab="business">Business</button>
+  <button class="tab" data-tab="documents">Documents</button>
+  <button class="tab" data-tab="payments">Payments</button>
+  <button class="tab" data-tab="membership">Membership</button>
+  <button class="tab" data-tab="activity">Activity</button>
+</div>
+
+<div data-tab-panel="overview">
+  <div class="grid cols-2">
+    <div class="card"><div class="card__head"><div class="card__title">Contact</div></div><dl class="kv"><dt>Email</dt><dd>{{ application.email }}</dd><dt>Mobile</dt><dd>{{ application.mobile_number }}</dd><dt>Address</dt><dd>{{ application.residential_address }}</dd></dl></div>
+    <div class="card"><div class="card__head"><div class="card__title">Membership</div></div><dl class="kv"><dt>Category</dt><dd><span class="badge gold">{{ member.category }}</span></dd><dt>Since</dt><dd>{{ member.membership_since|date:"d M Y" }}</dd><dt>Valid till</dt><dd>{{ member.valid_till|date:"d M Y" }}</dd><dt>Status</dt><dd>{% if member.is_active %}Active{% else %}Inactive{% endif %}</dd></dl></div>
+  </div>
+</div>
+
+<div data-tab-panel="business" style="display:none;">
+  <div class="card"><div class="card__head"><div class="card__title">Business Information</div></div><dl class="kv"><dt>Shop</dt><dd>{{ application.shop_name }}</dd><dt>License</dt><dd>{{ application.excise_license_type }} - {{ application.excise_license_number }}</dd><dt>GST</dt><dd>{{ application.gst_number|default:"Not provided" }}</dd><dt>PAN</dt><dd>{{ application.pan_number }}</dd><dt>District</dt><dd>{{ application.district }}</dd></dl></div>
+</div>
+
+<div data-tab-panel="documents" style="display:none;">
+  <div class="card">
+    <div class="card__head"><div class="card__title">Documents</div><a class="btn sm" href="{% url 'staff_application_detail' application.id %}"><i class="bi bi-eye"></i> Review all</a></div>
+    <div class="grid cols-4">
+      {% for doc in documents %}
+        <div class="doc-card"><div class="thumb">{% if doc.file and doc.is_image %}<img src="{{ doc.file.url }}" alt="{{ doc.label }}">{% else %}<i class="bi bi-file-earmark-text"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.file %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.file %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div data-tab-panel="payments" style="display:none;">
+  <div class="table-wrap"><table class="table"><thead><tr><th>Amount</th><th>Method</th><th>UTR</th><th>Date</th><th>Status</th></tr></thead><tbody>
+    {% if payment %}<tr><td>&#8377;{{ payment.amount }}</td><td>{{ payment.bank_name }}</td><td>{{ payment.utr_number }}</td><td>{{ payment.payment_date|date:"d M Y" }}</td><td><span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></td></tr>{% else %}<tr><td colspan="5">No payment submitted yet.</td></tr>{% endif %}
+  </tbody></table></div>
+</div>
+
+<div data-tab-panel="membership" style="display:none;">
+  <div class="card"><div class="card__head"><div class="card__title">Membership Timeline</div></div><div class="timeline">
+    <div class="item"><div class="ic gold"><i class="bi bi-stars"></i></div><div><div class="t">Membership record created</div><div class="d">{{ member.membership_number }}</div></div><div class="when">{{ member.created_at|date:"d M Y" }}</div></div>
+    <div class="item"><div class="ic green"><i class="bi bi-check2"></i></div><div><div class="t">Valid until {{ member.valid_till|date:"d M Y" }}</div><div class="d">{{ member.category }} category</div></div><div class="when">{{ member.membership_since|date:"d M Y" }}</div></div>
+  </div></div>
+</div>
+
+<div data-tab-panel="activity" style="display:none;">
+  <div class="card"><div class="card__head"><div class="card__title">Activity Log</div></div><div class="timeline">
+    {% for log in recent_logs %}<div class="item"><div class="ic"><i class="bi bi-pencil"></i></div><div><div class="t">{{ log.action }}</div><div class="d">{{ log.notes|default:log.target }}</div></div><div class="when">{{ log.created_at|timesince }} ago</div></div>{% empty %}<p>No activity yet.</p>{% endfor %}
+  </div></div>
+</div>
+{% endblock %}

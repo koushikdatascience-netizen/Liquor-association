@@ -1,0 +1,54 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Settings - Liquor Society Admin{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Settings</h1><p class="subtitle">Configure your Society's identity, payments and integrations.</p></div><div class="page-actions"><button class="btn primary" type="button"><i class="bi bi-check2"></i> Save changes</button></div></div>
+
+<div style="display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start;">
+  <nav style="display:flex;flex-direction:column;gap:2px;position:sticky;top:88px;">
+    <a class="nav-item active" href="#association"><i class="bi bi-building"></i><span>Association</span></a>
+    <a class="nav-item" href="#fees"><i class="bi bi-cash"></i><span>Fees</span></a>
+    <a class="nav-item" href="#bank"><i class="bi bi-bank"></i><span>Bank & QR</span></a>
+    <a class="nav-item" href="#system"><i class="bi bi-toggles"></i><span>System</span></a>
+  </nav>
+
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card" id="association">
+      <div class="card__head"><div><div class="card__title">Association Information</div><div class="card__sub">Displayed on cards, receipts and public pages.</div></div></div>
+      <div class="form-grid">
+        <div class="field full"><label>Name</label><input class="input" value="{{ association_name }}" readonly></div>
+        <div class="field"><label>Site URL</label><input class="input" value="{{ site_url }}" readonly></div>
+        <div class="field"><label>Admin panel</label><input class="input" value="/admin/dashboard/" readonly></div>
+      </div>
+    </div>
+
+    <div class="card" id="fees">
+      <div class="card__head"><div><div class="card__title">Membership Fees</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>New membership fee</label><input class="input" value="&#8377;{{ membership_fee }}" readonly></div>
+        <div class="field"><label>Renewal fee</label><input class="input" value="&#8377;{{ membership_fee }}" readonly></div>
+      </div>
+    </div>
+
+    <div class="card" id="bank">
+      <div class="card__head"><div><div class="card__title">Bank Details & QR</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>Account holder</label><input class="input" value="{{ payment_settings.account_name }}" readonly></div>
+        <div class="field"><label>Bank</label><input class="input" value="{{ payment_settings.bank_name }}" readonly></div>
+        <div class="field"><label>Account No.</label><input class="input" value="{{ payment_settings.account_number }}" readonly></div>
+        <div class="field"><label>IFSC</label><input class="input" value="{{ payment_settings.ifsc }}" readonly></div>
+        <div class="field"><label>UPI ID</label><input class="input" value="{{ payment_settings.upi_id }}" readonly></div>
+        <div class="field"><label>QR code</label><div class="upload"><i class="bi bi-qr-code"></i><div class="t">UPI QR configured</div><div class="s">Update through environment settings</div></div></div>
+      </div>
+    </div>
+
+    <div class="card" id="system">
+      <div class="card__head"><div><div class="card__title">System Preferences</div></div></div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:14px;">Registration OTP verification</div><div style="font-size:12px;color:var(--text-3);">Require email and mobile OTP before application.</div></div><label class="switch"><input type="checkbox" {% if otp_required %}checked{% endif %} disabled><span class="slider"></span></label></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:14px;">Public member verification</div><div style="font-size:12px;color:var(--text-3);">QR cards resolve to the verification page.</div></div><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

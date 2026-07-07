@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Payment Verification — Liquor Society Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/responsive.css" />
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="page-head">
+    <div>
+      <h1>Payment Verification</h1>
+      <p class="subtitle">Reconcile UPI &amp; bank transfers with member payments.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+      <button class="btn primary"><i class="bi bi-download"></i> Export</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;">
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <div class="search"><i class="bi bi-search"></i><input data-table-search="#paymentsTable" placeholder="Search by member, UTR…" /></div>
+        <select class="select"><option>All statuses</option><option>Pending</option><option>Verified</option><option>Re-upload</option></select>
+      </div>
+      <table class="table" id="paymentsTable">
+        <thead><tr><th>Member</th><th>Amount</th><th>UTR</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr>
+            <td data-label="Member"><div class="who"><div class="avatar">SG</div><div><div class="n">Suman Ghosh</div><div class="s">#MB-3021</div></div></div></td>
+            <td data-label="Amount">₹12,000</td>
+            <td data-label="UTR">74829JHA</td>
+            <td data-label="Date">06 Jul 2026</td>
+            <td data-label="Status"><span class="badge payment-pending">Pending</span></td>
+          </tr>
+          <tr>
+            <td data-label="Member"><div class="who"><div class="avatar">AP</div><div><div class="n">Arundhati Pal</div><div class="s">#MB-3020</div></div></div></td>
+            <td data-label="Amount">₹8,500</td>
+            <td data-label="UTR">99201KLM</td>
+            <td data-label="Date">05 Jul 2026</td>
+            <td data-label="Status"><span class="badge payment-verified">Verified</span></td>
+          </tr>
+          <tr>
+            <td data-label="Member"><div class="who"><div class="avatar">RM</div><div><div class="n">Rajat Mondal</div><div class="s">#MB-3019</div></div></div></td>
+            <td data-label="Amount">₹15,000</td>
+            <td data-label="UTR">30918POI</td>
+            <td data-label="Date">05 Jul 2026</td>
+            <td data-label="Status"><span class="badge rejected">Re-upload</span></td>
+          </tr>
+          <tr>
+            <td data-label="Member"><div class="who"><div class="avatar">TS</div><div><div class="n">Tania Sen</div><div class="s">#MB-3018</div></div></div></td>
+            <td data-label="Amount">₹12,000</td>
+            <td data-label="UTR">55082ZXC</td>
+            <td data-label="Date">04 Jul 2026</td>
+            <td data-label="Status"><span class="badge payment-pending">Pending</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="table-footer"><span>Showing 4 of 58</span><div class="pagination"><button class="pg active">1</button><button class="pg">2</button><button class="pg">3</button></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card__head">
+        <div>
+          <div class="card__title">Payment Screenshot</div>
+          <div class="card__sub">#MB-3021 · UTR 74829JHA</div>
+        </div>
+        <span class="badge payment-pending">Pending</span>
+      </div>
+      <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:
+        linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);">
+        <div style="text-align:center;">
+          <i class="bi bi-image" style="font-size:36px;"></i>
+          <div style="font-size:12px;margin-top:8px;">payment_74829JHA.jpg</div>
+        </div>
+      </div>
+      <dl class="kv" style="margin-top:18px;">
+        <dt>Member</dt><dd>Suman Ghosh</dd>
+        <dt>Amount</dt><dd>₹12,000.00</dd>
+        <dt>Method</dt><dd>UPI · HDFC Bank</dd>
+        <dt>UTR</dt><dd>74829JHA</dd>
+        <dt>Uploaded</dt><dd>06 Jul 2026, 10:24</dd>
+      </dl>
+      <div style="display:flex;gap:8px;margin-top:18px;">
+        <button class="btn" style="flex:1;"><i class="bi bi-envelope"></i> Re-upload</button>
+        <button class="btn danger" style="flex:1;"><i class="bi bi-x"></i> Reject</button>
+        <button class="btn primary" style="flex:1;" onclick="toast('Payment approved','success')"><i class="bi bi-check2"></i> Approve</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/modal.js"></script>
+<script src="assets/js/table.js"></script>
+<script>
+  mountShell({ page: "payments", title: "Payment Verification", crumbs: [{ label: "Home", href: "dashboard.html" }] });
+</script>
+</body>
+</html>

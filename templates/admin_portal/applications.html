@@ -1,24 +1,36 @@
-{% extends "admin_portal/base.html" %}
+﻿{% extends "admin_portal/base.html" %}
 {% block title %}Applications - Liquor Society Admin{% endblock %}
 {% block page_title %}Applications{% endblock %}
 {% block search_target %}#applicationsTable{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Applications</h1><p class="subtitle">Review and process incoming membership applications.</p></div>
-  <div class="page-actions"><a class="btn" href="{% url 'export_report' 'pending-kyc' 'excel' %}"><i class="bi bi-download"></i> Export CSV</a><a class="btn primary" href="{% url 'admin:membership_membershipapplication_add' %}"><i class="bi bi-plus-lg"></i> New Application</a></div>
+  <div>
+    <h1>Applications</h1>
+    <p class="subtitle">Review and process incoming membership applications.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'export_report' 'pending-kyc' 'excel' %}"><i class="bi bi-download"></i> Export CSV</a>
+    <a class="btn primary" href="{% url 'application_create' %}"><i class="bi bi-plus-lg"></i> New Application</a>
+  </div>
 </div>
+
 <div class="grid cols-4" style="margin-bottom:20px;">
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-inbox"></i></div></div><div class="stat__num">{{ counts.pending }}</div><div class="stat__label">Pending Review</div></div>
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-check2-circle"></i></div></div><div class="stat__num">{{ counts.approved }}</div><div class="stat__label">Approved</div></div>
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-x-circle"></i></div></div><div class="stat__num">{{ counts.rejected }}</div><div class="stat__label">Rejected</div></div>
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-envelope-paper"></i></div></div><div class="stat__num">{{ counts.docs_requested }}</div><div class="stat__label">Docs Requested</div></div>
 </div>
+
 <div class="table-wrap">
   <div class="table-toolbar">
-    <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..."></div>
+    <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..." /></div>
     <select class="select"><option>All statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Docs Requested</option></select>
-    <a class="btn" style="margin-left:auto;" href="{% url 'admin:membership_membershipapplication_changelist' %}"><i class="bi bi-funnel"></i> Advanced filters</a>
+    <select class="select"><option>All districts</option>{% for app in applications %}<option>{{ app.district }}</option>{% endfor %}</select>
+    <select class="select"><option>All licenses</option>{% for app in applications %}<option>{{ app.excise_license_type }}</option>{% endfor %}</select>
+    <input class="input" style="max-width:180px;" type="date" />
+    <button class="btn" style="margin-left:auto;" type="button"><i class="bi bi-funnel"></i> More filters</button>
   </div>
+
   <table class="table" id="applicationsTable">
     <thead><tr><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
     <tbody>
@@ -31,13 +43,17 @@
         <td data-label="District">{{ app.district }}</td>
         <td data-label="Submitted">{{ app.created_at|date:"d M Y" }}</td>
         <td data-label="Status"><span class="badge {% if app.status == 'REJECTED' %}rejected{% elif app.status == 'APPROVED_PENDING_PAYMENT' or app.status == 'PAYMENT_APPROVED' or app.status == 'MEMBER_ACTIVE' %}approved{% elif app.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ app.get_status_display }}</span></td>
-        <td data-label="Actions"><div class="row-actions"><a class="icon-btn action-view" href="{% url 'staff_application_detail' app.id %}" title="View application"><i class="bi bi-eye"></i><span>Review</span></a><a class="icon-btn action-review" href="{% url 'staff_application_detail' app.id %}" title="Approve, reject or request documents"><i class="bi bi-check2-square"></i><span>Action</span></a></div></td>
+        <td data-label="Actions"><div class="row-actions">
+          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="View"><i class="bi bi-eye"></i></a>
+          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Approve"><i class="bi bi-check2"></i></a>
+          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Reject"><i class="bi bi-x"></i></a>
+        </div></td>
       </tr>
-      {% empty %}
-      <tr><td colspan="8">No applications yet.</td></tr>
-      {% endfor %}
+      {% empty %}<tr><td colspan="8">No applications yet.</td></tr>{% endfor %}
     </tbody>
   </table>
-  <div class="table-footer"><span>Showing latest {{ applications|length }} applications</span><div class="pagination"><button class="pg active">1</button></div></div>
+
+  <div class="table-footer"><span>Showing latest {{ applications|length }} applications</span><div class="pagination"><button class="pg"><i class="bi bi-chevron-left"></i></button><button class="pg active">1</button><button class="pg"><i class="bi bi-chevron-right"></i></button></div></div>
 </div>
 {% endblock %}
+

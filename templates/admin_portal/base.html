@@ -28,13 +28,14 @@
       <a class="nav-item {% if active_page == 'payments' %}active{% endif %}" href="{% url 'staff_payments' %}"><i class="bi bi-cash-coin"></i><span>Payment Verification</span></a>
       <div class="sidebar__section">Members</div>
       <a class="nav-item {% if active_page == 'members' %}active{% endif %}" href="{% url 'staff_members' %}"><i class="bi bi-people"></i><span>Members</span></a>
-      <a class="nav-item" href="{% url 'admin:membership_member_changelist' %}"><i class="bi bi-card-heading"></i><span>Membership Cards</span></a>
+      <a class="nav-item {% if active_page == 'cards' %}active{% endif %}" href="{% url 'staff_membership_cards' %}"><i class="bi bi-card-heading"></i><span>Membership Cards</span></a>
       <a class="nav-item {% if active_page == 'notifications' %}active{% endif %}" href="{% url 'staff_notifications' %}"><i class="bi bi-megaphone"></i><span>Notifications</span></a>
       <div class="sidebar__section">Insights</div>
       <a class="nav-item {% if active_page == 'reports' %}active{% endif %}" href="{% url 'staff_reports' %}"><i class="bi bi-bar-chart"></i><span>Reports</span></a>
-      <a class="nav-item" href="{% url 'admin:index' %}"><i class="bi bi-sliders"></i><span>Django Admin</span></a>
+      <a class="nav-item {% if active_page == 'masters' %}active{% endif %}" href="{% url 'staff_masters' %}"><i class="bi bi-sliders"></i><span>Masters</span></a>
       <div class="sidebar__section">Account</div>
-      <a class="nav-item" href="{% url 'home' %}"><i class="bi bi-house"></i><span>Member Portal</span></a>
+      <a class="nav-item {% if active_page == 'settings' %}active{% endif %}" href="{% url 'staff_settings' %}"><i class="bi bi-gear"></i><span>Settings</span></a>
+      <a class="nav-item {% if active_page == 'profile' %}active{% endif %}" href="{% url 'staff_profile' %}"><i class="bi bi-person-circle"></i><span>My Profile</span></a>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
         <button class="nav-item" type="submit"><i class="bi bi-box-arrow-right"></i><span>Logout</span></button>
@@ -65,7 +66,7 @@
           <span class="kbd">Ctrl K</span>
         </div>
         <a class="icon-btn bell" href="{% url 'staff_notifications' %}" aria-label="Notifications"><i class="bi bi-bell"></i><span class="dot"></span></a>
-        <a class="icon-btn" href="{% url 'admin:index' %}" aria-label="Settings"><i class="bi bi-gear"></i></a>
+        <a class="icon-btn" href="{% url 'staff_settings' %}" aria-label="Settings"><i class="bi bi-gear"></i></a>
         <div class="avatar" style="width:36px;height:36px;">{{ request.user.get_full_name|default:request.user.username|slice:":2"|upper }}</div>
       </div>
     </header>

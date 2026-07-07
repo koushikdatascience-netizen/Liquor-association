@@ -1,24 +1,63 @@
-{% extends "admin_portal/base.html" %}
-{% block title %}Payments - Liquor Society Admin{% endblock %}
+﻿{% extends "admin_portal/base.html" %}
+{% block title %}Payment Verification - Liquor Society Admin{% endblock %}
 {% block page_title %}Payment Verification{% endblock %}
 {% block search_target %}#paymentsTable{% endblock %}
 {% block content %}
-<div class="page-head"><div><h1>Payment Verification</h1><p class="subtitle">Review screenshots, UTR numbers and bank details.</p></div><div class="page-actions"><a class="btn primary" href="{% url 'admin:membership_paymentproof_changelist' %}"><i class="bi bi-cash-coin"></i> Verify in Django Admin</a></div></div>
-<div class="table-wrap">
-  <div class="table-toolbar"><div class="search"><i class="bi bi-search"></i><input data-table-search="#paymentsTable" type="text" placeholder="Search payments..."></div><a class="btn" style="margin-left:auto;" href="{% url 'export_report' 'pending-payments' 'excel' %}"><i class="bi bi-download"></i> Export</a></div>
-  <table class="table" id="paymentsTable">
-    <thead><tr><th>Applicant</th><th>UTR</th><th>Amount</th><th>Bank</th><th>Date</th><th>Status</th><th></th></tr></thead>
-    <tbody>
-      {% for payment in payments %}
-      <tr>
-        <td data-label="Applicant"><div class="who"><div class="avatar">{{ payment.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ payment.application.full_name }}</div><div class="s">{{ payment.application.shop_name }}</div></div></div></td>
-        <td data-label="UTR">{{ payment.utr_number }}</td><td data-label="Amount">&#8377;{{ payment.amount }}</td><td data-label="Bank">{{ payment.bank_name }}</td><td data-label="Date">{{ payment.payment_date|date:"d M Y" }}</td>
-        <td data-label="Status"><span class="badge {% if payment.status == 'APPROVED' %}verified{% elif payment.status == 'REJECTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></td>
-        <td data-label="Actions"><div class="row-actions"><a class="icon-btn action-review" href="{% url 'staff_payment_detail' payment.id %}" title="Verify payment"><i class="bi bi-shield-check"></i><span>Verify</span></a></div></td>
-      </tr>
-      {% empty %}<tr><td colspan="7">No payments submitted yet.</td></tr>{% endfor %}
-    </tbody>
-  </table>
-  <div class="table-footer"><span>Showing latest {{ payments|length }} payments</span><div class="pagination"><button class="pg active">1</button></div></div>
+<div class="page-head">
+  <div>
+    <h1>Payment Verification</h1>
+    <p class="subtitle">Reconcile UPI &amp; bank transfers with member payments.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'staff_payments' %}"><i class="bi bi-arrow-clockwise"></i> Refresh</a>
+    <a class="btn primary" href="{% url 'export_report' 'pending-payments' 'excel' %}"><i class="bi bi-download"></i> Export</a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;" class="admin-two-col">
+  <div class="table-wrap">
+    <div class="table-toolbar">
+      <div class="search"><i class="bi bi-search"></i><input data-table-search="#paymentsTable" placeholder="Search by member, UTR..." /></div>
+      <select class="select"><option>All statuses</option><option>Pending</option><option>Verified</option><option>Re-upload</option></select>
+    </div>
+    <table class="table" id="paymentsTable">
+      <thead><tr><th>Member</th><th>Amount</th><th>UTR</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for payment in payments %}
+        <tr onclick="window.location='{% url 'staff_payment_detail' payment.id %}'" style="cursor:pointer;">
+          <td data-label="Member"><div class="who"><div class="avatar">{{ payment.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ payment.application.full_name }}</div><div class="s">#APP-{{ payment.application.id|stringformat:"04d" }}</div></div></div></td>
+          <td data-label="Amount">&#8377;{{ payment.amount }}</td>
+          <td data-label="UTR">{{ payment.utr_number }}</td>
+          <td data-label="Date">{{ payment.payment_date|date:"d M Y" }}</td>
+          <td data-label="Status"><span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></td>
+        </tr>
+        {% empty %}<tr><td colspan="5">No payments submitted yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    <div class="table-footer"><span>Showing latest {{ payments|length }} payments</span><div class="pagination"><button class="pg active">1</button></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card__head">
+      <div><div class="card__title">Payment Screenshot</div><div class="card__sub">{% if payments %}Latest submitted payment{% else %}No payment selected{% endif %}</div></div>
+      <span class="badge payment-pending">Pending</span>
+    </div>
+    <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);">
+      <div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>
+    </div>
+    {% with payment=payments.0 %}
+    {% if payment %}
+    <dl class="kv" style="margin-top:18px;">
+      <dt>Member</dt><dd>{{ payment.application.full_name }}</dd>
+      <dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd>
+      <dt>Method</dt><dd>{{ payment.bank_name }}</dd>
+      <dt>UTR</dt><dd>{{ payment.utr_number }}</dd>
+      <dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd>
+    </dl>
+    <div style="display:flex;gap:8px;margin-top:18px;"><a class="btn" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-envelope"></i> Re-upload</a><a class="btn danger" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-x"></i> Reject</a><a class="btn primary" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-check2"></i> Approve</a></div>
+    {% endif %}
+    {% endwith %}
+  </div>
 </div>
 {% endblock %}
+

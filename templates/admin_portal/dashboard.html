@@ -55,7 +55,7 @@
 
 <div class="grid cols-2">
   <div class="card">
-    <div class="card__head"><div><div class="card__title">Recent Activity</div><div class="card__sub">Real-time system events</div></div><a class="btn sm ghost" href="{% url 'admin:membership_auditlog_changelist' %}">View all</a></div>
+    <div class="card__head"><div><div class="card__title">Recent Activity</div><div class="card__sub">Real-time system events</div></div><a class="btn sm ghost" href="{% url 'staff_reports' %}">View all</a></div>
     <div class="timeline">
       {% for log in recent_logs %}
         <div class="item"><div class="ic gold"><i class="bi bi-activity"></i></div><div><div class="t">{{ log.action }}</div><div class="d">{{ log.target }}{% if log.actor %} by {{ log.actor }}{% endif %}</div></div><div class="when">{{ log.created_at|timesince }} ago</div></div>
@@ -69,7 +69,7 @@
     <div style="display:flex;flex-direction:column;gap:12px;">
       <a class="quick-tile" href="{% url 'staff_applications' %}"><div class="ic"><i class="bi bi-file-earmark-check"></i></div><div><div class="t">Verify Applications</div><div class="s">{{ stats.pending_applications }} waiting for review</div></div><i class="bi bi-arrow-right arrow"></i></a>
       <a class="quick-tile" href="{% url 'staff_payments' %}"><div class="ic"><i class="bi bi-cash-coin"></i></div><div><div class="t">Verify Payments</div><div class="s">{{ stats.pending_payments }} payments to reconcile</div></div><i class="bi bi-arrow-right arrow"></i></a>
-      <a class="quick-tile" href="{% url 'admin:membership_member_changelist' %}"><div class="ic"><i class="bi bi-card-heading"></i></div><div><div class="t">Generate Membership</div><div class="s">Issue new digital cards</div></div><i class="bi bi-arrow-right arrow"></i></a>
+      <a class="quick-tile" href="{% url 'staff_membership_cards' %}"><div class="ic"><i class="bi bi-card-heading"></i></div><div><div class="t">Generate Membership</div><div class="s">Issue new digital cards</div></div><i class="bi bi-arrow-right arrow"></i></a>
       <a class="quick-tile" href="{% url 'staff_notifications' %}"><div class="ic"><i class="bi bi-megaphone"></i></div><div><div class="t">Send Circular</div><div class="s">Email, WhatsApp or both</div></div><i class="bi bi-arrow-right arrow"></i></a>
     </div>
   </div>

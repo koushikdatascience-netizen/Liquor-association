@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Login — WBFL Association</title>
+<link rel="icon" href="favicon.ico"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"/>
+<link rel="stylesheet" href="assets/css/style.css"/>
+<link rel="stylesheet" href="assets/css/components.css"/>
+<link rel="stylesheet" href="assets/css/responsive.css"/>
+</head><body>
+<header class="nav"><div class="container nav-inner">
+<a href="index.html" class="brand"><span class="brand-mark">W</span> WBFL Association</a>
+<nav class="nav-links">
+<a href="index.html" class="">Home</a>
+<a href="about.html" class="">About</a>
+<a href="benefits.html" class="">Benefits</a>
+<a href="fee.html" class="">Membership</a>
+<a href="contact.html" class="">Contact</a>
+</nav>
+<div class="nav-cta">
+<a href="login.html" class="btn btn-ghost btn-sm hide-mobile">Login</a>
+<a href="register.html" class="btn btn-primary btn-sm">Get Started</a>
+<button class="btn btn-admin btn-sm hide-mobile" id="adminLoginBtn" type="button"><i class="bi bi-arrow-up-right-square-fill" aria-hidden="true"></i> Admin Login</button>
+<button class="nav-toggle" data-nav-toggle aria-label="Menu" aria-expanded="false" aria-controls="mobileSheet"><i class="bi bi-list"></i></button>
+</div></div>
+<div class="mobile-sheet" id="mobileSheet">
+<a href="index.html">Home</a><a href="about.html">About</a><a href="benefits.html">Benefits</a><a href="fee.html">Membership</a><a href="contact.html">Contact</a><a href="login.html">Login</a>
+<a href="#" id="adminLoginBtnMobile"><i class="bi bi-arrow-up-right-square-fill" aria-hidden="true"></i> Admin Login</a>
+</div></header>
+
+
+<div class="auth-split">
+  <div class="auth-split-left">
+    <div class="auth-card">
+      <h2>Sign In</h2>
+      <p class="kicker">Welcome <b>back</b></p>
+      <form class="form" id="loginForm" novalidate>
+        <div class="field"><label for="loginEmail">Email address</label><input class="input" id="loginEmail" type="email" name="email" autocomplete="email" placeholder="you@company.com" required/></div>
+        <div class="field"><label for="loginPassword">Password</label><input class="input" id="loginPassword" type="password" name="password" autocomplete="current-password" placeholder="Enter your password" required/></div>
+        <div class="flex between center"><label class="checkbox"><input type="checkbox"/> Remember me</label><a href="forgot-password.html" class="small">Forgot password?</a></div>
+        <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+      <div class="social-row">
+        <button class="btn-social" type="button"><i class="bi bi-google" aria-hidden="true"></i> Sign in with Google</button>
+        <button class="btn-social" type="button"><i class="bi bi-apple" aria-hidden="true"></i> Sign in with Apple</button>
+      </div>
+      <p class="auth-alt">Don't have an account? <a href="register.html">Register</a></p>
+    </div>
+  </div>
+  <div class="auth-split-right">
+    <img src="https://westwardwhiskey.com/cdn/shop/files/NeatKitHexGlasses-lifestyle.png?v=1727212800&width=580" alt="Association welfare illustration"/>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="adminModalBackdrop">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+    <button class="modal-close" id="adminModalClose" type="button" aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+    <div class="modal-icon"><i class="bi bi-shield-lock-fill" aria-hidden="true"></i></div>
+    <h3 id="adminModalTitle">Admin Login</h3>
+    <p class="sub">Restricted access — association office use only.</p>
+    <form class="form" id="adminLoginForm" novalidate>
+      <div class="field"><label for="adminEmail">Admin email</label><input class="input" id="adminEmail" type="email" name="email" autocomplete="username" placeholder="admin@wbfl.org" required/></div>
+      <div class="field"><label for="adminPassword">Password</label><input class="input" id="adminPassword" type="password" name="password" autocomplete="current-password" placeholder="Enter admin password" required/></div>
+      <button class="btn btn-admin btn-block" type="submit"><i class="bi bi-arrow-up-right-square-fill" aria-hidden="true"></i> Login to Admin Panel</button>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/app.js"></script>
+<script src="assets/js/navigation.js"></script>
+
+
+</body></html>

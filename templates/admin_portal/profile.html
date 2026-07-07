@@ -1,0 +1,49 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}My Profile - Liquor Society Admin{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>My Profile</h1><p class="subtitle">Manage your account, security and sessions.</p></div></div>
+
+<div style="display:grid;grid-template-columns:1fr 1.4fr;gap:24px;">
+  <div class="card" style="text-align:center;">
+    <div class="avatar" style="width:96px;height:96px;font-size:32px;margin:0 auto 16px;">{{ request.user.get_full_name|default:request.user.username|slice:":2"|upper }}</div>
+    <div style="font-size:18px;font-weight:600;">{{ request.user.get_full_name|default:request.user.username }}</div>
+    <div style="font-size:13px;color:var(--text-3);margin-top:4px;">{% if request.user.is_superuser %}Super Admin{% else %}Admin{% endif %}</div>
+    <div style="margin-top:14px;"><span class="badge active">Active</span></div>
+    <button class="btn block" style="margin-top:20px;" type="button"><i class="bi bi-camera"></i> Change photo</button>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card">
+      <div class="card__head"><div class="card__title">Account Details</div></div>
+      <div class="form-grid">
+        <div class="field"><label>Full name</label><input class="input" value="{{ request.user.get_full_name|default:request.user.username }}" readonly></div>
+        <div class="field"><label>Email</label><input class="input" value="{{ request.user.email }}" readonly></div>
+        <div class="field"><label>Username</label><input class="input" value="{{ request.user.username }}" readonly></div>
+        <div class="field"><label>Role</label><input class="input" value="{% if request.user.is_superuser %}Super Admin{% else %}Admin{% endif %}" readonly></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__head"><div class="card__title">Change Password</div></div>
+      <div class="form-grid">
+        <div class="field"><label>Current password</label><input class="input" type="password"></div>
+        <div class="field"><label>New password</label><input class="input" type="password"></div>
+        <div class="field full"><label>Confirm password</label><input class="input" type="password"></div>
+      </div>
+      <button class="btn primary" style="margin-top:16px;" type="button">Update password</button>
+    </div>
+
+    <div class="card">
+      <div class="card__head"><div class="card__title">Activity History</div></div>
+      <div class="timeline">
+        {% for log in recent_logs %}
+          <div class="item"><div class="ic"><i class="bi bi-activity"></i></div><div><div class="t">{{ log.action }}</div><div class="d">{{ log.target }}</div></div><div class="when">{{ log.created_at|timesince }} ago</div></div>
+        {% empty %}
+          <p>No activity recorded yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

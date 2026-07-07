@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Membership Card — WBFL Association</title>
+<link rel="icon" href="../favicon.ico"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"/>
+<link rel="stylesheet" href="../assets/css/style.css"/>
+<link rel="stylesheet" href="../assets/css/components.css"/>
+<link rel="stylesheet" href="../assets/css/responsive.css"/>
+
+</head><body>
+<div class="portal">
+  <div class="sidebar-backdrop"></div>
+  <aside class="sidebar">
+    <button class="sidebar-close" data-sidebar-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
+    <a href="../index.html" class="brand"><span class="brand-mark">W</span> WBFL Portal</a>
+    <div class="side-section">Overview</div>
+    <a href="../dashboard.html" class="side-link"><i class="bi bi-grid"></i> Dashboard</a>
+    <a href="../member/notifications.html" class="side-link"><i class="bi bi-bell"></i> Notifications</a>
+    <div class="side-section">Membership</div>
+    <a href="../membership/step1.html" class="side-link"><i class="bi bi-file-earmark-text"></i> Application</a>
+    <a href="../membership/status.html" class="side-link"><i class="bi bi-hourglass-split"></i> Status</a>
+    <a href="../payment/payment.html" class="side-link"><i class="bi bi-credit-card"></i> Payment</a>
+    <a href="../member/membership-card.html" class="side-link active"><i class="bi bi-person-vcard"></i> Membership Card</a>
+    <div class="side-section">Account</div>
+    <a href="../member/profile.html" class="side-link"><i class="bi bi-person"></i> Profile</a>
+    <a href="../login.html" class="side-link"><i class="bi bi-box-arrow-right"></i> Sign out</a>
+  </aside>
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left"><button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+      <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"/></div></div>
+      <div class="topbar-right"><a href="../member/notifications.html" class="icon-btn" aria-label="Notifications"><i class="bi bi-bell"></i><span class="dot-badge"></span></a><div class="avatar">AK</div></div>
+    </header>
+    <div class="page">
+      <div class="breadcrumb"><a href="../dashboard.html">Home</a> <i class="bi bi-chevron-right"></i> Membership Card</div>
+
+      <div class="page-head">
+        <div><h1 class="page-title">Your digital membership card</h1><p class="small mt-8">Download, share or verify your card anytime.</p></div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary" id="downloadPng" type="button"><i class="bi bi-image" aria-hidden="true"></i> Download PNG</button>
+          <button class="btn btn-primary" id="downloadPdf" type="button"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download PDF</button>
+        </div>
+      </div>
+      <div class="mcard">
+        <div class="mcard-head">
+          <div class="mcard-logo"><span class="l-mark">W</span> WBFL Association</div>
+          <span class="badge gold">Active</span>
+        </div>
+        <div class="mcard-body">
+          <div class="mcard-photo"><i class="bi bi-person" aria-hidden="true"></i></div>
+          <div>
+            <div class="mcard-name">Arjun Kapoor</div>
+            <div class="mcard-role">Proprietor &middot; Kapoor Wines &middot; Off Licence</div>
+          </div>
+          <div class="mcard-qr"><i class="bi bi-qr-code" aria-hidden="true"></i></div>
+        </div>
+        <div class="mcard-foot">
+          <div>Member ID<span>WBFL-2026-0284</span></div>
+          <div>Valid until<span>31 Mar 2027</span></div>
+          <div>Licence ID<span>WB/OF/2024/00234</span></div>
+          <div>Category<span>Off</span></div>
+        </div>
+      </div>
+      <div class="card mt-24 verify-card">
+        <h4 class="h-sm">Verification</h4>
+        <p class="small mt-8">Scan the QR on the card or share this verification URL &mdash; anyone can confirm the authenticity of your membership.</p>
+        <div class="flex gap-8 mt-16">
+          <input class="input" id="verifyUrl" value="https://verify.wbfl.org/m/WBFL-2026-0284" readonly/>
+          <button class="btn btn-secondary" id="copyLink" type="button"><i class="bi bi-copy" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/navigation.js"></script>
+
+</body></html>
