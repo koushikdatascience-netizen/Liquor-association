@@ -27,6 +27,18 @@
         {% endif %}
       </div>
 
+      {% if application and application.status == "SUBMITTED" %}
+        <div class="card card-tight mb-16 success-panel">
+          <div class="flex center gap-12">
+            <div class="n-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></div>
+            <div>
+              <h3 class="h-card">Application submitted successfully</h3>
+              <p class="small mt-8">Reference APP-{{ application.created_at|date:"Y-m" }}-{{ application.id|stringformat:"04d" }} is waiting for admin document review.</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
       <div class="stat-grid">
         <div class="card stat">
           <h4>Application</h4>
@@ -48,7 +60,7 @@
       <h3 class="mt-32 mb-16 h-card">Quick actions</h3>
       <div class="qa-grid">
         <a href="{% url 'application_create' %}" class="qa"><i class="bi bi-arrow-right-circle" aria-hidden="true"></i><span>{% if application %}Application{% else %}Continue Application{% endif %}</span></a>
-        {% if application %}
+        {% if can_upload_payment %}
           <a href="{% url 'payment_upload' application.id %}" class="qa"><i class="bi bi-credit-card" aria-hidden="true"></i><span>Payment</span></a>
         {% else %}
           <a href="{% url 'membership_status' %}" class="qa"><i class="bi bi-credit-card" aria-hidden="true"></i><span>Payment</span></a>

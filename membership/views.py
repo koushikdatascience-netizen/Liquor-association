@@ -32,6 +32,14 @@ def member_dashboard(request):
     application = applications.first()
     member = Member.objects.filter(user=request.user).select_related("application").first()
     notifications = request.user.notifications.order_by("-created_at")[:10]
+    can_upload_payment = bool(
+        application
+        and application.status
+        in [
+            MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+            MembershipApplication.Status.PAYMENT_SUBMITTED,
+        ]
+    )
     return render(
         request,
         "membership/dashboard.html",
@@ -41,6 +49,7 @@ def member_dashboard(request):
             "member": member,
             "notifications": notifications,
             "payment": getattr(application, "payment", None) if application else None,
+            "can_upload_payment": can_upload_payment,
             "payment_settings": {
                 "upi_id": settings.PAYMENT_UPI_ID,
                 "bank_name": settings.PAYMENT_BANK_NAME,
@@ -129,6 +138,7 @@ def application_create(request):
             )
             messages.success(request, "Application submitted successfully." if not can_update_documents else "Documents updated and resubmitted for admin review.")
             return redirect("member_dashboard")
+        messages.error(request, "Application was not submitted. Please fix the highlighted fields and submit again.")
     else:
         form = MembershipApplicationForm(
             instance=existing if can_update_documents else None,
@@ -138,7 +148,15 @@ def application_create(request):
                 "full_name": request.user.get_full_name() or request.user.username,
             }
         )
-    return render(request, "membership/application_form.html", {"form": form, "is_update": can_update_documents})
+    return render(
+        request,
+        "membership/application_form.html",
+        {
+            "form": form,
+            "is_update": can_update_documents,
+            "has_form_errors": form.is_bound and form.errors,
+        },
+    )
 
 
 @login_required

@@ -27,7 +27,22 @@
         <div class="st" data-step-indicator="4"><div class="st-num">4</div><div class="st-label">Declaration</div></div><div class="st-sep"></div>
         <div class="st" data-step-indicator="5"><div class="st-num">5</div><div class="st-label">Review</div></div>
       </div>
-      {% if form.non_field_errors %}<div class="card card-tight mb-16">{{ form.non_field_errors }}</div>{% endif %}
+      {% if has_form_errors %}
+        <div class="card card-tight mb-16 form-error-summary" role="alert">
+          <h3 class="h-card mb-8">Application not submitted</h3>
+          <p class="small mb-16">Please fix the fields below. Your application will be submitted only after these errors are resolved.</p>
+          <ul class="errorlist">
+            {% for field in form %}
+              {% for error in field.errors %}
+                <li><a href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>
+              {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
       <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard>
         {% csrf_token %}
         <div class="wizard-card step-panel active" data-step-panel="1">
