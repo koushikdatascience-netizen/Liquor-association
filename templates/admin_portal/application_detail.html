@@ -8,37 +8,9 @@
     <p class="subtitle">Submitted {{ application.created_at|date:"d M Y" }} - <span class="badge {% if application.status == 'REJECTED' %}rejected{% elif application.status == 'APPROVED_PENDING_PAYMENT' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}approved{% elif application.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}" style="margin-left:8px;">{{ application.get_status_display }}</span></p>
   </div>
   <div class="page-actions">
-    {% if payment %}<a class="btn" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-credit-card"></i> Payment</a>{% endif %}
     {% if member %}<a class="btn" href="{% url 'staff_member_detail' member.id %}"><i class="bi bi-person-badge"></i> Member</a>{% endif %}
-    <a class="btn" href="{% url 'staff_applications' %}"><i class="bi bi-arrow-left"></i> Back</a>
+    <a class="btn" href="{% url 'export_report' 'pending-kyc' 'excel' %}"><i class="bi bi-download"></i> Download</a>
   </div>
-</div>
-
-<div class="card" style="margin-bottom:20px;border-left:4px solid var(--primary);">
-  <div class="card__head">
-    <div>
-      <div class="card__title">Document verification actions</div>
-      <div class="card__sub">Approve documents to unlock payment, request updated documents with a remark, or reject the application.</div>
-    </div>
-    <span class="badge {% if can_review_documents %}pending{% else %}approved{% endif %}">{% if can_review_documents %}Action required{% else %}Reviewed{% endif %}</span>
-  </div>
-  <form method="post" action="{% url 'staff_application_action' application.id %}">
-    {% csrf_token %}
-    <textarea class="textarea" name="remarks" placeholder="Write remark for applicant/admin records...">{{ application.remarks }}</textarea>
-    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;">
-      <button class="btn" name="action" value="save_remark" type="submit"><i class="bi bi-journal-text"></i> Save Remark Only</button>
-      <button class="btn" name="action" value="request_documents" type="submit"><i class="bi bi-envelope"></i> Request Updated Documents</button>
-      <button class="btn danger" name="action" value="reject_documents" type="submit"><i class="bi bi-x-lg"></i> Reject Application</button>
-      <button class="btn primary" name="action" value="approve_documents" type="submit"><i class="bi bi-check-lg"></i> Approve Documents / Unlock Payment</button>
-      {% if can_generate_membership %}<button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate Membership</button>{% endif %}
-    </div>
-  </form>
-</div>
-
-<div class="grid cols-4" style="margin-bottom:20px;">
-  {% for step in status_steps %}
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi {% if step.done %}bi-check2-circle{% else %}bi-circle{% endif %}"></i></div></div><div class="stat__label">{{ step.label }}</div><div class="stat__num" style="font-size:18px;">{% if step.done %}Done{% else %}Pending{% endif %}</div></div>
-  {% endfor %}
 </div>
 
 <div class="grid cols-2">
@@ -48,7 +20,6 @@
       <dt>Full name</dt><dd>{{ application.full_name }}</dd>
       <dt>Father's name</dt><dd>{{ application.father_or_husband_name }}</dd>
       <dt>Date of birth</dt><dd>{{ application.date_of_birth|date:"d M Y" }}</dd>
-      <dt>Gender</dt><dd>{{ application.get_gender_display }}</dd>
       <dt>Mobile</dt><dd>{{ application.mobile_number }}</dd>
       <dt>Email</dt><dd>{{ application.email }}</dd>
       <dt>Address</dt><dd>{{ application.residential_address }}</dd>
@@ -61,32 +32,46 @@
       <dt>Shop name</dt><dd>{{ application.shop_name }}</dd>
       <dt>License type</dt><dd>{{ application.excise_license_type }}</dd>
       <dt>License number</dt><dd>{{ application.excise_license_number }}</dd>
-      <dt>Trade license</dt><dd>{{ application.trade_license_number }}</dd>
       <dt>District</dt><dd>{{ application.district }}</dd>
-      <dt>State</dt><dd>{{ application.state }}</dd>
       <dt>GST</dt><dd>{{ application.gst_number|default:"Not provided" }}</dd>
-      <dt>PAN</dt><dd>{{ application.pan_number }}</dd>
-      <dt>Business age</dt><dd>{{ application.years_in_business }} years</dd>
+      <dt>Established</dt><dd>{{ application.years_in_business }} years</dd>
     </dl>
+  </div>
+
+  <div class="card">
+    <div class="card__head"><div class="card__title">Representative</div></div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="avatar" style="width:56px;height:56px;font-size:18px;">{{ application.full_name|slice:":2"|upper }}</div>
+      <div><div style="font-weight:600;">{{ application.full_name }}</div><div style="font-size:12px;color:var(--text-3);">Applicant - {{ application.mobile_number }}</div></div>
+    </div>
+    <dl class="kv" style="margin-top:20px;"><dt>Role</dt><dd>Authorised representative</dd><dt>Aadhaar</dt><dd>Uploaded in KYC</dd><dt>PAN</dt><dd>{{ application.pan_number }}</dd></dl>
+  </div>
+
+  <div class="card">
+    <div class="card__head"><div class="card__title">Remarks</div></div>
+    <form method="post" action="{% url 'staff_application_action' application.id %}">
+      {% csrf_token %}
+      <textarea class="textarea" name="remarks" placeholder="Add internal remarks visible to admins only...">{{ application.remarks }}</textarea>
+      <button class="btn primary sm" name="action" value="request_documents" type="submit" style="margin-top:12px;"><i class="bi bi-plus-lg"></i> Add remark</button>
+    </form>
   </div>
 </div>
 
 <div class="card" style="margin-top:20px;">
-  <div class="card__head"><div><div class="card__title">Documents</div><div class="card__sub">Open each file, check details, then use the verification actions above.</div></div></div>
+  <div class="card__head"><div><div class="card__title">Documents</div><div class="card__sub">{{ documents|length }} files uploaded</div></div><a class="btn sm" href="{% url 'staff_applications' %}"><i class="bi bi-arrow-left"></i> Back</a></div>
   <div class="grid cols-4">
     {% for doc in documents %}
-    <div class="doc-card">
-      <div class="thumb">{% if doc.file and doc.is_image %}<img src="{{ doc.file.url }}" alt="{{ doc.label }}" style="width:100%;height:100%;object-fit:cover;">{% else %}<i class="bi {% if doc.file %}bi-file-earmark-pdf{% else %}bi-file-earmark-x{% endif %}"></i>{% endif %}</div>
-      <div class="body"><div><div class="name">{{ doc.label }}{% if doc.required %} *{% endif %}</div><div class="sub">{% if doc.file %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.file %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" title="Review"><i class="bi bi-eye"></i></a>{% endif %}</div>
-    </div>
+    <div class="doc-card"><div class="thumb">{% if doc.file and doc.is_image %}<img src="{{ doc.file.url }}" alt="{{ doc.label }}" style="width:100%;height:100%;object-fit:cover;">{% else %}<i class="bi {% if doc.file %}bi-file-earmark-pdf{% else %}bi-file-earmark-x{% endif %}"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.file %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.file %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
     {% endfor %}
   </div>
 </div>
 
-{% if payment %}
-<div class="card" style="margin-top:20px;">
-  <div class="card__head"><div><div class="card__title">Payment stage</div><div class="card__sub">UTR {{ payment.utr_number }} - {{ payment.get_status_display }}</div></div><a class="btn primary sm" href="{% url 'staff_payment_detail' payment.id %}">Verify Payment</a></div>
-  <dl class="kv"><dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd><dt>Bank/Method</dt><dd>{{ payment.bank_name }}</dd><dt>Payment date</dt><dd>{{ payment.payment_date|date:"d M Y" }}</dd><dt>Payment remarks</dt><dd>{{ payment.remarks|default:"No remarks" }}</dd></dl>
-</div>
-{% endif %}
+<form class="action-bar" method="post" action="{% url 'staff_application_action' application.id %}">
+  {% csrf_token %}
+  <input type="hidden" name="remarks" value="{{ application.remarks }}">
+  <button class="btn" name="action" value="request_documents" type="submit"><i class="bi bi-envelope"></i> Request Documents</button>
+  <button class="btn danger" name="action" value="reject_documents" type="submit"><i class="bi bi-x-lg"></i> Reject</button>
+  <button class="btn primary" name="action" value="approve_documents" type="submit"><i class="bi bi-check-lg"></i> Approve Application</button>
+  <button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate Membership</button>
+</form>
 {% endblock %}

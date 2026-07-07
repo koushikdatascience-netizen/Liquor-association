@@ -18,21 +18,11 @@
   <div class="card">
     <div class="card__head"><div><div class="card__title">Payment Details</div><div class="card__sub">{{ application.full_name }} - {{ payment.utr_number }}</div></div></div>
     <dl class="kv" style="margin-top:18px;"><dt>Member</dt><dd>{{ application.full_name }}</dd><dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd><dt>Method</dt><dd>{{ payment.bank_name }}</dd><dt>UTR</dt><dd>{{ payment.utr_number }}</dd><dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd></dl>
-    {% if payment.status == 'PENDING' and application.status == 'PAYMENT_SUBMITTED' %}
     <form method="post" action="{% url 'staff_payment_action' payment.id %}" style="margin-top:18px;">
       {% csrf_token %}
       <textarea class="textarea" name="remarks" placeholder="Add payment remarks...">{{ payment.remarks }}</textarea>
-      <div style="display:flex;gap:8px;margin-top:18px;"><button class="btn" name="action" value="request_reupload" type="submit" style="flex:1;"><i class="bi bi-envelope"></i> Request Re-upload</button><button class="btn danger" name="action" value="reject_payment" type="submit" style="flex:1;"><i class="bi bi-x"></i> Reject Payment</button><button class="btn primary" name="action" value="approve_payment" type="submit" style="flex:1;"><i class="bi bi-check2"></i> Approve & Activate Membership</button></div>
+      <div style="display:flex;gap:8px;margin-top:18px;"><button class="btn" name="action" value="request_reupload" type="submit" style="flex:1;"><i class="bi bi-envelope"></i> Re-upload</button><button class="btn danger" name="action" value="reject_payment" type="submit" style="flex:1;"><i class="bi bi-x"></i> Reject</button><button class="btn primary" name="action" value="approve_payment" type="submit" style="flex:1;"><i class="bi bi-check2"></i> Approve</button></div>
     </form>
-    {% elif payment.status == 'APPROVED' %}
-      <div class="empty" style="margin-top:18px;"><i class="bi bi-check-circle"></i><div class="t">Payment already approved</div><div class="s">No payment verification buttons are shown because this step is complete.</div>{% if member %}<a class="btn primary mt-16" href="{% url 'staff_member_detail' member.id %}">Open Member Profile</a>{% endif %}</div>
-    {% elif payment.status == 'REUPLOAD_REQUESTED' %}
-      <div class="empty" style="margin-top:18px;"><i class="bi bi-cloud-arrow-up"></i><div class="t">Re-upload requested</div><div class="s">Waiting for the applicant to upload corrected payment proof. Old proof cannot be approved again.</div></div>
-    {% elif payment.status == 'REJECTED' %}
-      <div class="empty" style="margin-top:18px;"><i class="bi bi-x-circle"></i><div class="t">Payment rejected</div><div class="s">Waiting for applicant to submit new/correct payment details.</div></div>
-    {% else %}
-      <div class="empty" style="margin-top:18px;"><i class="bi bi-info-circle"></i><div class="t">No action required here</div><div class="s">Current application status: {{ application.get_status_display }}</div></div>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

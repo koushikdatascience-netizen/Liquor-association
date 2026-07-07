@@ -32,14 +32,13 @@ def member_dashboard(request):
     application = applications.first()
     member = Member.objects.filter(user=request.user).select_related("application").first()
     notifications = request.user.notifications.order_by("-created_at")[:10]
-    payment = getattr(application, "payment", None) if application else None
     can_upload_payment = bool(
         application
-        and application.status in [
+        and application.status
+        in [
             MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
             MembershipApplication.Status.PAYMENT_SUBMITTED,
         ]
-        and (not payment or payment.status != PaymentProof.Status.APPROVED)
     )
     return render(
         request,
@@ -49,7 +48,7 @@ def member_dashboard(request):
             "applications": applications,
             "member": member,
             "notifications": notifications,
-            "payment": payment,
+            "payment": getattr(application, "payment", None) if application else None,
             "can_upload_payment": can_upload_payment,
             "payment_settings": {
                 "upi_id": settings.PAYMENT_UPI_ID,
@@ -68,21 +67,12 @@ def member_portal_context(request):
     member = Member.objects.filter(user=request.user).select_related("application").first()
     payment = getattr(application, "payment", None) if application else None
     notifications = request.user.notifications.order_by("-created_at")
-    can_upload_payment = bool(
-        application
-        and application.status in [
-            MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
-            MembershipApplication.Status.PAYMENT_SUBMITTED,
-        ]
-        and (not payment or payment.status != PaymentProof.Status.APPROVED)
-    )
     return {
         "application": application,
         "applications": applications,
         "member": member,
         "notifications": notifications,
         "payment": payment,
-        "can_upload_payment": can_upload_payment,
         "payment_settings": {
             "upi_id": settings.PAYMENT_UPI_ID,
             "bank_name": settings.PAYMENT_BANK_NAME,
@@ -572,8 +562,6 @@ def staff_application_detail(request, pk):
             "documents": application_documents(application),
             "payment": payment,
             "member": member,
-            "can_review_documents": application.status in [MembershipApplication.Status.SUBMITTED, MembershipApplication.Status.ADDITIONAL_DOCUMENTS],
-            "can_generate_membership": application.status == MembershipApplication.Status.PAYMENT_APPROVED,
             "status_steps": staff_application_status_context(application),
             "recent_logs": AuditLog.objects.filter(target__icontains=application.full_name).select_related("actor").order_by("-created_at")[:6],
         },
@@ -600,11 +588,6 @@ def staff_application_action(request, pk):
         )
         AuditLog.objects.create(actor=request.user, action="Documents verified", target=str(application), notes=remarks)
         messages.success(request, "Documents approved and payment stage unlocked.")
-    elif action == "save_remark":
-        application.remarks = remarks
-        application.save(update_fields=["remarks", "updated_at"])
-        AuditLog.objects.create(actor=request.user, action="Admin remark saved", target=str(application), notes=remarks)
-        messages.success(request, "Remark saved without changing the application status.")
     elif action == "request_documents":
         remarks = remarks or "Please upload clearer or missing documents."
         application.status = MembershipApplication.Status.ADDITIONAL_DOCUMENTS
@@ -687,21 +670,20 @@ def staff_payment_action(request, pk):
     remarks = request.POST.get("remarks", "").strip()
 
     if action == "approve_payment":
-        if payment.status == PaymentProof.Status.APPROVED and payment.application.status == MembershipApplication.Status.MEMBER_ACTIVE:
-            messages.info(request, "This payment is already approved and membership is active.")
+        if payment.status == PaymentProof.Status.APPROVED:
+            messages.info(request, "This payment is already approved.")
         else:
             payment.remarks = remarks
             payment.save(update_fields=["remarks", "updated_at"])
-            application = payment.approve(request.user)
-            member = Member.objects.create_from_application(application)
+            payment.approve(request.user)
             notify_member(
                 payment.application.applicant,
-                title="Payment approved - membership activated",
-                message=f"Your payment has been verified and your membership is active. Membership number: {member.membership_number}.",
+                title="Payment approved",
+                message="Your payment has been approved. Final membership generation is pending.",
                 remarks=remarks,
             )
-            AuditLog.objects.create(actor=request.user, action="Payment approved and membership activated", target=member.membership_number, notes=remarks)
-            messages.success(request, f"Payment approved and membership activated: {member.membership_number}.")
+            AuditLog.objects.create(actor=request.user, action="Payment approved", target=payment.utr_number, notes=remarks)
+            messages.success(request, "Payment approved. Final membership can now be generated.")
     elif action == "reject_payment":
         remarks = remarks or "Payment proof could not be verified with the submitted details."
         payment.status = PaymentProof.Status.REJECTED
@@ -727,7 +709,7 @@ def staff_payment_action(request, pk):
         payment.verified_by = request.user
         payment.verified_at = timezone.now()
         payment.save(update_fields=["status", "remarks", "verified_by", "verified_at", "updated_at"])
-        payment.application.status = MembershipApplication.Status.APPROVED_PENDING_PAYMENT
+        payment.application.status = MembershipApplication.Status.PAYMENT_SUBMITTED
         payment.application.remarks = remarks
         payment.application.save(update_fields=["status", "remarks", "updated_at"])
         notify_member(

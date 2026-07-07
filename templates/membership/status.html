@@ -50,8 +50,8 @@
               <div class="oa" aria-hidden="true">AO</div>
               <div class="oi"><h5>Association Office</h5><p>Document and payment verification</p></div>
             </div>
-            {% if can_upload_payment %}
-            <a href="{% url 'payment_upload' application.id %}" class="btn btn-primary btn-block mt-16">Proceed / Re-upload Payment <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            {% if application and application.status == 'APPROVED_PENDING_PAYMENT' %}
+            <a href="{% url 'payment_upload' application.id %}" class="btn btn-primary btn-block mt-16">Proceed to Payment <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
             {% elif not application %}
             <a href="{% url 'application_create' %}" class="btn btn-primary btn-block mt-16">Start Application <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
             {% endif %}
