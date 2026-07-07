@@ -11,10 +11,10 @@
     <tbody>
       {% for payment in payments %}
       <tr>
-        <td><div class="who"><div class="avatar">{{ payment.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ payment.application.full_name }}</div><div class="s">{{ payment.application.shop_name }}</div></div></div></td>
-        <td>{{ payment.utr_number }}</td><td>₹{{ payment.amount }}</td><td>{{ payment.bank_name }}</td><td>{{ payment.payment_date|date:"d M Y" }}</td>
-        <td><span class="badge {% if payment.status == 'APPROVED' %}verified{% elif payment.status == 'REJECTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></td>
-        <td><div class="row-actions"><a class="icon-btn" href="{% url 'admin:membership_paymentproof_change' payment.id %}"><i class="bi bi-eye"></i></a></div></td>
+        <td data-label="Applicant"><div class="who"><div class="avatar">{{ payment.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ payment.application.full_name }}</div><div class="s">{{ payment.application.shop_name }}</div></div></div></td>
+        <td data-label="UTR">{{ payment.utr_number }}</td><td data-label="Amount">&#8377;{{ payment.amount }}</td><td data-label="Bank">{{ payment.bank_name }}</td><td data-label="Date">{{ payment.payment_date|date:"d M Y" }}</td>
+        <td data-label="Status"><span class="badge {% if payment.status == 'APPROVED' %}verified{% elif payment.status == 'REJECTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></td>
+        <td data-label="Actions"><div class="row-actions"><a class="icon-btn action-review" href="{% url 'admin:membership_paymentproof_change' payment.id %}" title="Verify payment"><i class="bi bi-shield-check"></i><span>Verify</span></a></div></td>
       </tr>
       {% empty %}<tr><td colspan="7">No payments submitted yet.</td></tr>{% endfor %}
     </tbody>

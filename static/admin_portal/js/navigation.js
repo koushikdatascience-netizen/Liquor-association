@@ -77,8 +77,8 @@ function renderHeader(pageTitle, crumbs = []) {
       <div class="header__right">
         <div class="search">
           <i class="bi bi-search"></i>
-          <input type="text" placeholder="Search members, applications…" />
-          <span class="kbd">⌘K</span>
+          <input type="text" placeholder="Search members, applications..." />
+          <span class="kbd">Ctrl K</span>
         </div>
         <button class="icon-btn bell" aria-label="Notifications">
           <i class="bi bi-bell"></i><span class="dot"></span>

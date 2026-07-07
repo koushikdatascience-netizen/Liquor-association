@@ -200,6 +200,7 @@ input[type="button"],
 input[type="reset"] {
   border-radius: 8px;
   font-weight: 800;
+  min-height: 38px;
 }
 
 input[type="text"],
@@ -215,6 +216,12 @@ select,
   border: 1px solid #ececec;
   border-radius: 12px;
   background: #ffffff;
+  max-width: 100%;
+}
+
+textarea {
+  min-height: 118px;
+  resize: vertical;
 }
 
 input:focus,
@@ -309,6 +316,7 @@ fieldset.module {
 .admin-doc-grid .button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 34px;
   padding: 7px 10px;
   border-radius: 8px;
@@ -317,6 +325,7 @@ fieldset.module {
   border: 1px solid #ececec;
   text-decoration: none;
   font-weight: 800;
+  line-height: 1.2;
 }
 
 .admin-doc-grid .button:hover {
@@ -325,6 +334,7 @@ fieldset.module {
 
 .admin-doc-missing {
   display: inline-flex;
+  justify-content: center;
   min-height: 34px;
   align-items: center;
   padding: 7px 10px;
@@ -333,6 +343,7 @@ fieldset.module {
   color: #9a5b00;
   font-size: 12px;
   font-weight: 800;
+  line-height: 1.2;
 }
 
 .admin-doc-preview {
@@ -352,6 +363,98 @@ fieldset.module {
   border: 1px solid #d6e1df;
   background: #ffffff;
   padding: 8px;
+}
+
+.submit-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid #ececec;
+  box-shadow: 0 -10px 30px rgba(17, 17, 17, 0.06);
+}
+
+.submit-row input,
+.submit-row a.deletelink {
+  margin: 0;
+}
+
+.form-row .readonly,
+.readonly {
+  overflow-wrap: anywhere;
+}
+
+.aligned .form-row {
+  padding: 16px 14px;
+}
+
+.aligned .form-row:not(:last-child) {
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.aligned .form-row label {
+  color: #555555;
+  font-weight: 800;
+}
+
+.help,
+.helptext {
+  color: #777777;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+#changelist-form .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+#changelist-form .actions label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+#changelist-form .actions select {
+  min-width: 260px;
+}
+
+#changelist-form .actions button {
+  min-width: 96px;
+}
+
+#result_list {
+  overflow-wrap: anywhere;
+}
+
+#result_list th,
+#result_list td {
+  vertical-align: middle;
+}
+
+#result_list .action-checkbox {
+  width: 42px;
+  text-align: center;
+}
+
+#result_list input[type="checkbox"],
+.actions input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #111111;
 }
 
 .login #container {
@@ -410,6 +513,11 @@ fieldset.module {
     padding-top: 18px;
   }
 
+  #content-main,
+  #content-main form {
+    min-width: 0;
+  }
+
   #changelist {
     display: grid;
     gap: 14px;
@@ -424,6 +532,7 @@ fieldset.module {
   #changelist .changelist-form-container {
     overflow-x: auto;
     border-radius: 10px;
+    border: 1px solid #ececec;
   }
 
   #result_list {
@@ -456,12 +565,49 @@ fieldset.module {
   .submit-row {
     display: grid;
     gap: 10px;
+    padding: 14px;
+    margin: 18px 0 0;
   }
 
   .submit-row input,
   .submit-row a.deletelink {
     width: 100%;
     text-align: center;
+  }
+
+  .admin-doc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .admin-doc-grid .button,
+  .admin-doc-missing {
+    width: 100%;
+    min-height: 42px;
+    text-align: center;
+  }
+
+  .admin-doc-preview {
+    width: min(180px, 100%);
+    height: auto;
+    aspect-ratio: 4 / 5;
+  }
+
+  .admin-signature-preview {
+    width: min(260px, 100%);
+    max-height: none;
+  }
+
+  #changelist-form .actions {
+    align-items: stretch;
+  }
+
+  #changelist-form .actions label,
+  #changelist-form .actions select,
+  #changelist-form .actions button {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -484,9 +630,67 @@ fieldset.module {
     font-size: 24px;
   }
 
+  #content {
+    width: calc(100% - 16px);
+    padding-bottom: 28px;
+  }
+
+  div.breadcrumbs {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
   .module h2,
   .module caption,
   .inline-group h2 {
     padding: 12px 14px;
+  }
+
+  .module,
+  .inline-group {
+    border-radius: 14px;
+  }
+
+  .aligned .form-row {
+    padding: 14px 12px;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="url"],
+  input[type="number"],
+  input[type="tel"],
+  textarea,
+  select,
+  .vTextField {
+    width: 100%;
+  }
+
+  .related-widget-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .related-widget-wrapper-link {
+    margin-left: 0;
+  }
+
+  .admin-doc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #result_list {
+    min-width: 680px;
+  }
+
+  #toolbar form {
+    display: grid;
+    gap: 8px;
+  }
+
+  #toolbar #searchbar {
+    width: 100%;
   }
 }

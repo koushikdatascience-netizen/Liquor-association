@@ -498,6 +498,7 @@ table.table {
 .row-actions { display: inline-flex; gap: 4px; }
 .row-actions .icon-btn { height: 30px; width: 30px; border-radius: 8px; }
 .row-actions .icon-btn i { font-size: 14px; }
+.row-actions .icon-btn span { display: none; }
 
 /* ============================================================
    Badges

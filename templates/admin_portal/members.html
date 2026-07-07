@@ -11,10 +11,10 @@
     <tbody>
       {% for member in members %}
       <tr>
-        <td><div class="who"><div class="avatar">{{ member.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ member.application.full_name }}</div><div class="s">{{ member.application.email }}</div></div></div></td>
-        <td>{{ member.membership_number }}</td><td>{{ member.application.shop_name }}</td><td>{{ member.application.district }}</td><td>{{ member.application.mobile_number }}</td><td>{{ member.valid_till|date:"d M Y" }}</td>
-        <td><span class="badge {% if member.is_active %}active{% else %}pending{% endif %}">{% if member.is_active %}Active{% else %}Inactive{% endif %}</span></td>
-        <td><div class="row-actions"><a class="icon-btn" href="{% url 'admin:membership_member_change' member.id %}"><i class="bi bi-eye"></i></a></div></td>
+        <td data-label="Member"><div class="who"><div class="avatar">{{ member.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ member.application.full_name }}</div><div class="s">{{ member.application.email }}</div></div></div></td>
+        <td data-label="Membership No">{{ member.membership_number }}</td><td data-label="Shop">{{ member.application.shop_name }}</td><td data-label="District">{{ member.application.district }}</td><td data-label="Mobile">{{ member.application.mobile_number }}</td><td data-label="Valid Till">{{ member.valid_till|date:"d M Y" }}</td>
+        <td data-label="Status"><span class="badge {% if member.is_active %}active{% else %}pending{% endif %}">{% if member.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+        <td data-label="Actions"><div class="row-actions"><a class="icon-btn action-review" href="{% url 'admin:membership_member_change' member.id %}" title="Manage member"><i class="bi bi-person-gear"></i><span>Manage</span></a></div></td>
       </tr>
       {% empty %}<tr><td colspan="8">No members yet.</td></tr>{% endfor %}
     </tbody>

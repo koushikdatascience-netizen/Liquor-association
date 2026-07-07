@@ -25,12 +25,64 @@
   .form-grid { grid-template-columns: 1fr; }
   .kv { grid-template-columns: 1fr; gap: 4px 0; }
   .kv dt { margin-top: 8px; }
+  .page-head {
+    align-items: flex-start;
+    margin-bottom: 22px;
+  }
+  .page-actions {
+    width: 100%;
+  }
+  .page-actions .btn {
+    flex: 1 1 180px;
+    justify-content: center;
+  }
+  .table-toolbar {
+    align-items: stretch;
+  }
+  .table-toolbar .search,
+  .table-toolbar .select,
+  .table-toolbar .btn {
+    width: 100%;
+    max-width: none;
+    margin-left: 0 !important;
+  }
 }
 
 @media (max-width: 640px) {
+  :root { --content-pad: 16px; }
+  h1 { font-size: 22px; line-height: 1.2; }
+  .content { padding-top: 18px; }
+  .header {
+    padding: 0 14px;
+  }
   .header .search { display: none; }
   .breadcrumb .crumb { display: none; }
   .breadcrumb .sep { display: none; }
+  .header__right .icon-btn:not(.bell),
+  .header__right .avatar {
+    display: none;
+  }
+  .page-head {
+    gap: 14px;
+  }
+  .page-head .subtitle {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .btn {
+    min-height: 42px;
+    height: auto;
+    justify-content: center;
+    text-align: center;
+  }
+  .stat {
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .stat__num {
+    font-size: 24px;
+    margin-top: 12px;
+  }
 
   /* Responsive table -> cards */
   table.table thead { display: none; }
@@ -39,15 +91,25 @@
   }
   table.table tr {
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 14px;
+    padding: 14px;
     margin: 12px;
     width: calc(100% - 24px);
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(17, 17, 17, 0.04);
   }
   table.table td {
-    padding: 6px 0;
+    padding: 8px 0;
     display: flex; justify-content: space-between; align-items: center;
     text-align: right;
+    gap: 16px;
+    min-width: 0;
+  }
+  table.table td:first-child {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-2);
+    margin-bottom: 6px;
+    padding-bottom: 12px;
   }
   table.table td::before {
     content: attr(data-label);
@@ -58,6 +120,109 @@
     letter-spacing: .06em;
     margin-right: 12px;
     text-align: left;
+    flex: 0 0 96px;
+  }
+  table.table td:first-child::before {
+    padding-top: 6px;
+  }
+  .table td .who {
+    justify-content: flex-end;
+    min-width: 0;
+    text-align: right;
+  }
+  .table td .who > div:last-child {
+    min-width: 0;
+  }
+  .table td .who .n,
+  .table td .who .s {
+    overflow-wrap: anywhere;
+  }
+  .badge {
+    justify-content: center;
+    text-align: left;
+    white-space: normal;
+  }
+  .row-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+  .row-actions .icon-btn {
+    width: 100%;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    gap: 8px;
+    justify-content: center;
+    background: #fafafa;
+  }
+  .row-actions .icon-btn.action-review {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+  .row-actions .icon-btn span {
+    display: inline;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  table.table td[data-label="Actions"] {
+    display: block;
+    text-align: left;
+    padding-top: 12px;
+  }
+  table.table td[data-label="Actions"]::before {
+    display: block;
+    margin: 0 0 8px;
   }
   .table-footer { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .timeline .item {
+    grid-template-columns: 40px 1fr;
+  }
+  .timeline .when {
+    grid-column: 2;
+    white-space: normal;
+  }
+  .quick-tile {
+    padding: 14px;
+  }
+  .quick-tile .arrow {
+    display: none;
+  }
+  .segmented {
+    width: 100%;
+  }
+  .segmented button {
+    flex: 1;
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .app { grid-template-columns: 58px 1fr; }
+  .sidebar__brand { padding: 0 11px; }
+  .sidebar__logo { width: 34px; height: 34px; }
+  .sidebar__nav { padding: 4px 8px; }
+  .app .nav-item { padding: 11px 8px; }
+  .app.mobile-open {
+    grid-template-columns: minmax(245px, 78vw) 1fr;
+  }
+  .app.mobile-open .sidebar {
+    box-shadow: 20px 0 50px rgba(17, 17, 17, 0.12);
+  }
+  table.table td {
+    align-items: flex-start;
+  }
+  table.table td::before {
+    flex-basis: 86px;
+  }
+  .table td .who {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .row-actions {
+    grid-template-columns: 1fr;
+  }
 }

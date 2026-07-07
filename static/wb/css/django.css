@@ -170,6 +170,13 @@ body {
   gap: 16px;
 }
 
+.document-review__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .document-review__stage {
   min-height: 68vh;
   display: grid;
@@ -416,5 +423,25 @@ body {
 
   .document-review__header {
     flex-direction: column;
+  }
+
+  .document-review__actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .document-review__actions .btn {
+    flex: 1 1 180px;
+    justify-content: center;
+  }
+
+  .document-review__stage {
+    min-height: 60vh;
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .document-review__stage iframe {
+    min-height: 64vh;
   }
 }
