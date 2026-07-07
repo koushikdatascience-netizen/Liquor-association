@@ -57,6 +57,8 @@
       {% else %}
         <span class="badge payment-pending">Payment status submitted, but no proof record found</span>
       {% endif %}
+    {% elif payment_missing_for_review %}
+      <span class="badge payment-pending">Payment status submitted, but no proof record found</span>
     {% elif waiting_for_payment_reupload %}
       <span class="badge payment-pending"><i class="bi bi-hourglass-split"></i> Payment re-upload requested; waiting for applicant</span>
       {% if payment %}<a class="btn" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-receipt"></i> View Payment</a>{% endif %}

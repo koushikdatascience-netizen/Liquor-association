@@ -22,14 +22,72 @@ from .services import notify_member
 
 
 DOCUMENT_REVIEW_STATUSES = {
+    MembershipApplication.Status.DRAFT,
     MembershipApplication.Status.SUBMITTED,
     MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
     MembershipApplication.Status.ON_HOLD,
+    "PENDING",
+    "PENDING_REVIEW",
+    "APPLICATION_PENDING",
+    "DOCUMENTS_SUBMITTED",
+    "DOCUMENTS_REUPLOADED",
+    "REUPLOAD_REQUESTED",
+    "DOCUMENT_REUPLOAD_REQUESTED",
 }
 
 PAYMENT_WAITING_STATUSES = {
     MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+    "DOCUMENTS_APPROVED",
+    "APPROVED",
+    "PENDING_PAYMENT",
+    "PAYMENT_PENDING",
 }
+
+PAYMENT_REVIEW_STATUSES = {
+    MembershipApplication.Status.PAYMENT_SUBMITTED,
+    "PAYMENT_UPLOADED",
+    "PAYMENT_PENDING_VERIFICATION",
+    "PAYMENT_VERIFICATION_PENDING",
+}
+
+PAYMENT_APPROVED_STATUSES = {
+    MembershipApplication.Status.PAYMENT_APPROVED,
+    "PAYMENT_VERIFIED",
+}
+
+MEMBERSHIP_ACTIVE_STATUSES = {
+    MembershipApplication.Status.MEMBER_ACTIVE,
+    "ACTIVE",
+    "MEMBERSHIP_ACTIVE",
+}
+
+REJECTED_APPLICATION_STATUSES = {
+    MembershipApplication.Status.REJECTED,
+    "REJECTED_APPLICATION",
+}
+
+PENDING_PAYMENT_PROOF_STATUSES = {
+    PaymentProof.Status.PENDING,
+    "PAYMENT_UPLOADED",
+    "PAYMENT_PENDING",
+    "PAYMENT_VERIFICATION_PENDING",
+}
+
+REUPLOAD_PAYMENT_PROOF_STATUSES = {
+    PaymentProof.Status.REUPLOAD_REQUESTED,
+    "PAYMENT_REUPLOAD_REQUESTED",
+}
+
+
+def is_document_review_status(status):
+    non_document_statuses = (
+        PAYMENT_WAITING_STATUSES
+        | PAYMENT_REVIEW_STATUSES
+        | PAYMENT_APPROVED_STATUSES
+        | MEMBERSHIP_ACTIVE_STATUSES
+        | REJECTED_APPLICATION_STATUSES
+    )
+    return status not in non_document_statuses
 
 
 def storage_url(file):
@@ -553,20 +611,31 @@ def application_documents(application):
 def staff_application_action_context(application, payment=None, member=None):
     payment = payment if payment is not None else PaymentProof.objects.filter(application=application).first()
     member = member if member is not None else Member.objects.filter(application=application).first()
-    show_document_actions = application.status in DOCUMENT_REVIEW_STATUSES
+    membership_active = bool(application.status in MEMBERSHIP_ACTIVE_STATUSES or (member and member.is_active))
     show_payment_actions = bool(
-        application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
-        and payment
-        and payment.status == PaymentProof.Status.PENDING
+        payment
+        and payment.status in PENDING_PAYMENT_PROOF_STATUSES
+        and application.status not in REJECTED_APPLICATION_STATUSES
+        and not membership_active
     )
-    waiting_for_payment = application.status in PAYMENT_WAITING_STATUSES
-    can_activate_membership = application.status == MembershipApplication.Status.PAYMENT_APPROVED
-    membership_active = bool(application.status == MembershipApplication.Status.MEMBER_ACTIVE or (member and member.is_active))
+    waiting_for_payment = application.status in PAYMENT_WAITING_STATUSES and not show_payment_actions
+    payment_missing_for_review = application.status in PAYMENT_REVIEW_STATUSES and not payment
+    can_activate_membership = application.status in PAYMENT_APPROVED_STATUSES and not membership_active
+    waiting_for_payment_reupload = bool(payment and payment.status in REUPLOAD_PAYMENT_PROOF_STATUSES)
+    show_document_actions = bool(
+        is_document_review_status(application.status)
+        and not show_payment_actions
+        and not waiting_for_payment
+        and not can_activate_membership
+        and not membership_active
+        and application.status not in REJECTED_APPLICATION_STATUSES
+    )
     return {
         "show_document_actions": show_document_actions,
         "show_payment_actions": show_payment_actions,
         "waiting_for_payment": waiting_for_payment,
-        "waiting_for_payment_reupload": bool(payment and payment.status == PaymentProof.Status.REUPLOAD_REQUESTED),
+        "payment_missing_for_review": payment_missing_for_review,
+        "waiting_for_payment_reupload": waiting_for_payment_reupload,
         "can_activate_membership": can_activate_membership,
         "membership_active": membership_active,
         "has_pending_admin_action": show_document_actions or show_payment_actions or can_activate_membership,
@@ -651,7 +720,7 @@ def staff_application_action(request, pk):
         AuditLog.objects.create(actor=request.user, action="Remark saved", target=str(application), notes=remarks)
         messages.success(request, "Remark saved without changing application status.")
     elif action == "approve_documents":
-        if application.status not in DOCUMENT_REVIEW_STATUSES:
+        if not is_document_review_status(application.status):
             messages.error(request, "Documents can only be approved while the application is waiting for document review.")
             return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Documents verified successfully."
@@ -665,7 +734,7 @@ def staff_application_action(request, pk):
         AuditLog.objects.create(actor=request.user, action="Documents verified", target=str(application), notes=remarks)
         messages.success(request, "Documents approved and payment stage unlocked.")
     elif action == "request_documents":
-        if application.status not in DOCUMENT_REVIEW_STATUSES:
+        if not is_document_review_status(application.status):
             messages.error(request, "Updated documents can only be requested during document review.")
             return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Please upload clearer or missing documents."
@@ -681,7 +750,7 @@ def staff_application_action(request, pk):
         AuditLog.objects.create(actor=request.user, action="Additional documents requested", target=str(application), notes=remarks)
         messages.warning(request, "Additional documents requested from applicant.")
     elif action in {"reject_documents", "reject_application"}:
-        if application.status not in DOCUMENT_REVIEW_STATUSES:
+        if not is_document_review_status(application.status):
             messages.error(request, "Applications can only be rejected from the document review stage.")
             return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Documents did not meet verification requirements."
@@ -729,7 +798,12 @@ def staff_payment_detail(request, pk):
     payment = get_object_or_404(PaymentProof.objects.select_related("application", "application__applicant"), pk=pk)
     application = payment.application
     member = Member.objects.filter(application=application).first()
-    show_payment_actions = application.status == MembershipApplication.Status.PAYMENT_SUBMITTED and payment.status == PaymentProof.Status.PENDING
+    member_is_active = bool(application.status in MEMBERSHIP_ACTIVE_STATUSES or (member and member.is_active))
+    show_payment_actions = bool(
+        payment.status in PENDING_PAYMENT_PROOF_STATUSES
+        and application.status not in REJECTED_APPLICATION_STATUSES
+        and not member_is_active
+    )
     return render(
         request,
         "admin_portal/payment_detail.html",
@@ -739,7 +813,7 @@ def staff_payment_detail(request, pk):
             "application": application,
             "member": member,
             "show_payment_actions": show_payment_actions,
-            "membership_active": bool(application.status == MembershipApplication.Status.MEMBER_ACTIVE or (member and member.is_active)),
+            "membership_active": member_is_active,
             "payment_proof_url": storage_url(payment.screenshot),
             "recent_logs": AuditLog.objects.filter(target__icontains=payment.utr_number).select_related("actor").order_by("-created_at")[:6],
         },
@@ -758,7 +832,7 @@ def staff_payment_action(request, pk):
     if action == "approve_payment":
         if payment.status == PaymentProof.Status.APPROVED:
             messages.info(request, "This payment is already approved.")
-        elif payment.application.status != MembershipApplication.Status.PAYMENT_SUBMITTED or payment.status != PaymentProof.Status.PENDING:
+        elif payment.application.status in REJECTED_APPLICATION_STATUSES or payment.status not in PENDING_PAYMENT_PROOF_STATUSES:
             messages.error(request, "Payment can only be approved after a proof upload is pending verification.")
         else:
             payment.remarks = remarks
@@ -774,7 +848,7 @@ def staff_payment_action(request, pk):
             AuditLog.objects.create(actor=request.user, action="Payment approved and membership activated", target=payment.utr_number, notes=remarks)
             messages.success(request, f"Payment approved and membership activated: {member.membership_number}.")
     elif action == "reject_payment":
-        if payment.application.status != MembershipApplication.Status.PAYMENT_SUBMITTED or payment.status != PaymentProof.Status.PENDING:
+        if payment.application.status in REJECTED_APPLICATION_STATUSES or payment.status not in PENDING_PAYMENT_PROOF_STATUSES:
             messages.error(request, "Payment can only be rejected while it is pending verification.")
             return redirect("staff_payment_detail", pk=payment.pk)
         remarks = remarks or "Payment proof could not be verified with the submitted details."
@@ -795,7 +869,7 @@ def staff_payment_action(request, pk):
         AuditLog.objects.create(actor=request.user, action="Payment rejected", target=payment.utr_number, notes=remarks)
         messages.warning(request, "Payment rejected and applicant notified.")
     elif action == "request_reupload":
-        if payment.application.status != MembershipApplication.Status.PAYMENT_SUBMITTED or payment.status != PaymentProof.Status.PENDING:
+        if payment.application.status in REJECTED_APPLICATION_STATUSES or payment.status not in PENDING_PAYMENT_PROOF_STATUSES:
             messages.error(request, "Payment re-upload can only be requested while proof is pending verification.")
             return redirect("staff_payment_detail", pk=payment.pk)
         remarks = remarks or "Please upload a clearer screenshot or correct UTR/payment details."
