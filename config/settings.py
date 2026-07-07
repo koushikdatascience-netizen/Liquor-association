@@ -1,17 +1,24 @@
+import os
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
-    DJANGO_DEBUG=(bool, False),
+    DJANGO_DEBUG=(bool, True),
     MEMBERSHIP_FEE=(float, 5000.00),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="unsafe-dev-secret-key")
 DEBUG = env("DJANGO_DEBUG")
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "unsafe-dev-secret-key"
+    else:
+        raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DJANGO_DEBUG=False.")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 RENDER_EXTERNAL_HOSTNAME = env("RENDER_EXTERNAL_HOSTNAME", default="")
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
@@ -72,7 +79,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {"default": env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")}
+default_sqlite_path = BASE_DIR / "db.sqlite3"
+if "OneDrive" in BASE_DIR.parts and os.environ.get("LOCALAPPDATA"):
+    default_sqlite_path = Path(os.environ["LOCALAPPDATA"]) / "Registration" / "db.sqlite3"
+    default_sqlite_path.parent.mkdir(parents=True, exist_ok=True)
+
+DATABASES = {"default": env.db("DATABASE_URL", default=f"sqlite:///{default_sqlite_path.as_posix()}")}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -167,4 +179,10 @@ WHATSAPP_FROM = env("WHATSAPP_FROM", default=WHATSAPP_OTP_FROM)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=not DEBUG)
+CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=not DEBUG)
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=not DEBUG)
+SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000 if not DEBUG else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=not DEBUG)
+SECURE_HSTS_PRELOAD = env.bool("SECURE_HSTS_PRELOAD", default=not DEBUG)
 X_FRAME_OPTIONS = "DENY"
