@@ -37,7 +37,7 @@
       {% for app in applications %}
       <tr>
         <td data-label="No">#APP-{{ app.id|stringformat:"04d" }}</td>
-        <td data-label="Applicant"><div class="who"><div class="avatar">{{ app.full_name|slice:":2"|upper }}</div><div><div class="n">{{ app.full_name }}</div><div class="s">{{ app.email }}</div></div></div></td>
+        <td data-label="Applicant"><a class="who" href="{% url 'staff_application_detail' app.id %}" style="text-decoration:none;color:inherit;"><div class="avatar">{{ app.full_name|slice:":2"|upper }}</div><div><div class="n">{{ app.full_name }}</div><div class="s">{{ app.email }}</div></div></a></td>
         <td data-label="Shop">{{ app.shop_name }}</td>
         <td data-label="License">{{ app.excise_license_type }}</td>
         <td data-label="District">{{ app.district }}</td>

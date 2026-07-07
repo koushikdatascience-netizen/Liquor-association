@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
@@ -18,6 +19,36 @@ from reportlab.pdfgen import canvas
 from .forms import MembershipApplicationForm, PaymentProofForm
 from .models import AuditLog, BroadcastMessage, Member, MembershipApplication, PaymentProof, notify_staff
 from .services import notify_member
+
+
+DOCUMENT_REVIEW_STATUSES = {
+    MembershipApplication.Status.SUBMITTED,
+    MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+    MembershipApplication.Status.ON_HOLD,
+}
+
+PAYMENT_WAITING_STATUSES = {
+    MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+}
+
+
+def storage_url(file):
+    if not file:
+        return ""
+    try:
+        return file.url
+    except (ValueError, OSError):
+        return ""
+
+
+def open_storage_image(file):
+    file.open("rb")
+    try:
+        image = Image.open(file)
+        image.load()
+        return image
+    finally:
+        file.close()
 
 
 def home(request):
@@ -32,13 +63,17 @@ def member_dashboard(request):
     application = applications.first()
     member = Member.objects.filter(user=request.user).select_related("application").first()
     notifications = request.user.notifications.order_by("-created_at")[:10]
+    payment = getattr(application, "payment", None) if application else None
     can_upload_payment = bool(
         application
-        and application.status
-        in [
-            MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
-            MembershipApplication.Status.PAYMENT_SUBMITTED,
-        ]
+        and (
+            application.status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT
+            or (
+                application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
+                and payment
+                and payment.status == PaymentProof.Status.REUPLOAD_REQUESTED
+            )
+        )
     )
     return render(
         request,
@@ -48,7 +83,7 @@ def member_dashboard(request):
             "applications": applications,
             "member": member,
             "notifications": notifications,
-            "payment": getattr(application, "payment", None) if application else None,
+            "payment": payment,
             "can_upload_payment": can_upload_payment,
             "payment_settings": {
                 "upi_id": settings.PAYMENT_UPI_ID,
@@ -171,6 +206,12 @@ def payment_upload(request, application_id):
         ],
     )
     instance = getattr(application, "payment", None)
+    if (
+        application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
+        and (not instance or instance.status != PaymentProof.Status.REUPLOAD_REQUESTED)
+    ):
+        messages.info(request, "Your payment proof is already waiting for admin verification.")
+        return redirect("member_dashboard")
     if request.method == "POST":
         form = PaymentProofForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
@@ -318,7 +359,7 @@ def render_member_card_image(member):
 
     if application.passport_photo:
         try:
-            photo = Image.open(application.passport_photo.path).convert("RGB").resize((130, 160))
+            photo = open_storage_image(application.passport_photo).convert("RGB").resize((130, 160))
             image.paste(photo, (36, 156))
         except (FileNotFoundError, OSError, ValueError):
             draw.rectangle((36, 156, 166, 316), outline="#d6e1df", width=2)
@@ -338,7 +379,7 @@ def render_member_card_image(member):
 
     if member.qr_code:
         try:
-            qr = Image.open(member.qr_code.path).convert("RGB").resize((132, 132))
+            qr = open_storage_image(member.qr_code).convert("RGB").resize((132, 132))
             image.paste(qr, (720, 352))
         except (FileNotFoundError, OSError, ValueError):
             draw.rectangle((720, 352, 852, 484), outline="#d6e1df", width=2)
@@ -504,7 +545,32 @@ def application_documents(application):
     for document in documents:
         file = document["file"]
         document["is_image"] = bool(file and file.name.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")))
+        document["url"] = storage_url(file)
+        document["uploaded"] = bool(document["url"])
     return documents
+
+
+def staff_application_action_context(application, payment=None, member=None):
+    payment = payment if payment is not None else PaymentProof.objects.filter(application=application).first()
+    member = member if member is not None else Member.objects.filter(application=application).first()
+    show_document_actions = application.status in DOCUMENT_REVIEW_STATUSES
+    show_payment_actions = bool(
+        application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
+        and payment
+        and payment.status == PaymentProof.Status.PENDING
+    )
+    waiting_for_payment = application.status in PAYMENT_WAITING_STATUSES
+    can_activate_membership = application.status == MembershipApplication.Status.PAYMENT_APPROVED
+    membership_active = bool(application.status == MembershipApplication.Status.MEMBER_ACTIVE or (member and member.is_active))
+    return {
+        "show_document_actions": show_document_actions,
+        "show_payment_actions": show_payment_actions,
+        "waiting_for_payment": waiting_for_payment,
+        "waiting_for_payment_reupload": bool(payment and payment.status == PaymentProof.Status.REUPLOAD_REQUESTED),
+        "can_activate_membership": can_activate_membership,
+        "membership_active": membership_active,
+        "has_pending_admin_action": show_document_actions or show_payment_actions or can_activate_membership,
+    }
 
 
 def staff_application_status_context(application):
@@ -553,6 +619,7 @@ def staff_application_detail(request, pk):
     application = get_object_or_404(MembershipApplication.objects.select_related("applicant"), pk=pk)
     payment = PaymentProof.objects.filter(application=application).first()
     member = Member.objects.filter(application=application).first()
+    action_context = staff_application_action_context(application, payment, member)
     return render(
         request,
         "admin_portal/application_detail.html",
@@ -563,6 +630,7 @@ def staff_application_detail(request, pk):
             "payment": payment,
             "member": member,
             "status_steps": staff_application_status_context(application),
+            **action_context,
             "recent_logs": AuditLog.objects.filter(target__icontains=application.full_name).select_related("actor").order_by("-created_at")[:6],
         },
     )
@@ -577,12 +645,15 @@ def staff_application_action(request, pk):
     action = request.POST.get("action")
     remarks = request.POST.get("remarks", "").strip()
 
-    if action == "save_remarks":
+    if action in {"save_remarks", "save_remark"}:
         application.remarks = remarks
         application.save(update_fields=["remarks", "updated_at"])
         AuditLog.objects.create(actor=request.user, action="Remark saved", target=str(application), notes=remarks)
         messages.success(request, "Remark saved without changing application status.")
     elif action == "approve_documents":
+        if application.status not in DOCUMENT_REVIEW_STATUSES:
+            messages.error(request, "Documents can only be approved while the application is waiting for document review.")
+            return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Documents verified successfully."
         application.approve_application(remarks)
         notify_member(
@@ -594,6 +665,9 @@ def staff_application_action(request, pk):
         AuditLog.objects.create(actor=request.user, action="Documents verified", target=str(application), notes=remarks)
         messages.success(request, "Documents approved and payment stage unlocked.")
     elif action == "request_documents":
+        if application.status not in DOCUMENT_REVIEW_STATUSES:
+            messages.error(request, "Updated documents can only be requested during document review.")
+            return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Please upload clearer or missing documents."
         application.status = MembershipApplication.Status.ADDITIONAL_DOCUMENTS
         application.remarks = remarks
@@ -606,7 +680,10 @@ def staff_application_action(request, pk):
         )
         AuditLog.objects.create(actor=request.user, action="Additional documents requested", target=str(application), notes=remarks)
         messages.warning(request, "Additional documents requested from applicant.")
-    elif action == "reject_documents":
+    elif action in {"reject_documents", "reject_application"}:
+        if application.status not in DOCUMENT_REVIEW_STATUSES:
+            messages.error(request, "Applications can only be rejected from the document review stage.")
+            return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Documents did not meet verification requirements."
         application.reject_application(remarks)
         notify_member(
@@ -652,6 +729,7 @@ def staff_payment_detail(request, pk):
     payment = get_object_or_404(PaymentProof.objects.select_related("application", "application__applicant"), pk=pk)
     application = payment.application
     member = Member.objects.filter(application=application).first()
+    show_payment_actions = application.status == MembershipApplication.Status.PAYMENT_SUBMITTED and payment.status == PaymentProof.Status.PENDING
     return render(
         request,
         "admin_portal/payment_detail.html",
@@ -660,6 +738,9 @@ def staff_payment_detail(request, pk):
             "payment": payment,
             "application": application,
             "member": member,
+            "show_payment_actions": show_payment_actions,
+            "membership_active": bool(application.status == MembershipApplication.Status.MEMBER_ACTIVE or (member and member.is_active)),
+            "payment_proof_url": storage_url(payment.screenshot),
             "recent_logs": AuditLog.objects.filter(target__icontains=payment.utr_number).select_related("actor").order_by("-created_at")[:6],
         },
     )
@@ -677,6 +758,8 @@ def staff_payment_action(request, pk):
     if action == "approve_payment":
         if payment.status == PaymentProof.Status.APPROVED:
             messages.info(request, "This payment is already approved.")
+        elif payment.application.status != MembershipApplication.Status.PAYMENT_SUBMITTED or payment.status != PaymentProof.Status.PENDING:
+            messages.error(request, "Payment can only be approved after a proof upload is pending verification.")
         else:
             payment.remarks = remarks
             payment.save(update_fields=["remarks", "updated_at"])
@@ -691,6 +774,9 @@ def staff_payment_action(request, pk):
             AuditLog.objects.create(actor=request.user, action="Payment approved and membership activated", target=payment.utr_number, notes=remarks)
             messages.success(request, f"Payment approved and membership activated: {member.membership_number}.")
     elif action == "reject_payment":
+        if payment.application.status != MembershipApplication.Status.PAYMENT_SUBMITTED or payment.status != PaymentProof.Status.PENDING:
+            messages.error(request, "Payment can only be rejected while it is pending verification.")
+            return redirect("staff_payment_detail", pk=payment.pk)
         remarks = remarks or "Payment proof could not be verified with the submitted details."
         payment.status = PaymentProof.Status.REJECTED
         payment.remarks = remarks
@@ -709,6 +795,9 @@ def staff_payment_action(request, pk):
         AuditLog.objects.create(actor=request.user, action="Payment rejected", target=payment.utr_number, notes=remarks)
         messages.warning(request, "Payment rejected and applicant notified.")
     elif action == "request_reupload":
+        if payment.application.status != MembershipApplication.Status.PAYMENT_SUBMITTED or payment.status != PaymentProof.Status.PENDING:
+            messages.error(request, "Payment re-upload can only be requested while proof is pending verification.")
+            return redirect("staff_payment_detail", pk=payment.pk)
         remarks = remarks or "Please upload a clearer screenshot or correct UTR/payment details."
         payment.status = PaymentProof.Status.REUPLOAD_REQUESTED
         payment.remarks = remarks
@@ -1035,12 +1124,12 @@ def admin_document_review(request, source, pk, field_name):
         obj = get_object_or_404(MembershipApplication, pk=pk)
         label = application_fields[field_name]
         owner = obj.full_name
-        back_url = f"/admin/membership/membershipapplication/{obj.pk}/change/"
+        back_url = reverse("staff_application_detail", args=[obj.pk])
     elif source == "payment" and field_name in payment_fields:
         obj = get_object_or_404(PaymentProof, pk=pk)
         label = payment_fields[field_name]
         owner = obj.application.full_name
-        back_url = f"/admin/membership/paymentproof/{obj.pk}/change/"
+        back_url = reverse("staff_payment_detail", args=[obj.pk])
     else:
         raise Http404("Document not found")
 
@@ -1051,6 +1140,9 @@ def admin_document_review(request, source, pk, field_name):
     file_name = file.name.lower()
     is_image = file_name.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp"))
     is_pdf = file_name.endswith(".pdf")
+    file_url = storage_url(file)
+    if not file_url:
+        raise Http404("Document URL is not available")
 
     return render(
         request,
@@ -1059,6 +1151,7 @@ def admin_document_review(request, source, pk, field_name):
             "label": label,
             "owner": owner,
             "file": file,
+            "file_url": file_url,
             "is_image": is_image,
             "is_pdf": is_pdf,
             "back_url": request.META.get("HTTP_REFERER") or back_url,

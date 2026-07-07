@@ -11,16 +11,16 @@
     </div>
     <div class="document-review__actions">
       <a class="btn btn-secondary" href="{{ back_url }}"><i class="bi bi-arrow-left"></i> Back</a>
-      <a class="btn btn-primary" href="{{ file.url }}" download><i class="bi bi-download"></i> Download</a>
-      <a class="btn btn-secondary" href="{{ file.url }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Open in New Tab</a>
+      <a class="btn btn-primary" href="{{ file_url }}" download><i class="bi bi-download"></i> Download</a>
+      <a class="btn btn-secondary" href="{{ file_url }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Open in New Tab</a>
     </div>
   </div>
 
   <div class="document-review__stage">
     {% if is_image %}
-      <img src="{{ file.url }}" alt="{{ label }}">
+      <img src="{{ file_url }}" alt="{{ label }}">
     {% elif is_pdf %}
-      <iframe src="{{ file.url }}" title="{{ label }}"></iframe>
+      <iframe src="{{ file_url }}" title="{{ label }}"></iframe>
     {% else %}
       <div class="document-review__fallback">
         <h2>Preview unavailable</h2>

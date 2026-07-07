@@ -33,7 +33,7 @@
   </div>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-    {% if application.status == 'SUBMITTED' or application.status == 'ADDITIONAL_DOCUMENTS' %}
+    {% if show_document_actions %}
       <form method="post" action="{% url 'staff_application_action' application.id %}" style="display:flex;gap:10px;flex-wrap:wrap;width:100%;">
         {% csrf_token %}
         <input type="hidden" name="remarks" value="{{ application.remarks }}">
@@ -41,21 +41,31 @@
         <button class="btn danger" name="action" value="reject_documents" type="submit"><i class="bi bi-x-lg"></i> Reject Application</button>
         <button class="btn primary" name="action" value="approve_documents" type="submit"><i class="bi bi-check-lg"></i> Approve Documents & Ask Payment</button>
       </form>
-    {% elif application.status == 'APPROVED_PENDING_PAYMENT' %}
+    {% elif waiting_for_payment %}
       <span class="badge payment-pending"><i class="bi bi-hourglass-split"></i> Waiting for applicant payment proof</span>
       {% if payment %}<a class="btn primary" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-receipt"></i> View Payment</a>{% endif %}
-    {% elif application.status == 'PAYMENT_SUBMITTED' %}
+    {% elif show_payment_actions %}
       {% if payment %}
-        <a class="btn primary" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-shield-check"></i> Verify Payment Details</a>
+        <form method="post" action="{% url 'staff_payment_action' payment.id %}" style="display:flex;gap:10px;flex-wrap:wrap;width:100%;">
+          {% csrf_token %}
+          <input type="hidden" name="remarks" value="{{ payment.remarks }}">
+          <button class="btn" name="action" value="request_reupload" type="submit"><i class="bi bi-envelope"></i> Request Payment Re-upload</button>
+          <button class="btn danger" name="action" value="reject_payment" type="submit"><i class="bi bi-x-lg"></i> Reject Payment</button>
+          <button class="btn primary" name="action" value="approve_payment" type="submit"><i class="bi bi-shield-check"></i> Approve Payment & Activate</button>
+          <a class="btn" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-receipt"></i> Open Payment</a>
+        </form>
       {% else %}
         <span class="badge payment-pending">Payment status submitted, but no proof record found</span>
       {% endif %}
-    {% elif application.status == 'PAYMENT_APPROVED' %}
+    {% elif waiting_for_payment_reupload %}
+      <span class="badge payment-pending"><i class="bi bi-hourglass-split"></i> Payment re-upload requested; waiting for applicant</span>
+      {% if payment %}<a class="btn" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-receipt"></i> View Payment</a>{% endif %}
+    {% elif can_activate_membership %}
       <form method="post" action="{% url 'staff_application_action' application.id %}">
         {% csrf_token %}
         <button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate / Activate Membership</button>
       </form>
-    {% elif application.status == 'MEMBER_ACTIVE' %}
+    {% elif membership_active %}
       {% if member %}<a class="btn primary" href="{% url 'staff_member_detail' member.id %}"><i class="bi bi-person-badge"></i> Open Active Member</a>{% endif %}
     {% elif application.status == 'REJECTED' %}
       <span class="badge rejected"><i class="bi bi-x-circle"></i> Rejected - no pending admin action</span>
@@ -70,9 +80,11 @@
       <dt>Full name</dt><dd>{{ application.full_name }}</dd>
       <dt>Father's name</dt><dd>{{ application.father_or_husband_name }}</dd>
       <dt>Date of birth</dt><dd>{{ application.date_of_birth|date:"d M Y" }}</dd>
+      <dt>Gender</dt><dd>{{ application.get_gender_display }}</dd>
       <dt>Mobile</dt><dd>{{ application.mobile_number }}</dd>
       <dt>Email</dt><dd>{{ application.email }}</dd>
       <dt>Address</dt><dd>{{ application.residential_address }}</dd>
+      <dt>Office address</dt><dd>{{ application.office_address|default:"Not provided" }}</dd>
     </dl>
   </div>
 
@@ -81,8 +93,11 @@
     <dl class="kv">
       <dt>Shop name</dt><dd>{{ application.shop_name }}</dd>
       <dt>License type</dt><dd>{{ application.excise_license_type }}</dd>
+      <dt>Trade license</dt><dd>{{ application.trade_license_number }}</dd>
       <dt>License number</dt><dd>{{ application.excise_license_number }}</dd>
+      <dt>PAN</dt><dd>{{ application.pan_number }}</dd>
       <dt>District</dt><dd>{{ application.district }}</dd>
+      <dt>State</dt><dd>{{ application.state }}</dd>
       <dt>GST</dt><dd>{{ application.gst_number|default:"Not provided" }}</dd>
       <dt>Established</dt><dd>{{ application.years_in_business }} years</dd>
     </dl>
@@ -94,7 +109,7 @@
       <div class="avatar" style="width:56px;height:56px;font-size:18px;">{{ application.full_name|slice:":2"|upper }}</div>
       <div><div style="font-weight:600;">{{ application.full_name }}</div><div style="font-size:12px;color:var(--text-3);">Applicant - {{ application.mobile_number }}</div></div>
     </div>
-    <dl class="kv" style="margin-top:20px;"><dt>Role</dt><dd>Authorised representative</dd><dt>Aadhaar</dt><dd>Uploaded in KYC</dd><dt>PAN</dt><dd>{{ application.pan_number }}</dd></dl>
+    <dl class="kv" style="margin-top:20px;"><dt>Role</dt><dd>Authorised representative</dd><dt>Aadhaar</dt><dd>Uploaded in KYC</dd><dt>Declaration</dt><dd>{% if application.declaration_accepted %}Accepted{% else %}Not accepted{% endif %}</dd><dt>Digital signature</dt><dd>{{ application.digital_signature }}</dd></dl>
   </div>
 
   <div class="card">
@@ -108,10 +123,10 @@
 </div>
 
 <div class="card" style="margin-top:20px;">
-  <div class="card__head"><div><div class="card__title">Documents</div><div class="card__sub">{{ documents|length }} files uploaded</div></div><a class="btn sm" href="{% url 'staff_applications' %}"><i class="bi bi-arrow-left"></i> Back</a></div>
+  <div class="card__head"><div><div class="card__title">Documents</div><div class="card__sub">All submitted KYC files</div></div><a class="btn sm" href="{% url 'staff_applications' %}"><i class="bi bi-arrow-left"></i> Back</a></div>
   <div class="grid cols-4">
     {% for doc in documents %}
-    <div class="doc-card"><div class="thumb">{% if doc.file and doc.is_image %}<img src="{{ doc.file.url }}" alt="{{ doc.label }}" style="width:100%;height:100%;object-fit:cover;">{% else %}<i class="bi {% if doc.file %}bi-file-earmark-pdf{% else %}bi-file-earmark-x{% endif %}"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.file %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.file %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}" title="View {{ doc.label }}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
+    <div class="doc-card"><div class="thumb">{% if doc.url and doc.is_image %}<img src="{{ doc.url }}" alt="{{ doc.label }}" style="width:100%;height:100%;object-fit:cover;">{% else %}<i class="bi {% if doc.url %}bi-file-earmark-pdf{% else %}bi-file-earmark-x{% endif %}"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.url %}Uploaded{% elif doc.required %}Missing{% else %}Optional{% endif %}</div></div>{% if doc.url %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}" title="View {{ doc.label }}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
     {% endfor %}
   </div>
 </div>
@@ -123,7 +138,7 @@
 </div>
 {% endif %}
 
-{% if application.status == 'SUBMITTED' or application.status == 'ADDITIONAL_DOCUMENTS' %}
+{% if show_document_actions %}
 <form class="action-bar" method="post" action="{% url 'staff_application_action' application.id %}">
   {% csrf_token %}
   <input type="hidden" name="remarks" value="{{ application.remarks }}">

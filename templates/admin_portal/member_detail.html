@@ -42,7 +42,7 @@
     <div class="card__head"><div class="card__title">Documents</div><a class="btn sm" href="{% url 'staff_application_detail' application.id %}"><i class="bi bi-eye"></i> Review all</a></div>
     <div class="grid cols-4">
       {% for doc in documents %}
-        <div class="doc-card"><div class="thumb">{% if doc.file and doc.is_image %}<img src="{{ doc.file.url }}" alt="{{ doc.label }}">{% else %}<i class="bi bi-file-earmark-text"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.file %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.file %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
+        <div class="doc-card"><div class="thumb">{% if doc.url and doc.is_image %}<img src="{{ doc.url }}" alt="{{ doc.label }}">{% else %}<i class="bi bi-file-earmark-text"></i>{% endif %}</div><div class="body"><div><div class="name">{{ doc.label }}</div><div class="sub">{% if doc.url %}Uploaded{% else %}Missing{% endif %}</div></div>{% if doc.url %}<a class="icon-btn" href="{% url 'admin_document_review' 'application' application.id doc.key %}"><i class="bi bi-eye"></i></a>{% endif %}</div></div>
       {% endfor %}
     </div>
   </div>

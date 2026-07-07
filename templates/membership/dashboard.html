@@ -130,6 +130,7 @@
               <dt>Bank</dt><dd>{{ payment.bank_name }}</dd>
               <dt>Status</dt><dd>{{ payment.get_status_display }}</dd>
             </dl>
+            {% if payment.status == "REUPLOAD_REQUESTED" %}<a class="btn btn-primary mt-16" href="{% url 'payment_upload' application.id %}">Upload Corrected Payment Proof</a>{% endif %}
             {% if payment.status == "APPROVED" %}<a class="btn btn-secondary mt-16" href="{% url 'payment_receipt' %}">Download Payment Receipt</a>{% endif %}
           {% else %}
             <p class="small">Payment details will unlock after document verification.</p>
