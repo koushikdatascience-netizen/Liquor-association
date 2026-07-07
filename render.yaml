@@ -42,6 +42,14 @@ services:
         sync: false
       - key: PAYMENT_IFSC
         sync: false
+      - key: USE_CLOUDINARY
+        value: "True"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: SMTP_HOST
