@@ -114,7 +114,7 @@
         </div>
         <div class="card" id="payment">
           <h3 class="h-card mb-16">Payment</h3>
-          {% if application.status == "APPROVED_PENDING_PAYMENT" %}
+          {% if can_upload_payment %}
             <div class="payment-details mb-16">
               <strong>Membership Fee: Rs. {{ MEMBERSHIP_FEE }}</strong>
               <span><b>UPI:</b> {{ payment_settings.upi_id }}</span>
