@@ -86,9 +86,12 @@ body {
 #user-tools {
   font-size: 12px;
   letter-spacing: 0;
+  color: #666666;
 }
 
 #user-tools a,
+#user-tools a:link,
+#user-tools a:visited,
 .admin-portal-link {
   display: inline-flex;
   align-items: center;
@@ -96,14 +99,19 @@ body {
   padding: 7px 10px;
   border-radius: 8px;
   background: #fafafa;
-  color: #111111;
+  color: #111111 !important;
   border: 1px solid #ececec;
   text-decoration: none;
+  font-weight: 800;
+  text-shadow: none;
 }
 
 #user-tools a:hover,
+#user-tools a:focus,
 .admin-portal-link:hover {
   background: #f4f4f4;
+  color: #111111 !important;
+  border-color: #d8d8d8;
 }
 
 div.breadcrumbs {
