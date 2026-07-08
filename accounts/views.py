@@ -8,6 +8,28 @@ from .forms import ApplicantRegistrationForm, OTPVerificationForm
 from .models import OTPVerification
 from .services import send_registration_otps
 
+import socket
+from django.http import JsonResponse
+
+
+def test_smtp_connection(request):
+    results = {}
+
+    for port in [465, 587]:
+        try:
+            sock = socket.create_connection(
+                ("smtp.hostinger.com", port),
+                timeout=10
+            )
+            sock.close()
+
+            results[str(port)] = "CONNECTED SUCCESSFULLY"
+
+        except Exception as e:
+            results[str(port)] = f"{type(e).__name__}: {str(e)}"
+
+    return JsonResponse(results)
+
 
 def pending_otp(user, channel):
     return OTPVerification.objects.filter(

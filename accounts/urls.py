@@ -17,4 +17,8 @@ urlpatterns = [
         name="login",
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path(
+    "test-smtp/",
+    views.test_smtp_connection,
+    name="test_smtp_connection"),
 ]
