@@ -578,12 +578,15 @@ def staff_dashboard(request):
 
 @staff_member_required
 def staff_applications(request):
+    applications = list(MembershipApplication.objects.select_related("applicant").order_by("-created_at")[:200])
+    for application in applications:
+        application.can_inline_review = is_document_review_status(application.status)
     return render(
         request,
         "admin_portal/applications.html",
         {
             "active_page": "applications",
-            "applications": MembershipApplication.objects.select_related("applicant").order_by("-created_at")[:200],
+            "applications": applications,
             "counts": {
                 "pending": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
                 "approved": MembershipApplication.objects.filter(

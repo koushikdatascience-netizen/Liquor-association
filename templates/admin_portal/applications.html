@@ -12,6 +12,8 @@
   .reject-panel textarea{min-height:84px;font-size:12px}
   .reject-panel .btn{width:100%;margin-top:8px}
   .reject-inline[open] .reject-toggle{background:#fff5f5;color:#b91c1c}
+  .application-actions .approve-action{background:#ecfdf5;color:#047857;border-color:#bbf7d0}
+  .application-actions .reject-action{background:#fff5f5;color:#b91c1c;border-color:#fecaca}
 </style>
 <div class="page-head">
   <div>
@@ -54,14 +56,14 @@
         <td data-label="Status"><span class="badge {% if app.status == 'REJECTED' %}rejected{% elif app.status == 'APPROVED_PENDING_PAYMENT' or app.status == 'PAYMENT_APPROVED' or app.status == 'MEMBER_ACTIVE' %}approved{% elif app.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ app.get_status_display }}</span></td>
         <td data-label="Actions"><div class="application-actions">
           <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="View details"><i class="bi bi-eye"></i></a>
-          {% if app.status == 'SUBMITTED' %}
+          {% if app.can_inline_review %}
             <form method="post" action="{% url 'staff_application_action' app.id %}">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'staff_applications' %}">
-              <button class="icon-btn" name="action" value="approve_documents" type="submit" title="Approve documents"><i class="bi bi-check2"></i></button>
+              <button class="icon-btn approve-action" name="action" value="approve_documents" type="submit" title="Approve documents"><i class="bi bi-check2"></i></button>
             </form>
             <details class="reject-inline">
-              <summary class="icon-btn reject-toggle" title="Reject application"><i class="bi bi-x-lg"></i></summary>
+              <summary class="icon-btn reject-toggle reject-action" title="Reject application"><i class="bi bi-x-lg"></i></summary>
               <form class="reject-panel" method="post" action="{% url 'staff_application_action' app.id %}">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{% url 'staff_applications' %}">
