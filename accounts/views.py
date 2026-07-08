@@ -27,7 +27,9 @@ def register(request):
                 try:
                     send_registration_otps(user)
                 except Exception as exc:
-                    messages.warning(request, f"Account created, but OTP sending failed: {exc}")
+                    messages.warning(request, f"Account created, but email OTP sending failed: {exc}")
+                user.profile.mobile_verified = True
+                user.profile.save(update_fields=["mobile_verified"])
             else:
                 profile = user.profile
                 profile.email_verified = True
@@ -35,7 +37,7 @@ def register(request):
                 profile.save(update_fields=["email_verified", "mobile_verified"])
             login(request, user, backend="accounts.backends.EmailOrMobileBackend")
             if settings.ACCOUNT_REQUIRE_OTP_VERIFICATION:
-                messages.success(request, "Account created. Please verify your email and mobile OTP.")
+                messages.success(request, "Account created. Please verify your email OTP.")
                 return redirect("verify_registration_otp")
             messages.success(request, "Account created. You can now submit your membership application.")
             return redirect("application_create")
@@ -55,7 +57,10 @@ def verify_registration_otp(request):
         messages.success(request, "Account verified for testing. You can submit your membership application.")
         return redirect("application_create")
 
-    if profile.email_verified and profile.mobile_verified:
+    if profile.email_verified:
+        if not profile.mobile_verified:
+            profile.mobile_verified = True
+            profile.save(update_fields=["mobile_verified"])
         messages.success(request, "Your account is already verified.")
         return redirect("application_create")
 
@@ -63,14 +68,12 @@ def verify_registration_otp(request):
         form = OTPVerificationForm(request.POST)
         if form.is_valid():
             email_otp = pending_otp(request.user, OTPVerification.Channel.EMAIL)
-            mobile_otp = pending_otp(request.user, OTPVerification.Channel.WHATSAPP)
             email_ok = profile.email_verified or (email_otp and email_otp.verify(form.cleaned_data["email_otp"]))
-            mobile_ok = profile.mobile_verified or (mobile_otp and mobile_otp.verify(form.cleaned_data["mobile_otp"]))
-            if email_ok and mobile_ok:
+            if email_ok:
                 profile.email_verified = True
                 profile.mobile_verified = True
                 profile.save(update_fields=["email_verified", "mobile_verified"])
-                messages.success(request, "OTP verified. You can now submit your membership application.")
+                messages.success(request, "Email OTP verified. You can now submit your membership application.")
                 return redirect("application_create")
             messages.error(request, "Invalid or expired OTP. Please try again or resend OTP.")
     else:
@@ -82,7 +85,7 @@ def verify_registration_otp(request):
 def resend_registration_otp(request):
     try:
         send_registration_otps(request.user)
-        messages.success(request, "New OTPs have been sent.")
+        messages.success(request, "A new email OTP has been sent.")
     except Exception as exc:
-        messages.error(request, f"Could not send OTPs: {exc}")
+        messages.error(request, f"Could not send email OTP: {exc}")
     return redirect("verify_registration_otp")

@@ -76,12 +76,8 @@ services:
         sync: false
       - key: PINBOT_LANGUAGE_CODE
         value: en
-      - key: PINBOT_OTP_TEMPLATE_NAME
-        value: support_request
       - key: PINBOT_NOTIFICATION_TEMPLATE_NAME
         value: support_request
-      - key: WHATSAPP_OTP_ENABLED
-        value: "False"
       - key: WHATSAPP_NOTIFICATIONS_ENABLED
         value: "False"
 

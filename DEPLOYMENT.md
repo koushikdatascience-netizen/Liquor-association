@@ -61,9 +61,7 @@ ADMIN_NOTIFICATION_EMAIL=societywelfarewbfllicences@gmail.com
 
 PINBOT_PHONE_NUMBER_ID=
 PINBOT_API_KEY=
-PINBOT_OTP_TEMPLATE_NAME=
 PINBOT_NOTIFICATION_TEMPLATE_NAME=
-WHATSAPP_OTP_ENABLED=
 WHATSAPP_NOTIFICATIONS_ENABLED=
 
 DJANGO_ADMIN_PASSWORD=
@@ -88,13 +86,11 @@ PINBOT_API_BASE_URL=https://partnersv1.pinbot.ai/v3
 PINBOT_PHONE_NUMBER_ID=908272842364302
 PINBOT_API_KEY=<Pinbot API key>
 PINBOT_LANGUAGE_CODE=en
-PINBOT_OTP_TEMPLATE_NAME=support_request
 PINBOT_NOTIFICATION_TEMPLATE_NAME=support_request
-WHATSAPP_OTP_ENABLED=True
 WHATSAPP_NOTIFICATIONS_ENABLED=True
 ```
 
-The default template payload sends three body text parameters: association name, a reference, and the message body. If Pinbot creates a dedicated OTP template later, update `PINBOT_OTP_TEMPLATE_NAME` to that approved template name.
+The default notification template payload sends three body text parameters, matching the shared Pinbot sample: association name, a reference, and the message body.
 
 ## 4. Add GitHub Actions Secret
 

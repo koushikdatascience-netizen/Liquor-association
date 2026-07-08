@@ -48,7 +48,7 @@
     <div class="card" id="system">
       <div class="card__head"><div><div class="card__title">System Preferences</div></div></div>
       <div style="display:flex;flex-direction:column;gap:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:14px;">Registration OTP verification</div><div style="font-size:12px;color:var(--text-3);">Require email and mobile OTP before application.</div></div><label class="switch"><input type="checkbox" {% if otp_required %}checked{% endif %} disabled><span class="slider"></span></label></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:14px;">Registration OTP verification</div><div style="font-size:12px;color:var(--text-3);">Require email OTP before application.</div></div><label class="switch"><input type="checkbox" {% if otp_required %}checked{% endif %} disabled><span class="slider"></span></label></div>
         <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:14px;">Public member verification</div><div style="font-size:12px;color:var(--text-3);">QR cards resolve to the verification page.</div></div><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></div>
       </div>
     </div>

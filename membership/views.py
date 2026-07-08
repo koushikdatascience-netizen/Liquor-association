@@ -193,9 +193,9 @@ def application_create(request):
     if (
         settings.ACCOUNT_REQUIRE_OTP_VERIFICATION
         and not request.user.is_staff
-        and (not profile.email_verified or not profile.mobile_verified)
+        and not profile.email_verified
     ):
-        messages.error(request, "Please verify your email and mobile OTP before submitting the application.")
+        messages.error(request, "Please verify your email OTP before submitting the application.")
         return redirect("verify_registration_otp")
 
     existing = MembershipApplication.objects.filter(applicant=request.user).exclude(

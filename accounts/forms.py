@@ -53,4 +53,3 @@ class EmailOrMobileAuthenticationForm(AuthenticationForm):
 
 class OTPVerificationForm(forms.Form):
     email_otp = forms.CharField(label="Email OTP", max_length=10)
-    mobile_otp = forms.CharField(label="WhatsApp/Mobile OTP", max_length=10)
