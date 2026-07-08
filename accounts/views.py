@@ -13,20 +13,24 @@ from django.http import JsonResponse
 
 
 def test_smtp_connection(request):
+    import socket
+    from django.http import JsonResponse
+
+    hosts = {
+        "hostinger_465": ("smtp.hostinger.com", 465),
+        "hostinger_587": ("smtp.hostinger.com", 587),
+        "brevo_587": ("smtp-relay.brevo.com", 587),
+    }
+
     results = {}
 
-    for port in [465, 587]:
+    for name, target in hosts.items():
         try:
-            sock = socket.create_connection(
-                ("smtp.hostinger.com", port),
-                timeout=10
-            )
+            sock = socket.create_connection(target, timeout=10)
             sock.close()
-
-            results[str(port)] = "CONNECTED SUCCESSFULLY"
-
+            results[name] = "CONNECTED"
         except Exception as e:
-            results[str(port)] = f"{type(e).__name__}: {str(e)}"
+            results[name] = f"{type(e).__name__}: {str(e)}"
 
     return JsonResponse(results)
 
