@@ -3,6 +3,24 @@
 {% block page_title %}Payment Verification{% endblock %}
 {% block search_target %}#paymentsTable{% endblock %}
 {% block content %}
+<style>
+  .payment-row{cursor:pointer}
+  .payment-row:focus-within,.payment-row:hover{background:#fafafa}
+  .payment-row-btn{all:unset;display:block;width:100%;cursor:pointer}
+  .payment-drawer-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.28);z-index:40;opacity:0;pointer-events:none;transition:opacity .18s var(--ease)}
+  .payment-drawer{position:fixed;top:0;right:0;z-index:41;width:min(460px,100vw);height:100vh;background:#fff;box-shadow:-24px 0 60px rgba(15,23,42,.24);transform:translateX(100%);transition:transform .2s var(--ease);display:flex;flex-direction:column}
+  .payment-drawer.is-open{transform:translateX(0)}
+  .payment-drawer-backdrop.is-open{opacity:1;pointer-events:auto}
+  .payment-panel{display:none;overflow:auto;padding:22px}
+  .payment-panel.is-active{display:block}
+  .payment-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}
+  .payment-proof-box{aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);overflow:hidden}
+  .payment-proof-box img{max-width:100%;max-height:100%;object-fit:contain}
+  .payment-action-form{margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
+  .payment-action-form textarea{min-height:96px}
+  .payment-action-buttons{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .payment-action-buttons .btn{flex:1;justify-content:center}
+</style>
 <div class="page-head">
   <div>
     <h1>Payment Verification</h1>
@@ -14,59 +32,112 @@
   </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;" class="admin-two-col">
+<div class="payment-drawer-backdrop" data-payment-close></div>
+<aside class="payment-drawer" aria-live="polite" aria-label="Payment details side panel" data-payment-drawer>
+  {% for payment in payments %}
+  <section class="payment-panel" data-payment-panel="{{ payment.id }}">
+    <div class="payment-panel-head">
+      <div>
+        <h2 style="font-size:22px;margin:0 0 6px;">#APP-{{ payment.application.id|stringformat:"04d" }}</h2>
+        <p class="subtitle">{{ payment.application.full_name }} - UTR {{ payment.utr_number }}</p>
+      </div>
+      <button class="icon-btn" type="button" aria-label="Close panel" data-payment-close><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="card__head" style="padding:0;margin-bottom:14px;">
+      <div><div class="card__title">Payment Screenshot</div><div class="card__sub">{{ payment.created_at|date:"d M Y, H:i" }}</div></div>
+      <span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span>
+    </div>
+    <div class="payment-proof-box">
+      {% if payment.screenshot %}<img src="{{ payment.screenshot.url }}" alt="Payment screenshot for {{ payment.application.full_name }}">{% else %}<div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>{% endif %}
+    </div>
+    {% if payment.screenshot %}
+      <a class="btn" style="width:100%;margin-top:12px;justify-content:center;" href="{% url 'admin_document_review' 'payment' payment.id 'screenshot' %}"><i class="bi bi-arrows-fullscreen"></i> Open Proof</a>
+    {% endif %}
+    <dl class="kv" style="margin-top:18px;">
+      <dt>Member</dt><dd>{{ payment.application.full_name }}</dd>
+      <dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd>
+      <dt>Method/Bank</dt><dd>{{ payment.bank_name }}</dd>
+      <dt>UTR</dt><dd>{{ payment.utr_number }}</dd>
+      <dt>Payment Date</dt><dd>{{ payment.payment_date|date:"d M Y" }}</dd>
+      <dt>Application Status</dt><dd>{{ payment.application.get_status_display }}</dd>
+      <dt>Admin Remarks</dt><dd>{{ payment.remarks|default:"No remarks" }}</dd>
+    </dl>
+    {% if payment.status == 'PENDING' %}
+    <form class="payment-action-form" method="post" action="{% url 'staff_payment_action' payment.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'staff_payments' %}">
+      <label style="font-weight:700;font-size:13px;">Verification remarks</label>
+      <textarea class="textarea" name="remarks" placeholder="Write payment approval/rejection remarks...">{{ payment.remarks }}</textarea>
+      <div class="payment-action-buttons">
+        <button class="btn" name="action" value="request_reupload" type="submit"><i class="bi bi-envelope"></i> Re-upload</button>
+        <button class="btn danger" name="action" value="reject_payment" type="submit"><i class="bi bi-x"></i> Reject</button>
+        <button class="btn primary" name="action" value="approve_payment" type="submit"><i class="bi bi-check2"></i> Approve</button>
+      </div>
+    </form>
+    {% else %}
+      <div class="payment-action-form">
+        <span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">No pending admin action</span>
+      </div>
+    {% endif %}
+  </section>
+  {% empty %}
+  <section class="payment-panel is-active"><p class="subtitle">No payment selected.</p></section>
+  {% endfor %}
+</aside>
+
+<div>
   <div class="table-wrap">
     <div class="table-toolbar">
       <div class="search"><i class="bi bi-search"></i><input data-table-search="#paymentsTable" placeholder="Search by member, UTR..." /></div>
       <select class="select" data-table-filter="#paymentsTable" data-filter-column="4"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Approved">Verified</option><option value="Re-upload">Re-upload</option><option value="Rejected">Rejected</option></select>
     </div>
     <table class="table" id="paymentsTable">
-      <thead><tr><th>Member</th><th>Amount</th><th>UTR</th><th>Date</th><th>Status</th></tr></thead>
+      <thead><tr><th>Member</th><th>Amount</th><th>UTR</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
       <tbody>
         {% for payment in payments %}
-        <tr onclick="window.location='{% url 'staff_payment_detail' payment.id %}'" style="cursor:pointer;">
-          <td data-label="Member"><div class="who"><div class="avatar">{{ payment.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ payment.application.full_name }}</div><div class="s">#APP-{{ payment.application.id|stringformat:"04d" }}</div></div></div></td>
+        <tr class="payment-row" data-payment-open="{{ payment.id }}" tabindex="0">
+          <td data-label="Member"><button class="payment-row-btn" type="button" data-payment-open="{{ payment.id }}"><div class="who"><div class="avatar">{{ payment.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ payment.application.full_name }}</div><div class="s">#APP-{{ payment.application.id|stringformat:"04d" }}</div></div></div></button></td>
           <td data-label="Amount">&#8377;{{ payment.amount }}</td>
           <td data-label="UTR">{{ payment.utr_number }}</td>
           <td data-label="Date">{{ payment.payment_date|date:"d M Y" }}</td>
           <td data-label="Status"><span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span></td>
+          <td data-label="Action"><button class="btn sm" type="button" data-payment-open="{{ payment.id }}">{% if payment.status == 'PENDING' %}<i class="bi bi-shield-check"></i> Verify{% else %}<i class="bi bi-eye"></i> View{% endif %}</button></td>
         </tr>
-        {% empty %}<tr><td colspan="5">No payments submitted yet.</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="6">No payments submitted yet.</td></tr>{% endfor %}
       </tbody>
     </table>
     <div class="table-footer"><span>Showing latest {{ payments|length }} payments</span><div class="pagination"><button class="pg active">1</button></div></div>
   </div>
-
-  <div class="card">
-    <div class="card__head">
-      <div><div class="card__title">Payment Screenshot</div><div class="card__sub">{% if payments %}Latest submitted payment{% else %}No payment selected{% endif %}</div></div>
-      {% with payment=payments.0 %}{% if payment %}<span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span>{% endif %}{% endwith %}
-    </div>
-    {% with payment=payments.0 %}
-    {% if payment %}
-    <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);overflow:hidden;">
-      {% if payment.screenshot %}<img src="{{ payment.screenshot.url }}" alt="Payment screenshot" style="max-width:100%;max-height:100%;object-fit:contain;">{% else %}<div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>{% endif %}
-    </div>
-    <dl class="kv" style="margin-top:18px;">
-      <dt>Member</dt><dd>{{ payment.application.full_name }}</dd>
-      <dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd>
-      <dt>Method</dt><dd>{{ payment.bank_name }}</dd>
-      <dt>UTR</dt><dd>{{ payment.utr_number }}</dd>
-      <dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd>
-    </dl>
-    <div style="display:flex;gap:8px;margin-top:18px;">
-      {% if payment.status == 'PENDING' %}
-        <a class="btn primary" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-shield-check"></i> Verify Payment</a>
-      {% else %}
-        <a class="btn" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-eye"></i> View Payment</a>
-      {% endif %}
-    </div>
-    {% else %}
-    <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);">
-      <div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>
-    </div>
-    {% endif %}
-    {% endwith %}
-  </div>
 </div>
+<script>
+  (function(){
+    const drawer = document.querySelector("[data-payment-drawer]");
+    const backdrop = document.querySelector(".payment-drawer-backdrop");
+    const panels = Array.from(document.querySelectorAll("[data-payment-panel]"));
+    function openPanel(id){
+      panels.forEach(panel => panel.classList.toggle("is-active", panel.dataset.paymentPanel === id));
+      drawer?.classList.add("is-open");
+      backdrop?.classList.add("is-open");
+    }
+    function closePanel(){
+      drawer?.classList.remove("is-open");
+      backdrop?.classList.remove("is-open");
+    }
+    document.querySelectorAll("[data-payment-open]").forEach(button => {
+      button.addEventListener("click", () => openPanel(button.dataset.paymentOpen));
+      button.addEventListener("keydown", event => {
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          openPanel(button.dataset.paymentOpen);
+        }
+      });
+    });
+    document.querySelectorAll("[data-payment-close]").forEach(button => {
+      button.addEventListener("click", closePanel);
+    });
+    document.addEventListener("keydown", event => {
+      if(event.key === "Escape") closePanel();
+    });
+  })();
+</script>
 {% endblock %}

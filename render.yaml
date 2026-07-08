@@ -66,6 +66,8 @@ services:
         value: Liquor Association
       - key: SMTP_USE_SSL
         value: "True"
+      - key: EMAIL_TIMEOUT
+        value: "10"
       - key: ADMIN_NOTIFICATION_EMAIL
         value: societywelfarewbfllicences@gmail.com
       - key: PINBOT_API_BASE_URL

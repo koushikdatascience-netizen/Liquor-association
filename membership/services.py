@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.mail import BadHeaderError
 from django.core.mail import send_mail
 
 from .models import Notification
@@ -28,22 +29,28 @@ def notify_member(user, title, message, remarks="", send_email=True):
             f"Portal: {settings.SITE_URL}\n\n"
             f"Regards,\n{settings.ASSOCIATION_NAME}"
         )
-        send_mail(
-            subject=f"{settings.ASSOCIATION_NAME} - {title}",
-            message=email_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        try:
+            send_mail(
+                subject=f"{settings.ASSOCIATION_NAME} - {title}",
+                message=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+        except (OSError, TimeoutError, BadHeaderError):
+            pass
 
 
 def notify_member_email_only(user, title, message):
     if not user.email:
         return
-    send_mail(
-        subject=f"{settings.ASSOCIATION_NAME} - {title}",
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=True,
-    )
+    try:
+        send_mail(
+            subject=f"{settings.ASSOCIATION_NAME} - {title}",
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+    except (OSError, TimeoutError, BadHeaderError):
+        pass

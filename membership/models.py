@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.mail import BadHeaderError
 from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
@@ -42,32 +43,53 @@ class MembershipApplication(TimeStampedModel):
     remarks = models.TextField(blank=True)
 
     full_name = models.CharField(max_length=160)
-    father_or_husband_name = models.CharField(max_length=160)
-    date_of_birth = models.DateField()
+    father_or_husband_name = models.CharField(max_length=160, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    nationality = models.CharField(max_length=80, default="Indian")
+    age = models.PositiveIntegerField(null=True, blank=True)
     gender = models.CharField(max_length=10, choices=Gender.choices)
     mobile_number = models.CharField(max_length=15)
+    whatsapp_number = models.CharField(max_length=15, blank=True)
+    residence_phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField()
     residential_address = models.TextField()
+    pin_code = models.CharField(max_length=6, blank=True)
     office_address = models.TextField(blank=True)
 
+    entity_type = models.CharField(max_length=80, blank=True)
+    licence_category = models.CharField(max_length=40, blank=True)
+    style_name = models.CharField(max_length=180, blank=True)
+    partner_md_names = models.TextField(blank=True)
+    office_phone = models.CharField(max_length=20, blank=True)
+    shop_phone = models.CharField(max_length=20, blank=True)
     shop_name = models.CharField(max_length=180)
-    trade_license_number = models.CharField(max_length=80)
+    trade_license_number = models.CharField(max_length=80, blank=True)
     excise_license_number = models.CharField(max_length=80)
     excise_license_type = models.CharField(max_length=80)
     gst_number = models.CharField(max_length=30, blank=True)
-    pan_number = models.CharField(max_length=20)
+    pan_number = models.CharField(max_length=20, blank=True)
     years_in_business = models.PositiveIntegerField(default=0)
     district = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
+    state = models.CharField(max_length=100, blank=True, default="West Bengal")
 
-    passport_photo = models.ImageField(upload_to="kyc/photos/")
-    aadhaar_card = models.FileField(upload_to="kyc/aadhaar/")
-    pan_card = models.FileField(upload_to="kyc/pan/")
-    excise_license = models.FileField(upload_to="kyc/excise/")
-    trade_license = models.FileField(upload_to="kyc/trade/")
+    primary_delegate_name = models.CharField(max_length=160, blank=True)
+    primary_delegate_designation = models.CharField(max_length=120, blank=True)
+    primary_delegate_address = models.TextField(blank=True)
+    alternate_delegate_name = models.CharField(max_length=160, blank=True)
+    alternate_delegate_role = models.CharField(max_length=120, blank=True)
+    alternate_delegate_address = models.TextField(blank=True)
+
+    passport_photo = models.ImageField(upload_to="kyc/photos/", blank=True)
+    primary_delegate_photo = models.ImageField(upload_to="kyc/delegates/primary/", blank=True)
+    alternate_delegate_photo = models.ImageField(upload_to="kyc/delegates/alternate/", blank=True)
+    aadhaar_card = models.FileField(upload_to="kyc/aadhaar/", blank=True)
+    pan_card = models.FileField(upload_to="kyc/pan/", blank=True)
+    excise_license = models.FileField(upload_to="kyc/excise/", blank=True)
+    trade_license = models.FileField(upload_to="kyc/trade/", blank=True)
     gst_certificate = models.FileField(upload_to="kyc/gst/", blank=True)
-    address_proof = models.FileField(upload_to="kyc/address/")
-    signature = models.ImageField(upload_to="kyc/signatures/")
+    address_proof = models.FileField(upload_to="kyc/address/", blank=True)
+    partnership_deed = models.FileField(upload_to="kyc/deed/", blank=True)
+    signature = models.ImageField(upload_to="kyc/signatures/", blank=True)
     declaration_accepted = models.BooleanField(default=False)
     digital_signature = models.CharField(max_length=160)
 
@@ -225,13 +247,16 @@ def notify_staff(title, message):
         [Notification(recipient=user, title=title, message=message) for user in staff_users]
     )
     if settings.ADMIN_NOTIFICATION_EMAIL:
-        send_mail(
-            subject=f"{settings.ASSOCIATION_NAME} - {title}",
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.ADMIN_NOTIFICATION_EMAIL],
-            fail_silently=True,
-        )
+        try:
+            send_mail(
+                subject=f"{settings.ASSOCIATION_NAME} - {title}",
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.ADMIN_NOTIFICATION_EMAIL],
+                fail_silently=True,
+            )
+        except (OSError, TimeoutError, BadHeaderError):
+            pass
 
 
 class BroadcastMessage(TimeStampedModel):
@@ -254,6 +279,7 @@ class BroadcastMessage(TimeStampedModel):
     district = models.CharField(max_length=100, blank=True)
     recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     recipient_email = models.EmailField(blank=True)
+    recipient_mobile = models.CharField(max_length=15, blank=True)
     sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="sent_broadcasts")
     sent_at = models.DateTimeField(null=True, blank=True)
     sent_count = models.PositiveIntegerField(default=0)
@@ -265,8 +291,11 @@ class BroadcastMessage(TimeStampedModel):
         errors = {}
         if self.audience == self.Audience.DISTRICT and not self.district:
             errors["district"] = "District is required for district-wise broadcasts."
-        if self.audience == self.Audience.INDIVIDUAL and not self.recipient and not self.recipient_email:
-            errors["recipient"] = "Recipient or customer email is required for individual broadcasts."
+        if self.audience == self.Audience.INDIVIDUAL and not self.recipient:
+            if self.channel in [self.Channel.EMAIL, self.Channel.EMAIL_WHATSAPP] and not self.recipient_email:
+                errors["recipient_email"] = "Customer email is required for individual email notifications."
+            if self.channel in [self.Channel.WHATSAPP, self.Channel.EMAIL_WHATSAPP] and not self.recipient_mobile:
+                errors["recipient_mobile"] = "Customer WhatsApp/mobile is required for individual WhatsApp notifications."
         if errors:
             raise ValidationError(errors)
 
@@ -293,9 +322,36 @@ class BroadcastMessage(TimeStampedModel):
             ).distinct()
         return User.objects.none()
 
+    def whatsapp_template_parameters(self, user, mobile_number):
+        application = None
+        member = getattr(user, "member_record", None)
+        if member:
+            application = member.application
+        if application is None:
+            application = user.applications.order_by("-created_at").first()
+
+        customer_name = (
+            getattr(application, "shop_name", "")
+            or getattr(application, "full_name", "")
+            or user.get_full_name()
+            or user.username
+        )
+        reference = (
+            getattr(member, "membership_number", "")
+            or (f"APP-{application.id:04d}" if application else "")
+            or f"CUS-{user.id:04d}"
+        )
+        detail = f"{mobile_number} | {self.title} - {self.message}"
+        return [customer_name, reference, detail]
+
+    def direct_whatsapp_template_parameters(self):
+        customer_name = self.recipient_email or self.recipient_mobile or "Customer"
+        reference = f"NOTIFY-{self.pk or 'NEW'}"
+        detail = f"{self.recipient_mobile} | {self.title} - {self.message}"
+        return [customer_name, reference, detail]
+
     def send(self, actor=None):
         users = list(self.recipients())
-        broadcast_body = f"{self.title}\n\n{self.message}"
         sent_count = len(users)
         Notification.objects.bulk_create(
             [
@@ -327,6 +383,7 @@ class BroadcastMessage(TimeStampedModel):
                     fail_silently=True,
                 )
                 sent_count += 1
+        direct_whatsapp_sent = False
         if self.channel in [self.Channel.WHATSAPP, self.Channel.EMAIL_WHATSAPP]:
             for user in users:
                 mobile_number = ""
@@ -337,7 +394,22 @@ class BroadcastMessage(TimeStampedModel):
                 if not mobile_number:
                     latest_application = user.applications.order_by("-created_at").first()
                     mobile_number = latest_application.mobile_number if latest_application else ""
-                send_whatsapp_message(mobile_number, broadcast_body, reference=f"Broadcast #{self.pk or 'new'}")
+                send_whatsapp_message(
+                    mobile_number,
+                    self.message,
+                    reference=self.title,
+                    template_parameters=self.whatsapp_template_parameters(user, mobile_number),
+                )
+            if self.recipient_mobile and not users:
+                send_whatsapp_message(
+                    self.recipient_mobile,
+                    self.message,
+                    reference=self.title,
+                    template_parameters=self.direct_whatsapp_template_parameters(),
+                )
+                direct_whatsapp_sent = True
+        if direct_whatsapp_sent and not self.recipient_email:
+            sent_count += 1
         self.sent_by = actor
         self.sent_at = timezone.now()
         self.sent_count = sent_count

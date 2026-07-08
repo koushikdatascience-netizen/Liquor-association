@@ -3,6 +3,16 @@
 {% block page_title %}Applications{% endblock %}
 {% block search_target %}#applicationsTable{% endblock %}
 {% block content %}
+<style>
+  .application-actions{display:flex;gap:6px;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap}
+  .application-actions form{margin:0}
+  .reject-inline{position:relative}
+  .reject-toggle{cursor:pointer}
+  .reject-panel{position:absolute;right:0;top:36px;z-index:5;width:260px;padding:10px;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 18px 40px rgba(15,23,42,.14)}
+  .reject-panel textarea{min-height:84px;font-size:12px}
+  .reject-panel .btn{width:100%;margin-top:8px}
+  .reject-inline[open] .reject-toggle{background:#fff5f5;color:#b91c1c}
+</style>
 <div class="page-head">
   <div>
     <h1>Applications</h1>
@@ -10,7 +20,6 @@
   </div>
   <div class="page-actions">
     <a class="btn" href="{% url 'export_report' 'pending-kyc' 'excel' %}"><i class="bi bi-download"></i> Export CSV</a>
-    <a class="btn primary" href="{% url 'application_create' %}"><i class="bi bi-plus-lg"></i> New Application</a>
   </div>
 </div>
 
@@ -43,10 +52,23 @@
         <td data-label="District">{{ app.district }}</td>
         <td data-label="Submitted">{{ app.created_at|date:"d M Y" }}</td>
         <td data-label="Status"><span class="badge {% if app.status == 'REJECTED' %}rejected{% elif app.status == 'APPROVED_PENDING_PAYMENT' or app.status == 'PAYMENT_APPROVED' or app.status == 'MEMBER_ACTIVE' %}approved{% elif app.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ app.get_status_display }}</span></td>
-        <td data-label="Actions"><div class="row-actions">
+        <td data-label="Actions"><div class="application-actions">
           <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="View details"><i class="bi bi-eye"></i></a>
           {% if app.status == 'SUBMITTED' %}
-            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Review documents"><i class="bi bi-file-earmark-check"></i></a>
+            <form method="post" action="{% url 'staff_application_action' app.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'staff_applications' %}">
+              <button class="icon-btn" name="action" value="approve_documents" type="submit" title="Approve documents"><i class="bi bi-check2"></i></button>
+            </form>
+            <details class="reject-inline">
+              <summary class="icon-btn reject-toggle" title="Reject application"><i class="bi bi-x-lg"></i></summary>
+              <form class="reject-panel" method="post" action="{% url 'staff_application_action' app.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'staff_applications' %}">
+                <textarea class="textarea" name="remarks" required placeholder="Write rejection remarks for the member...">{{ app.remarks }}</textarea>
+                <button class="btn danger sm" name="action" value="reject_documents" type="submit"><i class="bi bi-x-circle"></i> Reject</button>
+              </form>
+            </details>
           {% elif app.status == 'APPROVED_PENDING_PAYMENT' %}
             <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Waiting for payment"><i class="bi bi-hourglass-split"></i></a>
           {% elif app.status == 'PAYMENT_SUBMITTED' %}

@@ -88,6 +88,23 @@ def storage_url(file):
         return ""
 
 
+def portal_url(path):
+    return f"{settings.SITE_URL.rstrip('/')}{path}"
+
+
+def membership_activation_message(member):
+    return (
+        "Your payment has been approved and your final membership is active.\n\n"
+        f"Membership number: {member.membership_number}\n"
+        f"Membership category: {member.category}\n"
+        f"Valid from: {member.membership_since:%d %b %Y}\n"
+        f"Valid till: {member.valid_till:%d %b %Y}\n\n"
+        f"Digital card: {portal_url(reverse('membership_card'))}\n"
+        f"Card PDF: {portal_url(reverse('membership_card_pdf'))}\n"
+        f"Certificate: {portal_url(reverse('membership_certificate'))}"
+    )
+
+
 def open_storage_image(file):
     file.open("rb")
     try:
@@ -211,6 +228,11 @@ def application_create(request):
         if form.is_valid():
             application = form.save(commit=False)
             application.applicant = request.user
+            application.mobile_number = application.whatsapp_number or profile.mobile_number
+            application.shop_name = application.style_name or application.full_name
+            application.excise_license_type = application.licence_category
+            application.district = application.district or ""
+            application.state = application.state or "West Bengal"
             application.status = MembershipApplication.Status.SUBMITTED
             application.remarks = ""
             application.save()
@@ -227,7 +249,9 @@ def application_create(request):
             initial={
                 "email": request.user.email,
                 "mobile_number": profile.mobile_number,
+                "whatsapp_number": profile.mobile_number,
                 "full_name": request.user.get_full_name(),
+                "nationality": "Indian",
             }
         )
     return render(
@@ -580,14 +604,15 @@ def staff_applications(request):
 
 def application_documents(application):
     documents = [
-        {"key": "passport_photo", "label": "Passport Photo", "file": application.passport_photo, "required": True},
-        {"key": "aadhaar_card", "label": "Aadhaar Card", "file": application.aadhaar_card, "required": True},
-        {"key": "pan_card", "label": "PAN Card", "file": application.pan_card, "required": True},
-        {"key": "excise_license", "label": "Excise License", "file": application.excise_license, "required": True},
-        {"key": "trade_license", "label": "Trade License", "file": application.trade_license, "required": True},
-        {"key": "gst_certificate", "label": "GST Certificate", "file": application.gst_certificate, "required": False},
-        {"key": "address_proof", "label": "Address Proof", "file": application.address_proof, "required": True},
-        {"key": "signature", "label": "Signature", "file": application.signature, "required": True},
+        {"key": "excise_license", "label": "Licence copy", "file": application.excise_license, "required": False},
+        {"key": "passport_photo", "label": "Proprietor / Partner photo", "file": application.passport_photo, "required": False},
+        {"key": "primary_delegate_photo", "label": "Primary representative photo", "file": application.primary_delegate_photo, "required": False},
+        {"key": "alternate_delegate_photo", "label": "Alternate representative photo", "file": application.alternate_delegate_photo, "required": False},
+        {"key": "pan_card", "label": "PAN card", "file": application.pan_card, "required": False},
+        {"key": "aadhaar_card", "label": "Aadhaar", "file": application.aadhaar_card, "required": False},
+        {"key": "partnership_deed", "label": "Partnership deed / MOA", "file": application.partnership_deed, "required": False},
+        {"key": "gst_certificate", "label": "GST certificate", "file": application.gst_certificate, "required": False},
+        {"key": "address_proof", "label": "Address proof", "file": application.address_proof, "required": False},
     ]
     for document in documents:
         file = document["file"]
@@ -703,6 +728,7 @@ def staff_application_action(request, pk):
     application = get_object_or_404(MembershipApplication.objects.select_related("applicant"), pk=pk)
     action = request.POST.get("action")
     remarks = request.POST.get("remarks", "").strip()
+    next_url = request.POST.get("next") or reverse("staff_application_detail", args=[application.pk])
 
     if action in {"save_remarks", "save_remark"}:
         application.remarks = remarks
@@ -761,14 +787,14 @@ def staff_application_action(request, pk):
             notify_member(
                 application.applicant,
                 title="Membership activated",
-                message=f"Your membership has been activated successfully. Membership number: {member.membership_number}.",
+                message=membership_activation_message(member),
             )
             AuditLog.objects.create(actor=request.user, action="Membership generated", target=member.membership_number)
             messages.success(request, f"Membership generated: {member.membership_number}.")
     else:
         messages.error(request, "Unknown application action.")
 
-    return redirect("staff_application_detail", pk=application.pk)
+    return redirect(next_url)
 
 
 @staff_member_required
@@ -819,6 +845,7 @@ def staff_payment_action(request, pk):
     payment = get_object_or_404(PaymentProof.objects.select_related("application", "application__applicant"), pk=pk)
     action = request.POST.get("action")
     remarks = request.POST.get("remarks", "").strip()
+    next_url = request.POST.get("next") or reverse("staff_payment_detail", args=[payment.pk])
 
     if action == "approve_payment":
         if payment.status == PaymentProof.Status.APPROVED:
@@ -836,8 +863,14 @@ def staff_payment_action(request, pk):
             member = Member.objects.create_from_application(payment.application)
             notify_member(
                 payment.application.applicant,
+                title="Payment verified",
+                message="Your payment proof has been verified successfully. Final membership activation is complete.",
+                remarks=remarks,
+            )
+            notify_member(
+                payment.application.applicant,
                 title="Membership activated",
-                message=f"Your payment has been approved and membership is active. Membership number: {member.membership_number}.",
+                message=membership_activation_message(member),
                 remarks=remarks,
             )
             AuditLog.objects.create(actor=request.user, action="Payment approved and membership activated", target=payment.utr_number, notes=remarks)
@@ -849,7 +882,7 @@ def staff_payment_action(request, pk):
             or payment.status not in PENDING_PAYMENT_PROOF_STATUSES
         ):
             messages.error(request, "Payment can only be rejected while it is pending verification.")
-            return redirect("staff_payment_detail", pk=payment.pk)
+            return redirect(next_url)
         remarks = remarks or "Payment proof could not be verified with the submitted details."
         payment.status = PaymentProof.Status.REJECTED
         payment.remarks = remarks
@@ -874,7 +907,7 @@ def staff_payment_action(request, pk):
             or payment.status not in PENDING_PAYMENT_PROOF_STATUSES
         ):
             messages.error(request, "Payment re-upload can only be requested while proof is pending verification.")
-            return redirect("staff_payment_detail", pk=payment.pk)
+            return redirect(next_url)
         remarks = remarks or "Please upload a clearer screenshot or correct UTR/payment details."
         payment.status = PaymentProof.Status.REUPLOAD_REQUESTED
         payment.remarks = remarks
@@ -895,7 +928,7 @@ def staff_payment_action(request, pk):
     else:
         messages.error(request, "Unknown payment action.")
 
-    return redirect("staff_payment_detail", pk=payment.pk)
+    return redirect(next_url)
 
 
 @staff_member_required
@@ -1060,6 +1093,7 @@ def staff_notifications(request):
             district=request.POST.get("district", "").strip(),
             recipient_id=request.POST.get("recipient") or None,
             recipient_email=request.POST.get("recipient_email", "").strip(),
+            recipient_mobile=request.POST.get("recipient_mobile", "").strip(),
         )
         try:
             broadcast.full_clean()
@@ -1185,14 +1219,15 @@ def report_rows(report_type):
 @staff_member_required
 def admin_document_review(request, source, pk, field_name):
     application_fields = {
-        "passport_photo": "Passport Photo",
-        "aadhaar_card": "Aadhaar Card",
-        "pan_card": "PAN Card",
-        "excise_license": "Excise License",
-        "trade_license": "Trade License",
-        "gst_certificate": "GST Certificate",
-        "address_proof": "Address Proof",
-        "signature": "Signature",
+        "excise_license": "Licence copy",
+        "passport_photo": "Proprietor / Partner photo",
+        "primary_delegate_photo": "Primary representative photo",
+        "alternate_delegate_photo": "Alternate representative photo",
+        "pan_card": "PAN card",
+        "aadhaar_card": "Aadhaar",
+        "partnership_deed": "Partnership deed / MOA",
+        "gst_certificate": "GST certificate",
+        "address_proof": "Address proof",
     }
     payment_fields = {
         "screenshot": "Payment Screenshot",

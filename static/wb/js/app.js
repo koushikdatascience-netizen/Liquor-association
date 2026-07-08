@@ -150,7 +150,7 @@
   const applicationWizard = document.querySelector("[data-application-wizard]");
   if(applicationWizard){
     let currentStep = 1;
-    const totalSteps = 5;
+    const totalSteps = 6;
     const panels = Array.from(applicationWizard.querySelectorAll("[data-step-panel]"));
     const indicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
     const prevBtn = applicationWizard.querySelector("[data-prev-step]");
@@ -158,14 +158,24 @@
     const submitBtn = applicationWizard.querySelector("[data-submit-application]");
     const fieldLabels = {
       full_name: "Full name",
-      mobile_number: "Mobile",
+      nationality: "Nationality",
+      age: "Age",
+      gender: "Sex",
+      whatsapp_number: "WhatsApp",
       email: "Email",
-      residential_address: "Residential address",
-      shop_name: "Shop name",
-      excise_license_number: "Excise license",
-      excise_license_type: "License type",
-      district: "District",
-      state: "State"
+      residence_phone: "Telephone (residence)",
+      residential_address: "Complete mailing address",
+      pin_code: "PIN",
+      entity_type: "Entity type",
+      licence_category: "Category of licence",
+      style_name: "Specific style name",
+      excise_license_number: "Licence ID",
+      office_phone: "Telephone (office)",
+      shop_phone: "Telephone (shop / bar)",
+      primary_delegate_name: "Primary representative",
+      primary_delegate_designation: "Designation",
+      alternate_delegate_name: "Alternate representative",
+      alternate_delegate_role: "Relationship / Role"
     };
 
     function fieldValue(name){
