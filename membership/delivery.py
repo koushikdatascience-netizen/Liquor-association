@@ -1,30 +1,14 @@
-import json
-import urllib.error
-import urllib.request
-
 from django.conf import settings
 
+from config.pinbot import send_template_message
 
-def send_whatsapp_message(mobile_number, message):
-    if not mobile_number or not settings.WHATSAPP_API_URL or not settings.WHATSAPP_API_TOKEN:
+
+def send_whatsapp_message(mobile_number, message, reference="Notification"):
+    if not mobile_number or not settings.WHATSAPP_NOTIFICATIONS_ENABLED:
         return False
 
-    payload = {
-        "to": mobile_number,
-        "from": settings.WHATSAPP_FROM,
-        "message": message,
-    }
-    request = urllib.request.Request(
-        settings.WHATSAPP_API_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {settings.WHATSAPP_API_TOKEN}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
+    return send_template_message(
+        mobile_number,
+        settings.PINBOT_NOTIFICATION_TEMPLATE_NAME,
+        [settings.ASSOCIATION_NAME, reference, message],
     )
-    try:
-        with urllib.request.urlopen(request, timeout=10):
-            return True
-    except (urllib.error.URLError, TimeoutError):
-        return False

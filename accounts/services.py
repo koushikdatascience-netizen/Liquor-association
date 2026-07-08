@@ -1,12 +1,11 @@
-import json
 import random
-import urllib.error
-import urllib.request
 from datetime import timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
+
+from config.pinbot import send_template_message
 
 from .models import OTPVerification
 
@@ -65,25 +64,12 @@ def send_whatsapp_otp(mobile_number, code, fallback_email=None):
                 fail_silently=True,
             )
         return False
-    if not settings.WHATSAPP_OTP_API_URL or not settings.WHATSAPP_OTP_TOKEN:
-        return False
-
-    payload = {
-        "to": mobile_number,
-        "from": settings.WHATSAPP_OTP_FROM,
-        "message": f"Your membership portal mobile OTP is {code}. It expires in {settings.OTP_EXPIRY_MINUTES} minutes.",
-    }
-    request = urllib.request.Request(
-        settings.WHATSAPP_OTP_API_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {settings.WHATSAPP_OTP_TOKEN}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
+    return send_template_message(
+        mobile_number,
+        settings.PINBOT_OTP_TEMPLATE_NAME,
+        [
+            settings.ASSOCIATION_NAME,
+            "Registration OTP",
+            f"Your OTP is {code}. It expires in {settings.OTP_EXPIRY_MINUTES} minutes.",
+        ],
     )
-    try:
-        with urllib.request.urlopen(request, timeout=10) as response:
-            return 200 <= response.status < 300
-    except (urllib.error.URLError, TimeoutError):
-        return False

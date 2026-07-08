@@ -17,6 +17,7 @@
     <div class="field"><label>Audience</label><select class="select" name="audience"><option value="ALL_MEMBERS">All Members</option><option value="DISTRICT">District-wise</option><option value="INDIVIDUAL">Individual Member</option><option value="PENDING_APPLICANTS">Pending Applicants</option></select></div>
     <div class="field"><label>District</label><select class="select" name="district"><option value="">Select district</option>{% for district in districts %}<option value="{{ district }}">{{ district }}</option>{% endfor %}</select></div>
     <div class="field"><label>Recipient</label><select class="select" name="recipient"><option value="">Select member/applicant</option>{% for member_user in members %}<option value="{{ member_user.id }}">{{ member_user.get_full_name|default:member_user.username }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Customer email</label><input class="input" type="email" name="recipient_email" list="customer-email-list" placeholder="customer@example.com"><datalist id="customer-email-list">{% for member_user in members %}{% if member_user.email %}<option value="{{ member_user.email }}">{{ member_user.get_full_name|default:member_user.username }}</option>{% endif %}{% endfor %}</datalist></div>
     <div class="field full"><label>Message</label><textarea class="textarea" name="message" required placeholder="Write the circular message..."></textarea></div>
     <div class="field full"><button class="btn primary" type="submit"><i class="bi bi-send"></i> Send Broadcast</button></div>
   </form>

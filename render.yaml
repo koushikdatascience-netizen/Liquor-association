@@ -53,25 +53,37 @@ services:
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: SMTP_HOST
-        value: smtp.resend.com
+        value: smtp.hostinger.com
       - key: SMTP_PORT
         value: "465"
       - key: SMTP_USERNAME
-        value: resend
+        value: wbliquor@snapkey.in
       - key: SMTP_PASSWORD
         sync: false
       - key: SMTP_FROM_EMAIL
-        sync: false
+        value: wbliquor@snapkey.in
       - key: SMTP_FROM_NAME
         value: Liquor Association
       - key: SMTP_USE_SSL
         value: "True"
-      - key: WHATSAPP_API_URL
+      - key: ADMIN_NOTIFICATION_EMAIL
+        value: societywelfarewbfllicences@gmail.com
+      - key: PINBOT_API_BASE_URL
+        value: https://partnersv1.pinbot.ai/v3
+      - key: PINBOT_PHONE_NUMBER_ID
+        value: "908272842364302"
+      - key: PINBOT_API_KEY
         sync: false
-      - key: WHATSAPP_API_TOKEN
-        sync: false
-      - key: WHATSAPP_FROM
-        sync: false
+      - key: PINBOT_LANGUAGE_CODE
+        value: en
+      - key: PINBOT_OTP_TEMPLATE_NAME
+        value: support_request
+      - key: PINBOT_NOTIFICATION_TEMPLATE_NAME
+        value: support_request
+      - key: WHATSAPP_OTP_ENABLED
+        value: "False"
+      - key: WHATSAPP_NOTIFICATIONS_ENABLED
+        value: "False"
 
 databases:
   - name: liquor-association-db

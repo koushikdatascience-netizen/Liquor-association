@@ -40,13 +40,13 @@
   <div class="card">
     <div class="card__head">
       <div><div class="card__title">Payment Screenshot</div><div class="card__sub">{% if payments %}Latest submitted payment{% else %}No payment selected{% endif %}</div></div>
-      <span class="badge payment-pending">Pending</span>
-    </div>
-    <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);">
-      <div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>
+      {% with payment=payments.0 %}{% if payment %}<span class="badge {% if payment.status == 'APPROVED' %}payment-verified{% elif payment.status == 'REJECTED' or payment.status == 'REUPLOAD_REQUESTED' %}rejected{% else %}payment-pending{% endif %}">{{ payment.get_status_display }}</span>{% endif %}{% endwith %}
     </div>
     {% with payment=payments.0 %}
     {% if payment %}
+    <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);overflow:hidden;">
+      {% if payment.screenshot %}<img src="{{ payment.screenshot.url }}" alt="Payment screenshot" style="max-width:100%;max-height:100%;object-fit:contain;">{% else %}<div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>{% endif %}
+    </div>
     <dl class="kv" style="margin-top:18px;">
       <dt>Member</dt><dd>{{ payment.application.full_name }}</dd>
       <dt>Amount</dt><dd>&#8377;{{ payment.amount }}</dd>
@@ -54,7 +54,17 @@
       <dt>UTR</dt><dd>{{ payment.utr_number }}</dd>
       <dt>Uploaded</dt><dd>{{ payment.created_at|date:"d M Y, H:i" }}</dd>
     </dl>
-    <div style="display:flex;gap:8px;margin-top:18px;"><a class="btn" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-envelope"></i> Re-upload</a><a class="btn danger" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-x"></i> Reject</a><a class="btn primary" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-check2"></i> Approve</a></div>
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      {% if payment.status == 'PENDING' %}
+        <a class="btn primary" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-shield-check"></i> Verify Payment</a>
+      {% else %}
+        <a class="btn" style="flex:1;" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-eye"></i> View Payment</a>
+      {% endif %}
+    </div>
+    {% else %}
+    <div style="aspect-ratio:3/4;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#f9f9f9,#ececec);display:grid;place-items:center;color:var(--text-3);">
+      <div style="text-align:center;"><i class="bi bi-image" style="font-size:36px;"></i><div style="font-size:12px;margin-top:8px;">payment screenshot</div></div>
+    </div>
     {% endif %}
     {% endwith %}
   </div>

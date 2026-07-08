@@ -22,17 +22,12 @@ from .services import notify_member
 
 
 DOCUMENT_REVIEW_STATUSES = {
-    MembershipApplication.Status.DRAFT,
     MembershipApplication.Status.SUBMITTED,
-    MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
-    MembershipApplication.Status.ON_HOLD,
     "PENDING",
     "PENDING_REVIEW",
     "APPLICATION_PENDING",
     "DOCUMENTS_SUBMITTED",
     "DOCUMENTS_REUPLOADED",
-    "REUPLOAD_REQUESTED",
-    "DOCUMENT_REUPLOAD_REQUESTED",
 }
 
 PAYMENT_WAITING_STATUSES = {
@@ -232,7 +227,7 @@ def application_create(request):
             initial={
                 "email": request.user.email,
                 "mobile_number": profile.mobile_number,
-                "full_name": request.user.get_full_name() or request.user.username,
+                "full_name": request.user.get_full_name(),
             }
         )
     return render(
@@ -609,6 +604,7 @@ def staff_application_action_context(application, payment=None, member=None):
     show_payment_actions = bool(
         payment
         and payment.status in PENDING_PAYMENT_PROOF_STATUSES
+        and application.status in PAYMENT_REVIEW_STATUSES
         and application.status not in REJECTED_APPLICATION_STATUSES
         and not membership_active
     )
@@ -616,10 +612,12 @@ def staff_application_action_context(application, payment=None, member=None):
     payment_missing_for_review = application.status in PAYMENT_REVIEW_STATUSES and not payment
     can_activate_membership = application.status in PAYMENT_APPROVED_STATUSES and not membership_active
     waiting_for_payment_reupload = bool(payment and payment.status in REUPLOAD_PAYMENT_PROOF_STATUSES)
+    waiting_for_documents = application.status == MembershipApplication.Status.ADDITIONAL_DOCUMENTS
     show_document_actions = bool(
         is_document_review_status(application.status)
         and application.status not in REJECTED_APPLICATION_STATUSES
         and not membership_active
+        and not waiting_for_documents
     )
     return {
         "show_document_actions": show_document_actions,
@@ -627,6 +625,7 @@ def staff_application_action_context(application, payment=None, member=None):
         "waiting_for_payment": waiting_for_payment,
         "payment_missing_for_review": payment_missing_for_review,
         "waiting_for_payment_reupload": waiting_for_payment_reupload,
+        "waiting_for_documents": waiting_for_documents,
         "can_activate_membership": can_activate_membership,
         "membership_active": membership_active,
         "has_pending_admin_action": show_document_actions or show_payment_actions or can_activate_membership,
@@ -792,6 +791,7 @@ def staff_payment_detail(request, pk):
     member_is_active = bool(application.status in MEMBERSHIP_ACTIVE_STATUSES or (member and member.is_active))
     show_payment_actions = bool(
         payment.status in PENDING_PAYMENT_PROOF_STATUSES
+        and application.status in PAYMENT_REVIEW_STATUSES
         and application.status not in REJECTED_APPLICATION_STATUSES
         and not member_is_active
     )
@@ -823,7 +823,11 @@ def staff_payment_action(request, pk):
     if action == "approve_payment":
         if payment.status == PaymentProof.Status.APPROVED:
             messages.info(request, "This payment is already approved.")
-        elif payment.application.status in REJECTED_APPLICATION_STATUSES or payment.status not in PENDING_PAYMENT_PROOF_STATUSES:
+        elif (
+            payment.application.status not in PAYMENT_REVIEW_STATUSES
+            or payment.application.status in REJECTED_APPLICATION_STATUSES
+            or payment.status not in PENDING_PAYMENT_PROOF_STATUSES
+        ):
             messages.error(request, "Payment can only be approved after a proof upload is pending verification.")
         else:
             payment.remarks = remarks
@@ -839,7 +843,11 @@ def staff_payment_action(request, pk):
             AuditLog.objects.create(actor=request.user, action="Payment approved and membership activated", target=payment.utr_number, notes=remarks)
             messages.success(request, f"Payment approved and membership activated: {member.membership_number}.")
     elif action == "reject_payment":
-        if payment.application.status in REJECTED_APPLICATION_STATUSES or payment.status not in PENDING_PAYMENT_PROOF_STATUSES:
+        if (
+            payment.application.status not in PAYMENT_REVIEW_STATUSES
+            or payment.application.status in REJECTED_APPLICATION_STATUSES
+            or payment.status not in PENDING_PAYMENT_PROOF_STATUSES
+        ):
             messages.error(request, "Payment can only be rejected while it is pending verification.")
             return redirect("staff_payment_detail", pk=payment.pk)
         remarks = remarks or "Payment proof could not be verified with the submitted details."
@@ -860,7 +868,11 @@ def staff_payment_action(request, pk):
         AuditLog.objects.create(actor=request.user, action="Payment rejected", target=payment.utr_number, notes=remarks)
         messages.warning(request, "Payment rejected and applicant notified.")
     elif action == "request_reupload":
-        if payment.application.status in REJECTED_APPLICATION_STATUSES or payment.status not in PENDING_PAYMENT_PROOF_STATUSES:
+        if (
+            payment.application.status not in PAYMENT_REVIEW_STATUSES
+            or payment.application.status in REJECTED_APPLICATION_STATUSES
+            or payment.status not in PENDING_PAYMENT_PROOF_STATUSES
+        ):
             messages.error(request, "Payment re-upload can only be requested while proof is pending verification.")
             return redirect("staff_payment_detail", pk=payment.pk)
         remarks = remarks or "Please upload a clearer screenshot or correct UTR/payment details."
@@ -1047,6 +1059,7 @@ def staff_notifications(request):
             channel=request.POST.get("channel", BroadcastMessage.Channel.IN_APP),
             district=request.POST.get("district", "").strip(),
             recipient_id=request.POST.get("recipient") or None,
+            recipient_email=request.POST.get("recipient_email", "").strip(),
         )
         try:
             broadcast.full_clean()

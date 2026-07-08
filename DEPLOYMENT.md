@@ -57,25 +57,44 @@ PAYMENT_IFSC=
 
 SMTP_PASSWORD=
 SMTP_FROM_EMAIL=
+ADMIN_NOTIFICATION_EMAIL=societywelfarewbfllicences@gmail.com
 
-WHATSAPP_API_URL=
-WHATSAPP_API_TOKEN=
-WHATSAPP_FROM=
+PINBOT_PHONE_NUMBER_ID=
+PINBOT_API_KEY=
+PINBOT_OTP_TEMPLATE_NAME=
+PINBOT_NOTIFICATION_TEMPLATE_NAME=
+WHATSAPP_OTP_ENABLED=
+WHATSAPP_NOTIFICATIONS_ENABLED=
 
 DJANGO_ADMIN_PASSWORD=
 ```
 
-For Resend SMTP:
+For Hostinger SMTP:
 
 ```env
-SMTP_HOST=smtp.resend.com
+SMTP_HOST=smtp.hostinger.com
 SMTP_PORT=465
-SMTP_USERNAME=resend
-SMTP_PASSWORD=re_your_resend_api_key
-SMTP_FROM_EMAIL=no-reply@yourdomain.com
+SMTP_USERNAME=wbliquor@snapkey.in
+SMTP_PASSWORD=<Hostinger mailbox password>
+SMTP_FROM_EMAIL=wbliquor@snapkey.in
 SMTP_FROM_NAME=Liquor Association
 SMTP_USE_SSL=True
 ```
+
+For Pinbot WhatsApp templates:
+
+```env
+PINBOT_API_BASE_URL=https://partnersv1.pinbot.ai/v3
+PINBOT_PHONE_NUMBER_ID=908272842364302
+PINBOT_API_KEY=<Pinbot API key>
+PINBOT_LANGUAGE_CODE=en
+PINBOT_OTP_TEMPLATE_NAME=support_request
+PINBOT_NOTIFICATION_TEMPLATE_NAME=support_request
+WHATSAPP_OTP_ENABLED=True
+WHATSAPP_NOTIFICATIONS_ENABLED=True
+```
+
+The default template payload sends three body text parameters: association name, a reference, and the message body. If Pinbot creates a dedicated OTP template later, update `PINBOT_OTP_TEMPLATE_NAME` to that approved template name.
 
 ## 4. Add GitHub Actions Secret
 

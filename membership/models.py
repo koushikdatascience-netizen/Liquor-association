@@ -224,6 +224,14 @@ def notify_staff(title, message):
     Notification.objects.bulk_create(
         [Notification(recipient=user, title=title, message=message) for user in staff_users]
     )
+    if settings.ADMIN_NOTIFICATION_EMAIL:
+        send_mail(
+            subject=f"{settings.ASSOCIATION_NAME} - {title}",
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_NOTIFICATION_EMAIL],
+            fail_silently=True,
+        )
 
 
 class BroadcastMessage(TimeStampedModel):
@@ -245,6 +253,7 @@ class BroadcastMessage(TimeStampedModel):
     channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.IN_APP)
     district = models.CharField(max_length=100, blank=True)
     recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    recipient_email = models.EmailField(blank=True)
     sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="sent_broadcasts")
     sent_at = models.DateTimeField(null=True, blank=True)
     sent_count = models.PositiveIntegerField(default=0)
@@ -256,8 +265,8 @@ class BroadcastMessage(TimeStampedModel):
         errors = {}
         if self.audience == self.Audience.DISTRICT and not self.district:
             errors["district"] = "District is required for district-wise broadcasts."
-        if self.audience == self.Audience.INDIVIDUAL and not self.recipient:
-            errors["recipient"] = "Recipient is required for individual broadcasts."
+        if self.audience == self.Audience.INDIVIDUAL and not self.recipient and not self.recipient_email:
+            errors["recipient"] = "Recipient or customer email is required for individual broadcasts."
         if errors:
             raise ValidationError(errors)
 
@@ -287,6 +296,7 @@ class BroadcastMessage(TimeStampedModel):
     def send(self, actor=None):
         users = list(self.recipients())
         broadcast_body = f"{self.title}\n\n{self.message}"
+        sent_count = len(users)
         Notification.objects.bulk_create(
             [
                 Notification(
@@ -308,6 +318,15 @@ class BroadcastMessage(TimeStampedModel):
                         recipient_list=[user.email],
                         fail_silently=True,
                     )
+            if self.recipient_email:
+                send_mail(
+                    subject=f"{settings.ASSOCIATION_NAME} - {self.title}",
+                    message=self.message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[self.recipient_email],
+                    fail_silently=True,
+                )
+                sent_count += 1
         if self.channel in [self.Channel.WHATSAPP, self.Channel.EMAIL_WHATSAPP]:
             for user in users:
                 mobile_number = ""
@@ -318,10 +337,10 @@ class BroadcastMessage(TimeStampedModel):
                 if not mobile_number:
                     latest_application = user.applications.order_by("-created_at").first()
                     mobile_number = latest_application.mobile_number if latest_application else ""
-                send_whatsapp_message(mobile_number, broadcast_body)
+                send_whatsapp_message(mobile_number, broadcast_body, reference=f"Broadcast #{self.pk or 'new'}")
         self.sent_by = actor
         self.sent_at = timezone.now()
-        self.sent_count = len(users)
+        self.sent_count = sent_count
         self.save(update_fields=["sent_by", "sent_at", "sent_count", "updated_at"])
         return self.sent_count
 

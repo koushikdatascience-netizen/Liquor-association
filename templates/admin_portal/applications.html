@@ -44,7 +44,22 @@
         <td data-label="Submitted">{{ app.created_at|date:"d M Y" }}</td>
         <td data-label="Status"><span class="badge {% if app.status == 'REJECTED' %}rejected{% elif app.status == 'APPROVED_PENDING_PAYMENT' or app.status == 'PAYMENT_APPROVED' or app.status == 'MEMBER_ACTIVE' %}approved{% elif app.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ app.get_status_display }}</span></td>
         <td data-label="Actions"><div class="row-actions">
-          <a class="btn sm primary" href="{% url 'staff_application_detail' app.id %}"><i class="bi bi-eye"></i> Open / Verify Docs</a>
+          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="View details"><i class="bi bi-eye"></i></a>
+          {% if app.status == 'SUBMITTED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Review documents"><i class="bi bi-file-earmark-check"></i></a>
+          {% elif app.status == 'APPROVED_PENDING_PAYMENT' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Waiting for payment"><i class="bi bi-hourglass-split"></i></a>
+          {% elif app.status == 'PAYMENT_SUBMITTED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Verify payment"><i class="bi bi-receipt"></i></a>
+          {% elif app.status == 'PAYMENT_APPROVED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Activate membership"><i class="bi bi-card-heading"></i></a>
+          {% elif app.status == 'MEMBER_ACTIVE' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Member active"><i class="bi bi-person-check"></i></a>
+          {% elif app.status == 'ADDITIONAL_DOCUMENTS' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Waiting for documents"><i class="bi bi-envelope-paper"></i></a>
+          {% elif app.status == 'REJECTED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Rejected"><i class="bi bi-x-circle"></i></a>
+          {% endif %}
         </div></td>
       </tr>
       {% empty %}<tr><td colspan="8">No applications yet.</td></tr>{% endfor %}
