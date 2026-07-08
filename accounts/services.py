@@ -1,4 +1,6 @@
 import random
+import logging
+import smtplib
 from datetime import timedelta
 
 from django.conf import settings
@@ -7,6 +9,9 @@ from django.core.mail import send_mail
 from django.utils import timezone
 
 from .models import OTPVerification
+
+
+logger = logging.getLogger(__name__)
 
 
 def generate_otp():
@@ -40,5 +45,6 @@ def send_email_otp(email, code):
             recipient_list=[email],
             fail_silently=False,
         )
-    except (OSError, TimeoutError, BadHeaderError):
+    except (OSError, TimeoutError, BadHeaderError, smtplib.SMTPException) as exc:
+        logger.warning("Registration OTP email failed for %s: %s", email, exc)
         raise RuntimeError("Email service did not respond. Please try resending the OTP in a minute.")

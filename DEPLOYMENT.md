@@ -58,6 +58,8 @@ PAYMENT_IFSC=
 SMTP_PASSWORD=
 SMTP_FROM_EMAIL=
 EMAIL_TIMEOUT=10
+EMAIL_USE_SSL=True
+EMAIL_USE_TLS=False
 ADMIN_NOTIFICATION_EMAIL=societywelfarewbfllicences@gmail.com
 
 PINBOT_PHONE_NUMBER_ID=
@@ -78,6 +80,8 @@ SMTP_PASSWORD=<Hostinger mailbox password>
 SMTP_FROM_EMAIL=wbliquor@snapkey.in
 SMTP_FROM_NAME=Liquor Association
 SMTP_USE_SSL=True
+EMAIL_USE_SSL=True
+EMAIL_USE_TLS=False
 EMAIL_TIMEOUT=10
 ```
 

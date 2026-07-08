@@ -150,8 +150,10 @@ SITE_URL = env(
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = env("EMAIL_HOST", default=env("SMTP_HOST", default="smtp.gmail.com"))
 EMAIL_PORT = env.int("EMAIL_PORT", default=env.int("SMTP_PORT", default=587))
-EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=env.bool("SMTP_USE_SSL", default=False))
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=not EMAIL_USE_SSL)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=env.bool("SMTP_USE_SSL", default=EMAIL_PORT == 465))
+if EMAIL_PORT == 465:
+    EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False if EMAIL_USE_SSL else env.bool("EMAIL_USE_TLS", default=env.bool("SMTP_USE_TLS", default=True))
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=env("SMTP_USERNAME", default=""))
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=env("SMTP_PASSWORD", default=""))

@@ -66,6 +66,10 @@ services:
         value: Liquor Association
       - key: SMTP_USE_SSL
         value: "True"
+      - key: EMAIL_USE_SSL
+        value: "True"
+      - key: EMAIL_USE_TLS
+        value: "False"
       - key: EMAIL_TIMEOUT
         value: "10"
       - key: ADMIN_NOTIFICATION_EMAIL

@@ -24,9 +24,11 @@ def register(request):
         if form.is_valid():
             user = form.save()
             if settings.ACCOUNT_REQUIRE_OTP_VERIFICATION:
+                otp_sent = True
                 try:
                     send_registration_otps(user)
                 except Exception as exc:
+                    otp_sent = False
                     messages.warning(request, f"Account created, but email OTP sending failed: {exc}")
                 user.profile.mobile_verified = True
                 user.profile.save(update_fields=["mobile_verified"])
@@ -37,7 +39,10 @@ def register(request):
                 profile.save(update_fields=["email_verified", "mobile_verified"])
             login(request, user, backend="accounts.backends.EmailOrMobileBackend")
             if settings.ACCOUNT_REQUIRE_OTP_VERIFICATION:
-                messages.success(request, "Account created. Please verify your email OTP.")
+                if otp_sent:
+                    messages.success(request, "Account created. Please verify your email OTP.")
+                else:
+                    messages.info(request, "Account created. Please use Resend OTP once before verification.")
                 return redirect("verify_registration_otp")
             messages.success(request, "Account created. You can now submit your membership application.")
             return redirect("application_create")
