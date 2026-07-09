@@ -1,19 +1,17 @@
 {% extends "base.html" %}
-{% block title %}{{ title|default:"Verify OTP" }} - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block title %}Admin Login - {{ ASSOCIATION_NAME }}{% endblock %}
 {% block content %}
 <div class="auth-split">
   <div class="auth-split-left">
     <div class="auth-card">
-      <h2>{{ heading|default:"Verify OTP" }}</h2>
-      <p class="kicker">{{ subheading|default:"Confirm account" }}</p>
+      <h2>Admin Login</h2>
+      <p class="kicker">Password <b>required</b></p>
       <form method="post" class="form django-form">
         {% csrf_token %}
         {{ form.as_p }}
-        <button class="btn btn-primary btn-block" type="submit">{{ button_label|default:"Verify OTP" }}</button>
+        <button class="btn btn-primary btn-block" type="submit">Sign in as Admin</button>
       </form>
-      {% if resend_url %}
-        <p class="auth-alt"><a href="{{ resend_url }}">Resend OTP</a></p>
-      {% endif %}
+      <p class="auth-alt">Member user? <a href="{% url 'login' %}">Use OTP login</a></p>
     </div>
   </div>
   <div class="auth-split-right">

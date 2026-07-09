@@ -1,15 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.conf import settings
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
+from django.urls import reverse
 
-from .forms import ApplicantRegistrationForm, OTPVerificationForm
+from .backends import EmailOrMobileBackend
+from .forms import ApplicantRegistrationForm, MemberLoginRequestForm, OTPVerificationForm
 from .models import OTPVerification
-from .services import send_registration_otps
+from .services import send_login_otps, send_registration_otps
 
 import socket
-from django.http import JsonResponse
 
 
 def test_smtp_connection(request):
@@ -35,13 +35,26 @@ def test_smtp_connection(request):
     return JsonResponse(results)
 
 
-def pending_otp(user, channel):
+def pending_otps(user, purpose):
     return OTPVerification.objects.filter(
         user=user,
-        channel=channel,
-        purpose=OTPVerification.Purpose.REGISTRATION,
+        purpose=purpose,
         verified_at__isnull=True,
-    ).order_by("-created_at").first()
+    ).order_by("-created_at")
+
+
+def verify_any_pending_otp(user, purpose, code):
+    for otp in pending_otps(user, purpose):
+        if otp.verify(code):
+            return True
+    return False
+
+
+def find_member_user(identifier):
+    user = EmailOrMobileBackend().get_user_by_identifier(identifier)
+    if not user or not user.is_active:
+        return None
+    return user
 
 
 def register(request):
@@ -49,74 +62,156 @@ def register(request):
         form = ApplicantRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            if settings.ACCOUNT_REQUIRE_OTP_VERIFICATION:
-                otp_sent = True
-                try:
-                    send_registration_otps(user)
-                except Exception as exc:
-                    otp_sent = False
-                    messages.warning(request, f"Account created, but email OTP sending failed: {exc}")
-                user.profile.mobile_verified = True
-                user.profile.save(update_fields=["mobile_verified"])
-            else:
-                profile = user.profile
-                profile.email_verified = True
-                profile.mobile_verified = True
-                profile.save(update_fields=["email_verified", "mobile_verified"])
-            login(request, user, backend="accounts.backends.EmailOrMobileBackend")
-            if settings.ACCOUNT_REQUIRE_OTP_VERIFICATION:
-                if otp_sent:
-                    messages.success(request, "Account created. Please verify your email OTP.")
-                else:
-                    messages.info(request, "Account created. Please use Resend OTP once before verification.")
-                return redirect("verify_registration_otp")
-            messages.success(request, "Account created. You can now submit your membership application.")
-            return redirect("application_create")
+            try:
+                send_registration_otps(user)
+                messages.success(request, "Account created. We sent an OTP to your email and WhatsApp.")
+            except Exception as exc:
+                messages.warning(request, f"Account created, but OTP sending failed: {exc}")
+            request.session["registration_otp_user_id"] = user.pk
+            return redirect("verify_registration_otp")
     else:
         form = ApplicantRegistrationForm()
     return render(request, "accounts/register.html", {"form": form})
 
 
-@login_required
 def verify_registration_otp(request):
-    profile = request.user.profile
-    if not settings.ACCOUNT_REQUIRE_OTP_VERIFICATION:
-        if not profile.email_verified or not profile.mobile_verified:
-            profile.email_verified = True
-            profile.mobile_verified = True
-            profile.save(update_fields=["email_verified", "mobile_verified"])
-        messages.success(request, "Account verified for testing. You can submit your membership application.")
-        return redirect("application_create")
+    user_id = request.session.get("registration_otp_user_id")
+    if request.user.is_authenticated:
+        user = request.user
+    else:
+        user = find_member_user_by_id(user_id)
+    if user is None:
+        messages.error(request, "Please register before verifying OTP.")
+        return redirect("register")
 
-    if profile.email_verified:
-        if not profile.mobile_verified:
-            profile.mobile_verified = True
-            profile.save(update_fields=["mobile_verified"])
-        messages.success(request, "Your account is already verified.")
-        return redirect("application_create")
-
+    profile = user.profile
     if request.method == "POST":
         form = OTPVerificationForm(request.POST)
         if form.is_valid():
-            email_otp = pending_otp(request.user, OTPVerification.Channel.EMAIL)
-            email_ok = profile.email_verified or (email_otp and email_otp.verify(form.cleaned_data["email_otp"]))
-            if email_ok:
+            if verify_any_pending_otp(user, OTPVerification.Purpose.REGISTRATION, form.cleaned_data["otp"]):
                 profile.email_verified = True
                 profile.mobile_verified = True
                 profile.save(update_fields=["email_verified", "mobile_verified"])
-                messages.success(request, "Email OTP verified. You can now submit your membership application.")
+                login(request, user, backend="accounts.backends.EmailOrMobileBackend")
+                request.session.pop("registration_otp_user_id", None)
+                messages.success(request, "OTP verified. You can now submit your membership application.")
                 return redirect("application_create")
             messages.error(request, "Invalid or expired OTP. Please try again or resend OTP.")
     else:
         form = OTPVerificationForm()
-    return render(request, "accounts/verify_otp.html", {"form": form})
+    return render(
+        request,
+        "accounts/verify_otp.html",
+        {
+            "form": form,
+            "title": "Verify Registration OTP",
+            "heading": "Verify OTP",
+            "subheading": "Confirm account",
+            "button_label": "Verify Account",
+            "resend_url": reverse("resend_registration_otp"),
+        },
+    )
 
 
-@login_required
 def resend_registration_otp(request):
+    user = request.user if request.user.is_authenticated else find_member_user_by_id(request.session.get("registration_otp_user_id"))
+    if user is None:
+        messages.error(request, "Please register before requesting another OTP.")
+        return redirect("register")
     try:
-        send_registration_otps(request.user)
-        messages.success(request, "A new email OTP has been sent.")
+        send_registration_otps(user)
+        messages.success(request, "A new OTP has been sent to your email and WhatsApp.")
     except Exception as exc:
-        messages.error(request, f"Could not send email OTP: {exc}")
+        messages.error(request, f"Could not send OTP: {exc}")
     return redirect("verify_registration_otp")
+
+
+def find_member_user_by_id(user_id):
+    if not user_id:
+        return None
+    try:
+        user_id = int(user_id)
+    except (TypeError, ValueError):
+        return None
+    return EmailOrMobileBackend().get_user(user_id)
+
+
+def login_request_otp(request):
+    if request.user.is_authenticated:
+        return redirect("staff_dashboard" if request.user.is_staff else "member_dashboard")
+
+    if request.method == "POST":
+        form = MemberLoginRequestForm(request.POST)
+        if form.is_valid():
+            user = find_member_user(form.cleaned_data["identifier"])
+            if user and user.is_staff:
+                messages.error(request, "Admins must use password login.")
+                return redirect("admin_login")
+            if user:
+                try:
+                    send_login_otps(user)
+                    request.session["login_otp_user_id"] = user.pk
+                    messages.success(request, "We sent an OTP to your email and WhatsApp.")
+                    return redirect("login_verify_otp")
+                except Exception as exc:
+                    messages.error(request, f"Could not send OTP: {exc}")
+            else:
+                messages.error(request, "No active member account was found for that email or mobile number.")
+    else:
+        form = MemberLoginRequestForm()
+    return render(request, "accounts/login.html", {"form": form})
+
+
+def login_verify_otp(request):
+    if request.user.is_authenticated:
+        return redirect("staff_dashboard" if request.user.is_staff else "member_dashboard")
+
+    user = find_member_user_by_id(request.session.get("login_otp_user_id"))
+    if user is None:
+        messages.error(request, "Please request a login OTP first.")
+        return redirect("login")
+    if user.is_staff:
+        messages.error(request, "Admins must use password login.")
+        request.session.pop("login_otp_user_id", None)
+        return redirect("admin_login")
+
+    if request.method == "POST":
+        form = OTPVerificationForm(request.POST)
+        if form.is_valid():
+            if verify_any_pending_otp(user, OTPVerification.Purpose.LOGIN, form.cleaned_data["otp"]):
+                login(request, user, backend="accounts.backends.EmailOrMobileBackend")
+                request.session.pop("login_otp_user_id", None)
+                messages.success(request, "You are signed in.")
+                return redirect("member_dashboard")
+            messages.error(request, "Invalid or expired OTP. Please try again or request a new one.")
+    else:
+        form = OTPVerificationForm()
+    return render(
+        request,
+        "accounts/verify_otp.html",
+        {
+            "form": form,
+            "title": "Verify Login OTP",
+            "heading": "Enter OTP",
+            "subheading": "Secure login",
+            "button_label": "Sign in",
+            "resend_url": reverse("login_resend_otp"),
+        },
+    )
+
+
+def login_resend_otp(request):
+    user = find_member_user_by_id(request.session.get("login_otp_user_id"))
+    if user is None:
+        messages.error(request, "Please request a login OTP first.")
+        return redirect("login")
+    if user.is_staff:
+        messages.error(request, "Admins must use password login.")
+        request.session.pop("login_otp_user_id", None)
+        return redirect("admin_login")
+    try:
+        send_login_otps(user)
+        messages.success(request, "A new OTP has been sent to your email and WhatsApp.")
+    except Exception as exc:
+        messages.error(request, f"Could not send OTP: {exc}")
+    return redirect("login_verify_otp")

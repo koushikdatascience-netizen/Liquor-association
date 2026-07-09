@@ -9,8 +9,8 @@
       <form method="post" class="form django-form">
         {% csrf_token %}
         {{ form.as_p }}
-        <p class="small">You can login with either your email or mobile number after registration.</p>
-        <button class="btn btn-primary btn-block" type="submit">Create account</button>
+        <p class="small">No password is required. We will send an OTP to your email and WhatsApp.</p>
+        <button class="btn btn-primary btn-block" type="submit">Create account & send OTP</button>
       </form>
       <p class="auth-alt">Already have an account? <a href="{% url 'login' %}">Login</a></p>
     </div>
