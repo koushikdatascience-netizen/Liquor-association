@@ -16,5 +16,5 @@ COPY . .
 
 RUN chmod +x /app/scripts/entrypoint.sh
 
-ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+ENTRYPOINT ["sh", "/app/scripts/entrypoint.sh"]
 CMD ["sh", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
