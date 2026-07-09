@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Admin Login - {{ ASSOCIATION_NAME }}{% endblock %}
-{% block content %}
-<div class="auth-split">
-  <div class="auth-split-left">
-    <div class="auth-card">
-      <h2>Admin Login</h2>
-      <p class="kicker">Password <b>required</b></p>
-      <form method="post" class="form django-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn btn-primary btn-block" type="submit">Sign in as Admin</button>
-      </form>
-      <p class="auth-alt">Member user? <a href="{% url 'login' %}">Use OTP login</a></p>
-    </div>
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+{% include "includes/messages.html" %}
+<div class="auth-wrap">
+  <div class="auth-card auth-card-otp">
+    <span class="eyebrow"><span class="dot"></span> Admin access</span>
+    <h2>Admin Login</h2>
+    <p class="sub">Administrators must sign in with their username or email and password.</p>
+<form method="post" class="form django-form">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="password-note">
+    <i class="bi bi-key"></i>
+    <span>Password login is required for admin users.</span>
   </div>
-  <div class="auth-split-right">
-    <img src="https://westwardwhiskey.com/cdn/shop/files/NeatKitHexGlasses-lifestyle.png?v=1727212800&width=580" alt="Association welfare illustration">
+  <button class="btn btn-primary btn-block" type="submit">Sign in as Admin</button>
+</form>
+    <p class="auth-alt">Member user? <a href="{% url 'login' %}">Use OTP login</a></p>
   </div>
 </div>
 {% endblock %}

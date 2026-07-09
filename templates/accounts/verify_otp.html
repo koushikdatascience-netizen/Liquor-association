@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 {% block title %}{{ title|default:"Verify OTP" }} - {{ ASSOCIATION_NAME }}{% endblock %}
 {% block content %}
-<div class="auth-split">
-  <div class="auth-split-left">
-    <div class="auth-card">
-      <h2>{{ heading|default:"Verify OTP" }}</h2>
-      <p class="kicker">{{ subheading|default:"Confirm account" }}</p>
-      <form method="post" class="form django-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn btn-primary btn-block" type="submit">{{ button_label|default:"Verify OTP" }}</button>
-      </form>
-      {% if resend_url %}
-        <p class="auth-alt"><a href="{{ resend_url }}">Resend OTP</a></p>
-      {% endif %}
-    </div>
-  </div>
-  <div class="auth-split-right">
-    <img src="https://westwardwhiskey.com/cdn/shop/files/NeatKitHexGlasses-lifestyle.png?v=1727212800&width=580" alt="Association welfare illustration">
+<div class="auth-wrap">
+  <div class="auth-card auth-card-otp">
+    <span class="eyebrow"><span class="dot"></span> One-time password</span>
+    <h2>{{ heading|default:"Verify OTP" }}</h2>
+    <p class="sub">{{ subheading|default:"Confirm account" }} using the OTP sent to your registered email and WhatsApp.</p>
+    <form method="post" class="form django-form">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="otp-note">
+        <i class="bi bi-clock-history"></i>
+        <span>The OTP expires soon. Request a new one if it has expired.</span>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">{{ button_label|default:"Verify OTP" }}</button>
+    </form>
+    {% if resend_url %}
+      <p class="auth-alt"><a href="{{ resend_url }}">Resend OTP</a></p>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -1,22 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Apply - {{ ASSOCIATION_NAME }}{% endblock %}
-{% block content %}
-<div class="auth-split">
-  <div class="auth-split-left">
-    <div class="auth-card">
-      <h2>Sign Up</h2>
-      <p class="kicker">Create <b>account</b></p>
-      <form method="post" class="form django-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <p class="small">No password is required. We will send an OTP to your email and WhatsApp.</p>
-        <button class="btn btn-primary btn-block" type="submit">Create account & send OTP</button>
-      </form>
-      <p class="auth-alt">Already have an account? <a href="{% url 'login' %}">Login</a></p>
-    </div>
-  </div>
-  <div class="auth-split-right">
-    <img src="https://westwardwhiskey.com/cdn/shop/files/NeatKitHexGlasses-lifestyle.png?v=1727212800&width=580" alt="Association welfare illustration">
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+{% include "includes/messages.html" %}
+<div class="auth-wrap">
+  <div class="auth-card auth-card-otp">
+    <span class="eyebrow"><span class="dot"></span> OTP registration</span>
+    <h2>Member Registration</h2>
+    <p class="sub">Create your member account with email and mobile only. No password is required.</p>
+    <form method="post" class="form django-form">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="otp-note">
+        <i class="bi bi-envelope-check"></i>
+        <span>After registration, verify the OTP sent to your email and WhatsApp.</span>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Create Account & Send OTP</button>
+    </form>
+    <p class="auth-alt">Already have an account? <a href="{% url 'login' %}">Login with OTP</a></p>
   </div>
 </div>
 {% endblock %}

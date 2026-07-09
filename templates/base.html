@@ -1,4 +1,3 @@
-{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -17,7 +16,6 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
   {% block body %}
-    {% include "includes/public_nav.html" %}
     {% include "includes/messages.html" %}
     <main>
       {% block content %}{% endblock %}
