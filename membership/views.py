@@ -12,6 +12,7 @@ from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from cloudinary.exceptions import BadRequest as CloudinaryBadRequest
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -255,15 +256,20 @@ def application_create(request):
             application.excise_license_type = application.licence_category
             application.district = application.district or ""
             application.state = application.state or "West Bengal"
+            application.digital_signature = application.digital_signature or application.full_name
             application.status = MembershipApplication.Status.SUBMITTED
             application.remarks = ""
-            application.save()
-            notify_staff(
-                "New membership application" if not can_update_documents else "Documents resubmitted",
-                f"{application.full_name} / {application.shop_name} is ready for document verification.",
-            )
-            messages.success(request, "Application submitted successfully." if not can_update_documents else "Documents updated and resubmitted for admin review.")
-            return redirect("member_dashboard")
+            try:
+                application.save()
+            except CloudinaryBadRequest:
+                form.add_error(None, "One of the uploaded image files is invalid. Please upload JPG, PNG or WebP images and submit again.")
+            else:
+                notify_staff(
+                    "New membership application" if not can_update_documents else "Documents resubmitted",
+                    f"{application.full_name} / {application.shop_name} is ready for document verification.",
+                )
+                messages.success(request, "Application submitted successfully." if not can_update_documents else "Documents updated and resubmitted for admin review.")
+                return redirect("member_dashboard")
         if form.is_valid() and not has_document_uploads:
             form.add_error(None, "Please upload at least one application document before submitting.")
         messages.error(request, "Application was not submitted. Please fix the highlighted fields and submit again.")

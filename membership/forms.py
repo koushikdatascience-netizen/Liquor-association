@@ -1,9 +1,16 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 from .models import MembershipApplication, PaymentProof, SitePaymentSettings
 
 
 class MembershipApplicationForm(forms.ModelForm):
+    image_upload_fields = {
+        "passport_photo",
+        "primary_delegate_photo",
+        "alternate_delegate_photo",
+    }
+
     class Meta:
         model = MembershipApplication
         fields = [
@@ -47,6 +54,7 @@ class MembershipApplicationForm(forms.ModelForm):
             "primary_delegate_address": forms.Textarea(attrs={"rows": 3}),
             "alternate_delegate_address": forms.Textarea(attrs={"rows": 3}),
             "declaration_accepted": forms.CheckboxInput(),
+            "digital_signature": forms.HiddenInput(),
         }
         labels = {
             "full_name": "Full name (1-A)",
@@ -90,7 +98,6 @@ class MembershipApplicationForm(forms.ModelForm):
             "excise_license_number",
             "primary_delegate_name",
             "declaration_accepted",
-            "digital_signature",
         }
         for field_name, field in self.fields.items():
             field.required = field_name in required_fields
@@ -118,6 +125,10 @@ class MembershipApplicationForm(forms.ModelForm):
                 continue
             if isinstance(widget, forms.FileInput):
                 widget.attrs.setdefault("hidden", True)
+                if field_name in self.image_upload_fields:
+                    widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
+                else:
+                    widget.attrs["accept"] = "application/pdf,image/jpeg,image/png,image/webp"
                 continue
             if isinstance(widget, forms.Textarea):
                 widget.attrs["class"] = "textarea"
@@ -131,6 +142,20 @@ class MembershipApplicationForm(forms.ModelForm):
         if not accepted:
             raise forms.ValidationError("You must accept the declaration to submit.")
         return accepted
+
+    def clean(self):
+        cleaned_data = super().clean()
+        for field_name in self.image_upload_fields:
+            uploaded_file = cleaned_data.get(field_name)
+            if not uploaded_file:
+                continue
+            content_type = getattr(uploaded_file, "content_type", "")
+            if content_type and content_type not in {"image/jpeg", "image/png", "image/webp"}:
+                self.add_error(
+                    field_name,
+                    ValidationError("Upload a valid JPG, PNG or WebP image."),
+                )
+        return cleaned_data
 
 
 class PaymentProofForm(forms.ModelForm):

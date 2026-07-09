@@ -28,23 +28,13 @@
         <div class="st" data-step-indicator="5"><div class="st-num">5</div><div class="st-label">Declaration</div></div><div class="st-sep"></div>
         <div class="st" data-step-indicator="6"><div class="st-num">6</div><div class="st-label">Review</div></div>
       </div>
-      {% if has_form_errors %}
+      {% if form.non_field_errors %}
         <div class="card card-tight mb-16 form-error-summary" role="alert">
           <h3 class="h-card mb-8">Application not submitted</h3>
-          <p class="small mb-16">Please fix the fields below. Your application will be submitted only after these errors are resolved.</p>
-          <ul class="errorlist">
-            {% for field in form %}
-              {% for error in field.errors %}
-                <li><a href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>
-              {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-              <li>{{ error }}</li>
-            {% endfor %}
-          </ul>
+          {{ form.non_field_errors }}
         </div>
       {% endif %}
-      <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard>
+      <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard data-document-required="{% if is_update %}false{% else %}true{% endif %}">
         {% csrf_token %}
         <div class="wizard-card step-panel active" data-step-panel="1">
           <h3>Personal details</h3>
@@ -107,7 +97,7 @@
           <div class="card card-tight mb-16 declaration-box"><p>I/We do hereby declare that the particulars stated above are true to the best of my/our knowledge and I/we shall abide by the constitution of the association and rules and regulations so adopted time to time by the association. I/We remit the fees for enrollment together with the application form for approval.</p></div>
           <label class="checkbox mb-16">{{ form.declaration_accepted }} <span>I confirm that the information provided is accurate and complete, and I agree to abide by the constitution, rules and by-laws of the association.</span></label>
           {{ form.declaration_accepted.errors }}
-          <div class="field">{{ form.digital_signature.label_tag }}{{ form.digital_signature }}{{ form.digital_signature.errors }}</div>
+          {{ form.digital_signature }}
         </div>
         <div class="wizard-card step-panel" data-step-panel="6" hidden>
           <h3>Review &amp; submit</h3>
@@ -121,8 +111,7 @@
           <button class="btn btn-secondary" data-prev-step type="button"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
           <div class="flex gap-8 application-wizard-actions">
             <a class="btn btn-ghost" href="{% url 'member_dashboard' %}">Save draft</a>
-            <button class="btn btn-primary" data-next-step type="button">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
-            <button class="btn btn-primary" data-submit-application type="submit" hidden>{% if is_update %}Resubmit Documents{% else %}Submit Application{% endif %} <i class="bi bi-check2-circle" aria-hidden="true"></i></button>
+            <button class="btn btn-primary" data-next-step type="button" data-submit-label="{% if is_update %}Resubmit Documents{% else %}Submit Application{% endif %}">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
           </div>
         </div>
       </form>

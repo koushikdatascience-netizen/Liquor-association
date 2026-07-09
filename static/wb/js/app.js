@@ -170,7 +170,19 @@
     const indicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
     const prevBtn = applicationWizard.querySelector("[data-prev-step]");
     const nextBtn = applicationWizard.querySelector("[data-next-step]");
-    const submitBtn = applicationWizard.querySelector("[data-submit-application]");
+    const submitLabel = nextBtn ? nextBtn.dataset.submitLabel : "Submit Application";
+    const documentRequired = applicationWizard.dataset.documentRequired !== "false";
+    const documentFields = [
+      "excise_license",
+      "primary_delegate_photo",
+      "alternate_delegate_photo",
+      "passport_photo",
+      "pan_card",
+      "aadhaar_card",
+      "partnership_deed",
+      "gst_certificate",
+      "address_proof"
+    ];
     const fieldLabels = {
       full_name: "Full name",
       nationality: "Nationality",
@@ -192,6 +204,139 @@
       alternate_delegate_name: "Alternate representative",
       alternate_delegate_role: "Relationship / Role"
     };
+
+    function fieldLabel(field){
+      const name = field.name;
+      if(fieldLabels[name]) return fieldLabels[name];
+      const label = applicationWizard.querySelector("label[for='" + field.id + "']");
+      return label ? label.textContent.replace("*", "").trim() : "This field";
+    }
+
+    function fieldShell(field){
+      return field.closest(".field") || field.closest(".upload") || field.closest(".checkbox") || field.parentElement;
+    }
+
+    function clearFieldError(field){
+      const shell = fieldShell(field);
+      field.classList && field.classList.remove("is-error");
+      field.removeAttribute("aria-invalid");
+      if(shell) shell.classList.remove("has-error");
+      const id = field.id ? field.id + "-client-error" : "";
+      const existing = id ? document.getElementById(id) : shell?.querySelector("[data-client-error]");
+      if(existing) existing.remove();
+      field.removeAttribute("aria-describedby");
+    }
+
+    function setFieldError(field, message){
+      const shell = fieldShell(field);
+      if(!shell) return;
+      clearFieldError(field);
+      field.classList && field.classList.add("is-error");
+      field.setAttribute("aria-invalid", "true");
+      shell.classList.add("has-error");
+      const error = document.createElement("div");
+      error.className = "field-error";
+      error.dataset.clientError = "true";
+      if(field.id) error.id = field.id + "-client-error";
+      error.textContent = message;
+      if(field.type === "checkbox"){
+        shell.insertAdjacentElement("afterend", error);
+      }else if(field.closest(".upload")){
+        shell.appendChild(error);
+      }else{
+        shell.appendChild(error);
+      }
+      if(error.id) field.setAttribute("aria-describedby", error.id);
+    }
+
+    function isEmptyField(field){
+      if(field.type === "checkbox") return !field.checked;
+      if(field.type === "file") return !field.files || !field.files.length;
+      return !String(field.value || "").trim();
+    }
+
+    function validateField(field){
+      if(field.disabled || field.type === "hidden" || field.type === "button" || field.type === "submit") return true;
+      clearFieldError(field);
+      if(field.required && isEmptyField(field)){
+        const message = field.type === "checkbox" ? "Please confirm this declaration." : fieldLabel(field) + " is required.";
+        setFieldError(field, message);
+        return false;
+      }
+      if(field.type === "file" && field.files && field.files[0]){
+        const file = field.files[0];
+        const accept = field.getAttribute("accept") || "";
+        const acceptedTypes = accept.split(",").map(function(type){ return type.trim(); }).filter(Boolean);
+        const isAccepted = !acceptedTypes.length || acceptedTypes.some(function(type){
+          return type.endsWith("/*") ? file.type.indexOf(type.slice(0, -1)) === 0 : file.type === type;
+        });
+        if(!isAccepted){
+          setFieldError(field, accept.indexOf("application/pdf") >= 0 ? "Upload a PDF, JPG, PNG or WebP file." : "Upload a JPG, PNG or WebP image.");
+          return false;
+        }
+      }
+      if(field.value){
+        if(field.type === "email" && window.WBFLValidators && !window.WBFLValidators.isValidEmail(field.value)){
+          setFieldError(field, "Enter a valid email address.");
+          return false;
+        }
+        if(field.name === "pin_code" && window.WBFLValidators && !window.WBFLValidators.isValidPin(field.value)){
+          setFieldError(field, "PIN code must be 6 digits.");
+          return false;
+        }
+        if((field.name === "whatsapp_number" || field.name === "residence_phone" || field.name === "office_phone" || field.name === "shop_phone") && window.WBFLValidators && !window.WBFLValidators.isValidPhone(field.value)){
+          setFieldError(field, "Enter a valid phone number.");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function validateDocuments(panel){
+      if(Number(panel.dataset.stepPanel) !== 4 || !documentRequired) return true;
+      const hasDocument = documentFields.some(function(name){
+        const field = applicationWizard.querySelector("[name='" + name + "']");
+        return field && field.files && field.files.length;
+      });
+      if(hasDocument) return true;
+      const firstUpload = panel.querySelector("[name='excise_license']") || panel.querySelector("input[type='file']");
+      if(firstUpload) setFieldError(firstUpload, "Upload at least one application document.");
+      return false;
+    }
+
+    function validateStep(step){
+      const panel = panels.find(function(item){ return Number(item.dataset.stepPanel) === step; });
+      if(!panel) return true;
+      const fields = Array.from(panel.querySelectorAll("input, select, textarea"));
+      let valid = true;
+      fields.forEach(function(field){
+        if(!validateField(field)) valid = false;
+      });
+      if(!validateDocuments(panel)) valid = false;
+      if(!valid){
+        if(!panel.hidden){
+          const firstInvalid = panel.querySelector(".is-error, .has-error input, .has-error select, .has-error textarea");
+          firstInvalid && firstInvalid.focus({preventScroll:true});
+          panel.scrollIntoView({behavior:"smooth", block:"start"});
+        }
+      }
+      return valid;
+    }
+
+    function validateAllSteps(){
+      for(let step = 1; step <= totalSteps; step += 1){
+        if(!validateStep(step)){
+          showStep(step);
+          window.setTimeout(function(){
+            const panel = panels.find(function(item){ return Number(item.dataset.stepPanel) === step; });
+            const firstInvalid = panel?.querySelector(".is-error, .has-error input, .has-error select, .has-error textarea");
+            firstInvalid && firstInvalid.focus({preventScroll:true});
+          }, 0);
+          return false;
+        }
+      }
+      return true;
+    }
 
     function fieldValue(name){
       const field = applicationWizard.querySelector("[name='" + name + "']");
@@ -232,13 +377,22 @@
         if(stepNum) stepNum.innerHTML = num < currentStep ? '<i class="bi bi-check" aria-hidden="true"></i>' : String(num);
       });
       if(prevBtn) prevBtn.disabled = currentStep === 1;
-      if(nextBtn) nextBtn.hidden = currentStep === totalSteps;
-      if(submitBtn) submitBtn.hidden = currentStep !== totalSteps;
+      if(nextBtn){
+        nextBtn.innerHTML = currentStep === totalSteps
+          ? submitLabel + ' <i class="bi bi-check2-circle" aria-hidden="true"></i>'
+          : 'Next <i class="bi bi-arrow-right" aria-hidden="true"></i>';
+      }
       if(currentStep === totalSteps) refreshReview();
       applicationWizard.scrollIntoView({behavior:"smooth", block:"start"});
     }
 
-    nextBtn && nextBtn.addEventListener("click", function(){ showStep(currentStep + 1); });
+    nextBtn && nextBtn.addEventListener("click", function(){
+      if(currentStep === totalSteps){
+        applicationWizard.requestSubmit();
+        return;
+      }
+      if(validateStep(currentStep)) showStep(currentStep + 1);
+    });
     prevBtn && prevBtn.addEventListener("click", function(){ showStep(currentStep - 1); });
     applicationWizard.querySelectorAll("[data-go-step]").forEach(function(btn){
       btn.addEventListener("click", function(){ showStep(Number(btn.dataset.goStep)); });
@@ -247,7 +401,22 @@
       input.addEventListener("change", function(){
         const label = input.closest(".upload-drop")?.querySelector("[data-file-label]");
         if(label) label.textContent = input.files && input.files[0] ? input.files[0].name : "Drag & drop or click to upload";
+        clearFieldError(input);
       });
+    });
+    applicationWizard.querySelectorAll("input, select, textarea").forEach(function(field){
+      field.addEventListener("input", function(){ clearFieldError(field); });
+      field.addEventListener("change", function(){ clearFieldError(field); });
+    });
+    applicationWizard.addEventListener("submit", function(e){
+      if(!validateAllSteps()){
+        e.preventDefault();
+        return;
+      }
+      if(nextBtn){
+        nextBtn.disabled = true;
+        nextBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Submitting...';
+      }
     });
     const errorPanel = panels.find(function(panel){ return panel.querySelector(".errorlist"); });
     showStep(errorPanel ? Number(errorPanel.dataset.stepPanel) : 1);
@@ -258,10 +427,19 @@
     const input = root.querySelector('input[type="file"]');
     if(!input) return;
     const dropEl = root.querySelector(".upload-drop");
-    const fileEl = root.querySelector(".upload-file");
+    let fileEl = root.querySelector(".upload-file");
+    if(!fileEl){
+      fileEl = document.createElement("div");
+      fileEl.className = "upload-file upload-preview";
+      fileEl.style.display = "none";
+      fileEl.innerHTML = '<div class="upload-thumb"><i class="bi bi-file-earmark"></i></div><div class="upload-meta"><span class="name"></span><span class="size"></span></div><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button>';
+      root.appendChild(fileEl);
+    }
     const nameEl = fileEl ? fileEl.querySelector(".name") : null;
     const sizeEl = fileEl ? fileEl.querySelector(".size") : null;
+    const thumbEl = fileEl ? fileEl.querySelector(".upload-thumb") : null;
     const rmBtn = fileEl ? fileEl.querySelector(".rm") : null;
+    let previewUrl = "";
 
     root.addEventListener("click", function(e){
       if(rmBtn && (e.target === rmBtn || rmBtn.contains(e.target))) return;
@@ -284,18 +462,41 @@
     rmBtn && rmBtn.addEventListener("click", function(e){
       e.stopPropagation();
       input.value = "";
+      if(previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = "";
       if(fileEl) fileEl.style.display = "none";
       if(dropEl) dropEl.style.display = "flex";
     });
     function showFile(f){
       if(f.size > 10 * 1024 * 1024){
         window.toast("Max file size is 10 MB", "warn");
+        input.value = "";
         return;
       }
+      root.classList.add("is-loading");
       if(nameEl) nameEl.textContent = f.name;
       if(sizeEl) sizeEl.textContent = (f.size/1024).toFixed(0) + " KB";
+      if(thumbEl) thumbEl.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i>';
       if(fileEl) fileEl.style.display = "flex";
       if(dropEl) dropEl.style.display = "none";
+      window.setTimeout(function(){
+        root.classList.remove("is-loading");
+        if(!thumbEl) return;
+        if(previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = "";
+        if(f.type && f.type.indexOf("image/") === 0){
+          previewUrl = URL.createObjectURL(f);
+          thumbEl.innerHTML = "";
+          const img = document.createElement("img");
+          img.src = previewUrl;
+          img.alt = "";
+          thumbEl.appendChild(img);
+        }else if(f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")){
+          thumbEl.innerHTML = '<i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>';
+        }else{
+          thumbEl.innerHTML = '<i class="bi bi-file-earmark" aria-hidden="true"></i>';
+        }
+      }, 260);
     }
   });
 

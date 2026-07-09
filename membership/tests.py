@@ -83,12 +83,36 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         self.assertTrue(application.pan_card.storage.exists(application.pan_card.name))
 
     @patch("membership.views.notify_staff")
+    def test_application_submit_does_not_require_typed_signature(self, _notify_staff):
+        payload = self.valid_payload()
+        payload.pop("digital_signature")
+        payload["excise_license"] = self.upload_file("excise.pdf")
+
+        response = self.client.post(reverse("application_create"), payload, follow=True)
+
+        self.assertRedirects(response, reverse("member_dashboard"))
+        application = MembershipApplication.objects.get(applicant=self.user)
+        self.assertEqual(application.digital_signature, application.full_name)
+
+    @patch("membership.views.notify_staff")
     def test_empty_file_submission_does_not_create_successful_application(self, _notify_staff):
         response = self.client.post(reverse("application_create"), self.valid_payload(), follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(MembershipApplication.objects.filter(applicant=self.user).exists())
         self.assertContains(response, "Please upload at least one application document before submitting.")
+        self.assertNotContains(response, "Application submitted successfully.")
+
+    @patch("membership.views.notify_staff")
+    def test_invalid_photo_upload_does_not_save_application(self, _notify_staff):
+        payload = self.valid_payload()
+        payload["passport_photo"] = self.upload_file("not-a-photo.pdf")
+
+        response = self.client.post(reverse("application_create"), payload, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(MembershipApplication.objects.filter(applicant=self.user).exists())
+        self.assertContains(response, "Upload a valid image.")
         self.assertNotContains(response, "Application submitted successfully.")
 
     @patch("membership.views.notify_staff")
