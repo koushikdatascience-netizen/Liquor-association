@@ -52,6 +52,8 @@
             </div>
             {% if application and application.status == 'APPROVED_PENDING_PAYMENT' %}
             <a href="{% url 'payment_upload' application.id %}" class="btn btn-primary btn-block mt-16">Proceed to Payment <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            {% elif application %}
+            <a href="{% url 'payment_upload' application.id %}" class="btn btn-secondary btn-block mt-16">View Payment Status <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
             {% elif not application %}
             <a href="{% url 'application_create' %}" class="btn btn-primary btn-block mt-16">Start Application <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
             {% endif %}

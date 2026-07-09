@@ -271,18 +271,32 @@ def payment_upload(request, application_id):
         MembershipApplication,
         id=application_id,
         applicant=request.user,
-        status__in=[
-            MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
-            MembershipApplication.Status.PAYMENT_SUBMITTED,
-        ],
     )
     instance = getattr(application, "payment", None)
+    can_submit_payment = (
+        application.status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT
+        or (
+            application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
+            and instance
+            and instance.status == PaymentProof.Status.REUPLOAD_REQUESTED
+        )
+    )
+    payment_unlocked = application.status in [
+        MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+        MembershipApplication.Status.PAYMENT_SUBMITTED,
+        MembershipApplication.Status.PAYMENT_APPROVED,
+        MembershipApplication.Status.MEMBER_ACTIVE,
+    ]
+    if request.method == "POST" and not can_submit_payment:
+        messages.error(request, "Payment upload is available only after document approval.")
+        return redirect("payment_upload", application_id=application.id)
     if (
-        application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
+        request.method == "POST"
+        and application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
         and (not instance or instance.status != PaymentProof.Status.REUPLOAD_REQUESTED)
     ):
         messages.info(request, "Your payment proof is already waiting for admin verification.")
-        return redirect("member_dashboard")
+        return redirect("payment_upload", application_id=application.id)
     if request.method == "POST":
         form = PaymentProofForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
@@ -300,8 +314,25 @@ def payment_upload(request, application_id):
             messages.success(request, "Payment proof submitted for admin verification.")
             return redirect("member_dashboard")
     else:
-        form = PaymentProofForm(instance=instance)
-    return render(request, "membership/payment_form.html", {"form": form, "application": application})
+        form = PaymentProofForm(instance=instance) if can_submit_payment else None
+    return render(
+        request,
+        "membership/payment_form.html",
+        {
+            "form": form,
+            "application": application,
+            "payment": instance,
+            "can_submit_payment": can_submit_payment,
+            "payment_unlocked": payment_unlocked,
+            "payment_settings": {
+                "upi_id": settings.PAYMENT_UPI_ID,
+                "bank_name": settings.PAYMENT_BANK_NAME,
+                "account_name": settings.PAYMENT_ACCOUNT_NAME,
+                "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
+                "ifsc": settings.PAYMENT_IFSC,
+            },
+        },
+    )
 
 
 def verify_member(request, public_id):

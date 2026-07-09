@@ -16,35 +16,83 @@
       <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Payment</div>
       <div class="page-head">
         <div>
-          <h1 class="page-title">Upload payment proof</h1>
+          <h1 class="page-title">Payment</h1>
           <p class="small mt-8">{{ application.full_name }} / {{ application.shop_name }}</p>
         </div>
+        <span class="status-pill">{{ application.get_status_display }}</span>
       </div>
       <div class="grid grid-2">
         <div class="card">
           <h3 class="h-card mb-16">Payment details</h3>
-          <div class="payment-details">
-            <strong>Membership Fee: Rs. {{ MEMBERSHIP_FEE }}</strong>
-            <span>Submit the UTR number, payment date, bank name and screenshot after bank/UPI payment.</span>
-          </div>
+          {% if payment_unlocked %}
+            <div class="payment-details">
+              <strong>Membership Fee: Rs. {{ MEMBERSHIP_FEE }}</strong>
+              <span><b>UPI:</b> {{ payment_settings.upi_id|default:"Will be shared by the association office" }}</span>
+              <span><b>Bank:</b> {{ payment_settings.bank_name|default:"Will be shared by the association office" }}</span>
+              <span><b>Account:</b> {{ payment_settings.account_name|default:"-" }} - {{ payment_settings.account_number|default:"-" }}</span>
+              <span><b>IFSC:</b> {{ payment_settings.ifsc|default:"-" }}</span>
+            </div>
+          {% else %}
+            <div class="payment-details">
+              <strong>{% if application.status == "REJECTED" %}Application rejected{% else %}Document approval required{% endif %}</strong>
+              <span>{% if application.status == "REJECTED" %}Payment is not available for this application. Please review the admin remarks or contact the association office.{% else %}Your payment method and upload option will appear here after the association office verifies your documents.{% endif %}</span>
+            </div>
+          {% endif %}
         </div>
         <div class="card">
           <h3 class="h-card mb-16">Verification</h3>
-          <p class="small">The association office will verify the screenshot and UTR manually before final membership approval.</p>
+          {% if can_submit_payment %}
+            <p class="small">Submit the UTR number, payment date, bank name and screenshot after bank/UPI payment. The association office will verify it manually before final membership approval.</p>
+          {% elif payment and payment.status == "PENDING" %}
+            <p class="small">Your payment proof is submitted and waiting for admin verification.</p>
+          {% elif payment and payment.status == "APPROVED" %}
+            <p class="small">Your payment has been verified. Final membership approval is complete or in progress.</p>
+          {% elif payment and payment.status == "REJECTED" %}
+            <p class="small">Your payment proof was rejected. Please follow the latest admin remarks before submitting again.</p>
+          {% elif payment and payment.status == "REUPLOAD_REQUESTED" %}
+            <p class="small">The office requested a corrected payment proof. Upload the corrected details below.</p>
+          {% elif application.status == "REJECTED" %}
+            <p class="small">Payment is unavailable because this application was rejected.</p>
+          {% else %}
+            <p class="small">Payment opens only after document approval. You can still track this page while your application is under review.</p>
+          {% endif %}
         </div>
       </div>
-      <div class="wizard-card mt-24">
-        <h3>Payment submission</h3>
-        <p class="sub">Upload a clear screenshot and accurate transaction details.</p>
-        <form method="post" enctype="multipart/form-data" class="form django-form">
-          {% csrf_token %}
-          {{ form.as_p }}
+      {% if can_submit_payment %}
+        <div class="wizard-card mt-24">
+          <h3>{% if payment and payment.status == "REUPLOAD_REQUESTED" %}Correct payment proof{% else %}Payment submission{% endif %}</h3>
+          <p class="sub">Upload a clear screenshot and accurate transaction details.</p>
+          <form method="post" enctype="multipart/form-data" class="form django-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="wiz-footer">
+              <a class="btn btn-secondary" href="{% url 'member_dashboard' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
+              <button class="btn btn-primary" type="submit">Submit Payment <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            </div>
+          </form>
+        </div>
+      {% else %}
+        <div class="wizard-card mt-24">
+          <h3>{% if payment_unlocked %}Payment status{% elif application.status == "REJECTED" %}Payment unavailable{% else %}Waiting for document approval{% endif %}</h3>
+          {% if payment %}
+            <dl class="detail-grid">
+              <dt>UTR</dt><dd>{{ payment.utr_number }}</dd>
+              <dt>Date</dt><dd>{{ payment.payment_date }}</dd>
+              <dt>Bank</dt><dd>{{ payment.bank_name }}</dd>
+              <dt>Status</dt><dd>{{ payment.get_status_display }}</dd>
+              {% if payment.remarks %}<dt>Remarks</dt><dd>{{ payment.remarks }}</dd>{% endif %}
+            </dl>
+          {% elif application.status == "REJECTED" %}
+            <p class="sub">This application was rejected. Payment can be submitted only for an approved application.</p>
+            {% if application.remarks %}<p class="small mt-8">Remarks: {{ application.remarks }}</p>{% endif %}
+          {% else %}
+            <p class="sub">Your documents are still under association office review. Once verified, this page will show the payment method and upload form.</p>
+          {% endif %}
           <div class="wiz-footer">
-            <a class="btn btn-secondary" href="{% url 'member_dashboard' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
-            <button class="btn btn-primary" type="submit">Submit Payment <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            <a class="btn btn-secondary" href="{% url 'member_dashboard' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Dashboard</a>
           </div>
-        </form>
-      </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>
