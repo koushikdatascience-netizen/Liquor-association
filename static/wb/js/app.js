@@ -33,6 +33,21 @@
     }, 2400);
   };
 
+  document.querySelectorAll(".django-messages .toast").forEach(function(el, index){
+    const delay = 3200 + (index * 180);
+    setTimeout(function(){
+      el.style.opacity = "0";
+      el.style.transform = "translateY(-6px)";
+      el.style.transition = "opacity 200ms ease, transform 200ms ease";
+      setTimeout(function(){
+        el.remove();
+        document.querySelectorAll(".django-messages").forEach(function(host){
+          if(!host.querySelector(".toast")) host.remove();
+        });
+      }, 220);
+    }, delay);
+  });
+
   // ---------- Public nav mobile toggle ----------
   const navToggle = document.querySelector("[data-nav-toggle]");
   const mobileSheet = document.querySelector(".mobile-sheet");
