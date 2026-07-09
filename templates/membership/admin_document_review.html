@@ -24,7 +24,12 @@
     {% else %}
       <div class="document-review__fallback">
         <h2>Preview unavailable</h2>
+        <p>{{ file_name }}</p>
         <p>This file type may not preview in the browser. Use Download or Open in New Tab.</p>
+        <div class="document-review__actions" style="justify-content:center;margin-top:16px;">
+          <a class="btn btn-primary" href="{{ file_url }}" download><i class="bi bi-download"></i> Download File</a>
+          <a class="btn btn-secondary" href="{{ file_url }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Open File</a>
+        </div>
       </div>
     {% endif %}
   </div>

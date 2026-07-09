@@ -28,8 +28,8 @@
           </div>
           <div class="mcard-body">
             <div class="mcard-photo">
-              {% if member.application.passport_photo %}
-                <img src="{{ member.application.passport_photo.url }}" alt="{{ member.application.full_name }}">
+              {% if passport_photo_url %}
+                <img src="{{ passport_photo_url }}" alt="{{ member.application.full_name }}">
               {% else %}
                 <i class="bi bi-person"></i>
               {% endif %}
@@ -40,8 +40,8 @@
               <div class="small mt-8">{{ member.membership_number }}</div>
             </div>
             <div class="mcard-qr">
-              {% if member.qr_code %}
-                <img src="{{ member.qr_code.url }}" alt="Membership QR code">
+              {% if qr_code_url %}
+                <img src="{{ qr_code_url }}" alt="Membership QR code">
               {% else %}
                 <i class="bi bi-qr-code"></i>
               {% endif %}

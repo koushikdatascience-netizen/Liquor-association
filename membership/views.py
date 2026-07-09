@@ -184,7 +184,10 @@ def member_portal_context(request):
 
 @login_required
 def member_profile(request):
-    return render(request, "membership/profile.html", member_portal_context(request))
+    context = member_portal_context(request)
+    application = context.get("application")
+    context["documents"] = application_documents(application) if application else []
+    return render(request, "membership/profile.html", context)
 
 
 @login_required
@@ -346,7 +349,15 @@ def verify_member(request, public_id):
 @login_required
 def card(request):
     member = get_object_or_404(Member.objects.select_related("application"), user=request.user, is_active=True)
-    return render(request, "membership/card.html", {"member": member})
+    return render(
+        request,
+        "membership/card.html",
+        {
+            "member": member,
+            "passport_photo_url": storage_url(member.application.passport_photo),
+            "qr_code_url": storage_url(member.qr_code),
+        },
+    )
 
 
 @login_required
@@ -1253,7 +1264,7 @@ def report_rows(report_type):
     raise Http404("Report not found")
 
 
-@staff_member_required
+@login_required
 def admin_document_review(request, source, pk, field_name):
     application_fields = {
         "excise_license": "Licence copy",
@@ -1272,14 +1283,18 @@ def admin_document_review(request, source, pk, field_name):
 
     if source == "application" and field_name in application_fields:
         obj = get_object_or_404(MembershipApplication, pk=pk)
+        if not request.user.is_staff and obj.applicant_id != request.user.id:
+            raise Http404("Document not found")
         label = application_fields[field_name]
         owner = obj.full_name
-        back_url = reverse("staff_application_detail", args=[obj.pk])
+        back_url = reverse("staff_application_detail", args=[obj.pk]) if request.user.is_staff else reverse("member_profile")
     elif source == "payment" and field_name in payment_fields:
         obj = get_object_or_404(PaymentProof, pk=pk)
+        if not request.user.is_staff and obj.application.applicant_id != request.user.id:
+            raise Http404("Document not found")
         label = payment_fields[field_name]
         owner = obj.application.full_name
-        back_url = reverse("staff_payment_detail", args=[obj.pk])
+        back_url = reverse("staff_payment_detail", args=[obj.pk]) if request.user.is_staff else reverse("payment_upload", args=[obj.application_id])
     else:
         raise Http404("Document not found")
 
@@ -1301,6 +1316,7 @@ def admin_document_review(request, source, pk, field_name):
             "label": label,
             "owner": owner,
             "file": file,
+            "file_name": file.name.rsplit("/", 1)[-1],
             "file_url": file_url,
             "is_image": is_image,
             "is_pdf": is_pdf,

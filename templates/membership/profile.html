@@ -57,10 +57,25 @@
         <div class="tab-panel" data-panel="documents" hidden>
           {% if application %}
           <div class="upload-grid">
-            <a class="upload" href="{{ application.aadhaar_card.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Aadhaar Card</h5><p>Uploaded</p></div></div></a>
-            <a class="upload" href="{{ application.pan_card.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>PAN Card</h5><p>Uploaded</p></div></div></a>
-            <a class="upload" href="{{ application.excise_license.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Excise License</h5><p>Uploaded</p></div></div></a>
-            <a class="upload" href="{{ application.trade_license.url }}" target="_blank"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Trade License</h5><p>Uploaded</p></div></div></a>
+            {% for doc in documents %}
+              {% if doc.uploaded %}
+                <a class="upload" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank">
+                  <div class="upload-head">
+                    <div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div>
+                    <div><h5>{{ doc.label }}</h5><p>Uploaded - click to preview</p></div>
+                  </div>
+                </a>
+              {% else %}
+                <div class="upload missing">
+                  <div class="upload-head">
+                    <div class="u-ic"><i class="bi bi-file-earmark-x"></i></div>
+                    <div><h5>{{ doc.label }}</h5><p>Not uploaded</p></div>
+                  </div>
+                </div>
+              {% endif %}
+            {% empty %}
+              <p class="small">Documents will appear here after you submit your application.</p>
+            {% endfor %}
           </div>
           {% else %}
           <p class="small">Documents will appear here after you submit your application.</p>
