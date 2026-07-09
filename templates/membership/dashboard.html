@@ -121,6 +121,7 @@
               <span><b>Bank:</b> {{ payment_settings.bank_name }}</span>
               <span><b>Account:</b> {{ payment_settings.account_name }} - {{ payment_settings.account_number }}</span>
               <span><b>IFSC:</b> {{ payment_settings.ifsc }}</span>
+              {% if payment_settings.qr_url %}<img src="{{ payment_settings.qr_url }}" alt="UPI QR code" style="width:140px;height:140px;object-fit:contain;margin-top:8px;">{% endif %}
             </div>
             <a class="btn btn-primary" href="{% url 'payment_upload' application.id %}">{% if payment %}Update Payment Proof{% else %}Upload Payment Proof{% endif %}</a>
           {% elif payment %}

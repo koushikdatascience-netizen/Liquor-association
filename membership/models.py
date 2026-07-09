@@ -21,6 +21,36 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
+class SitePaymentSettings(TimeStampedModel):
+    account_name = models.CharField(max_length=160, blank=True)
+    bank_name = models.CharField(max_length=160, blank=True)
+    account_number = models.CharField(max_length=80, blank=True)
+    ifsc = models.CharField(max_length=40, blank=True)
+    upi_id = models.CharField(max_length=120, blank=True)
+    qr_code = models.ImageField(upload_to="payments/qr/", blank=True)
+
+    class Meta:
+        verbose_name = "payment setting"
+        verbose_name_plural = "payment settings"
+
+    def __str__(self):
+        return "Payment settings"
+
+    @classmethod
+    def load(cls):
+        instance, _created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                "account_name": settings.PAYMENT_ACCOUNT_NAME,
+                "bank_name": settings.PAYMENT_BANK_NAME,
+                "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
+                "ifsc": settings.PAYMENT_IFSC,
+                "upi_id": settings.PAYMENT_UPI_ID,
+            },
+        )
+        return instance
+
+
 class MembershipApplication(TimeStampedModel):
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"

@@ -3,55 +3,61 @@
 {% block page_title %}Settings{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Settings</h1><p class="subtitle">Configure your Society's identity, payments and integrations.</p></div>
-  <form class="page-actions" method="post">{% csrf_token %}<button class="btn primary" type="submit"><i class="bi bi-check2"></i> Save changes</button></form>
+  <div><h1>Settings</h1><p class="subtitle">Update payment details shown to approved applicants.</p></div>
 </div>
 
-<div style="display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start;">
-  <nav style="display:flex;flex-direction:column;gap:2px;position:sticky;top:88px;">
-    <a class="nav-item active" href="#association"><i class="bi bi-building"></i><span>Association</span></a>
-    <a class="nav-item" href="#fees"><i class="bi bi-cash"></i><span>Fees</span></a>
-    <a class="nav-item" href="#bank"><i class="bi bi-bank"></i><span>Bank & QR</span></a>
-    <a class="nav-item" href="#system"><i class="bi bi-toggles"></i><span>System</span></a>
-  </nav>
-
-  <div style="display:flex;flex-direction:column;gap:20px;">
-    <div class="card" id="association">
-      <div class="card__head"><div><div class="card__title">Association Information</div><div class="card__sub">Displayed on cards, receipts and public pages.</div></div></div>
-      <div class="form-grid">
-        <div class="field full"><label>Name</label><input class="input" value="{{ association_name }}" readonly></div>
-        <div class="field"><label>Site URL</label><input class="input" value="{{ site_url }}" readonly></div>
-        <div class="field"><label>Admin panel</label><input class="input" value="/office/dashboard/" readonly></div>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card__head">
+      <div>
+        <div class="card__title">Payment Details & QR</div>
+        <div class="card__sub">These details appear on the member payment page after document approval.</div>
       </div>
+      <button class="btn primary" type="submit"><i class="bi bi-check2"></i> Save changes</button>
     </div>
-
-    <div class="card" id="fees">
-      <div class="card__head"><div><div class="card__title">Membership Fees</div></div></div>
-      <div class="form-grid">
-        <div class="field"><label>New membership fee</label><input class="input" value="&#8377;{{ membership_fee }}" readonly></div>
-        <div class="field"><label>Renewal fee</label><input class="input" value="&#8377;{{ membership_fee }}" readonly></div>
+    <div class="form-grid">
+      <div class="field">
+        {{ payment_settings_form.account_name.label_tag }}
+        {{ payment_settings_form.account_name }}
+        {{ payment_settings_form.account_name.errors }}
       </div>
-    </div>
-
-    <div class="card" id="bank">
-      <div class="card__head"><div><div class="card__title">Bank Details & QR</div></div></div>
-      <div class="form-grid">
-        <div class="field"><label>Account holder</label><input class="input" value="{{ payment_settings.account_name }}" readonly></div>
-        <div class="field"><label>Bank</label><input class="input" value="{{ payment_settings.bank_name }}" readonly></div>
-        <div class="field"><label>Account No.</label><input class="input" value="{{ payment_settings.account_number }}" readonly></div>
-        <div class="field"><label>IFSC</label><input class="input" value="{{ payment_settings.ifsc }}" readonly></div>
-        <div class="field"><label>UPI ID</label><input class="input" value="{{ payment_settings.upi_id }}" readonly></div>
-        <div class="field"><label>QR code</label><div class="upload"><i class="bi bi-qr-code"></i><div class="t">UPI QR configured</div><div class="s">Update through environment settings</div></div></div>
+      <div class="field">
+        {{ payment_settings_form.bank_name.label_tag }}
+        {{ payment_settings_form.bank_name }}
+        {{ payment_settings_form.bank_name.errors }}
       </div>
-    </div>
-
-    <div class="card" id="system">
-      <div class="card__head"><div><div class="card__title">System Preferences</div></div></div>
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:14px;">Registration OTP verification</div><div style="font-size:12px;color:var(--text-3);">Require email OTP before application.</div></div><label class="switch"><input type="checkbox" {% if otp_required %}checked{% endif %} disabled><span class="slider"></span></label></div>
-        <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;font-size:14px;">Public member verification</div><div style="font-size:12px;color:var(--text-3);">QR cards resolve to the verification page.</div></div><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></div>
+      <div class="field">
+        {{ payment_settings_form.account_number.label_tag }}
+        {{ payment_settings_form.account_number }}
+        {{ payment_settings_form.account_number.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.ifsc.label_tag }}
+        {{ payment_settings_form.ifsc }}
+        {{ payment_settings_form.ifsc.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.upi_id.label_tag }}
+        {{ payment_settings_form.upi_id }}
+        {{ payment_settings_form.upi_id.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.qr_code.label_tag }}
+        {{ payment_settings_form.qr_code }}
+        {{ payment_settings_form.qr_code.errors }}
+        {% if payment_settings.qr_url %}
+          <div class="upload" style="margin-top:12px;">
+            <img src="{{ payment_settings.qr_url }}" alt="Current UPI QR code" style="width:120px;height:120px;object-fit:contain;">
+            <div class="t">Current QR uploaded</div>
+          </div>
+        {% endif %}
+      </div>
+      <div class="field">
+        <label>Membership fee</label>
+        <input class="input" value="&#8377;{{ membership_fee }}" readonly>
       </div>
     </div>
   </div>
-</div>
+</form>
 {% endblock %}

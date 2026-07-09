@@ -16,10 +16,22 @@ from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from .forms import MembershipApplicationForm, PaymentProofForm
-from .models import AuditLog, BroadcastMessage, Member, MembershipApplication, PaymentProof, notify_staff
+from .forms import MembershipApplicationForm, PaymentProofForm, SitePaymentSettingsForm
+from .models import AuditLog, BroadcastMessage, Member, MembershipApplication, PaymentProof, SitePaymentSettings, notify_staff
 from .services import notify_member
 
+
+APPLICATION_DOCUMENT_FIELDS = (
+    "excise_license",
+    "passport_photo",
+    "primary_delegate_photo",
+    "alternate_delegate_photo",
+    "pan_card",
+    "aadhaar_card",
+    "partnership_deed",
+    "gst_certificate",
+    "address_proof",
+)
 
 DOCUMENT_REVIEW_STATUSES = {
     MembershipApplication.Status.SUBMITTED,
@@ -92,6 +104,18 @@ def portal_url(path):
     return f"{settings.SITE_URL.rstrip('/')}{path}"
 
 
+def payment_settings_context():
+    payment_settings = SitePaymentSettings.load()
+    return {
+        "upi_id": payment_settings.upi_id,
+        "bank_name": payment_settings.bank_name,
+        "account_name": payment_settings.account_name,
+        "account_number": payment_settings.account_number,
+        "ifsc": payment_settings.ifsc,
+        "qr_url": storage_url(payment_settings.qr_code),
+    }
+
+
 def membership_activation_message(member):
     return (
         "Your payment has been approved and your final membership is active.\n\n"
@@ -149,13 +173,7 @@ def member_dashboard(request):
             "notifications": notifications,
             "payment": payment,
             "can_upload_payment": can_upload_payment,
-            "payment_settings": {
-                "upi_id": settings.PAYMENT_UPI_ID,
-                "bank_name": settings.PAYMENT_BANK_NAME,
-                "account_name": settings.PAYMENT_ACCOUNT_NAME,
-                "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
-                "ifsc": settings.PAYMENT_IFSC,
-            },
+            "payment_settings": payment_settings_context(),
         },
     )
 
@@ -172,13 +190,7 @@ def member_portal_context(request):
         "member": member,
         "notifications": notifications,
         "payment": payment,
-        "payment_settings": {
-            "upi_id": settings.PAYMENT_UPI_ID,
-            "bank_name": settings.PAYMENT_BANK_NAME,
-            "account_name": settings.PAYMENT_ACCOUNT_NAME,
-            "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
-            "ifsc": settings.PAYMENT_IFSC,
-        },
+        "payment_settings": payment_settings_context(),
     }
 
 
@@ -228,7 +240,14 @@ def application_create(request):
 
     if request.method == "POST":
         form = MembershipApplicationForm(request.POST, request.FILES, instance=existing if can_update_documents else None)
-        if form.is_valid():
+        submitted_document_fields = set(request.FILES).intersection(APPLICATION_DOCUMENT_FIELDS)
+        existing_document_fields = {
+            field_name
+            for field_name in APPLICATION_DOCUMENT_FIELDS
+            if can_update_documents and existing and getattr(existing, field_name)
+        }
+        has_document_uploads = bool(submitted_document_fields or existing_document_fields)
+        if form.is_valid() and has_document_uploads:
             application = form.save(commit=False)
             application.applicant = request.user
             application.mobile_number = application.whatsapp_number or profile.mobile_number
@@ -245,6 +264,8 @@ def application_create(request):
             )
             messages.success(request, "Application submitted successfully." if not can_update_documents else "Documents updated and resubmitted for admin review.")
             return redirect("member_dashboard")
+        if form.is_valid() and not has_document_uploads:
+            form.add_error(None, "Please upload at least one application document before submitting.")
         messages.error(request, "Application was not submitted. Please fix the highlighted fields and submit again.")
     else:
         form = MembershipApplicationForm(
@@ -330,13 +351,7 @@ def payment_upload(request, application_id):
             "payment": instance,
             "can_submit_payment": can_submit_payment,
             "payment_unlocked": payment_unlocked,
-            "payment_settings": {
-                "upi_id": settings.PAYMENT_UPI_ID,
-                "bank_name": settings.PAYMENT_BANK_NAME,
-                "account_name": settings.PAYMENT_ACCOUNT_NAME,
-                "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
-                "ifsc": settings.PAYMENT_IFSC,
-            },
+            "payment_settings": payment_settings_context(),
         },
     )
 
@@ -1061,26 +1076,35 @@ def staff_masters(request):
 
 @staff_member_required
 def staff_settings(request):
+    payment_settings = SitePaymentSettings.load()
     if request.method == "POST":
-        messages.info(request, "Settings shown here are controlled by environment variables and deployment configuration.")
+        form = SitePaymentSettingsForm(request.POST, request.FILES, instance=payment_settings)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Payment settings updated successfully.")
+        else:
+            messages.error(request, "Settings were not saved. Please fix the highlighted fields.")
+            return render(
+                request,
+                "admin_portal/settings.html",
+                {
+                    "active_page": "settings",
+                    "membership_fee": settings.MEMBERSHIP_FEE,
+                    "payment_settings": payment_settings_context(),
+                    "payment_settings_form": form,
+                },
+            )
         return redirect("staff_settings")
 
+    form = SitePaymentSettingsForm(instance=payment_settings)
     return render(
         request,
         "admin_portal/settings.html",
         {
             "active_page": "settings",
-            "association_name": settings.ASSOCIATION_NAME,
             "membership_fee": settings.MEMBERSHIP_FEE,
-            "payment_settings": {
-                "upi_id": settings.PAYMENT_UPI_ID,
-                "bank_name": settings.PAYMENT_BANK_NAME,
-                "account_name": settings.PAYMENT_ACCOUNT_NAME,
-                "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
-                "ifsc": settings.PAYMENT_IFSC,
-            },
-            "otp_required": settings.ACCOUNT_REQUIRE_OTP_VERIFICATION,
-            "site_url": settings.SITE_URL,
+            "payment_settings": payment_settings_context(),
+            "payment_settings_form": form,
         },
     )
 

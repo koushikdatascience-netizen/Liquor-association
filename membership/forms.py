@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import MembershipApplication, PaymentProof
+from .models import MembershipApplication, PaymentProof, SitePaymentSettings
 
 
 class MembershipApplicationForm(forms.ModelForm):
@@ -141,3 +141,26 @@ class PaymentProofForm(forms.ModelForm):
             "payment_date": forms.DateInput(attrs={"type": "date"}),
             "remarks": forms.Textarea(attrs={"rows": 3}),
         }
+
+
+class SitePaymentSettingsForm(forms.ModelForm):
+    class Meta:
+        model = SitePaymentSettings
+        fields = ["account_name", "bank_name", "account_number", "ifsc", "upi_id", "qr_code"]
+        labels = {
+            "account_name": "Account holder",
+            "bank_name": "Bank",
+            "account_number": "Account No.",
+            "ifsc": "IFSC",
+            "upi_id": "UPI ID",
+            "qr_code": "UPI QR code",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.FileInput):
+                field.widget.attrs["class"] = "input"
+                field.widget.attrs["accept"] = "image/*"
+            else:
+                field.widget.attrs["class"] = "input"
