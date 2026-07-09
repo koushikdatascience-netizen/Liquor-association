@@ -267,11 +267,14 @@ def application_create(request):
 
 @login_required
 def payment_upload(request, application_id):
-    application = get_object_or_404(
-        MembershipApplication,
-        id=application_id,
-        applicant=request.user,
-    )
+    application = MembershipApplication.objects.filter(id=application_id, applicant=request.user).first()
+    if application is None:
+        fallback_application = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at").first()
+        if fallback_application:
+            messages.info(request, "Opening the payment page for your latest application.")
+            return redirect("payment_upload", application_id=fallback_application.id)
+        messages.error(request, "Please submit your membership application before opening payment.")
+        return redirect("member_dashboard")
     instance = getattr(application, "payment", None)
     can_submit_payment = (
         application.status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT
