@@ -2,7 +2,7 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <div class="brand mb-16"><span class="brand-mark">W</span> {{ ASSOCIATION_NAME }}</div>
+        <div class="brand mb-16">{% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}</div>
         <p class="small">Society for the Welfare of West Bengal Foreign Liquor &amp; IML Licences.<br>Regd. under Society Act 26 of 1961.</p>
       </div>
       <div><h5>Association</h5><a href="{% url 'home' %}#about">About</a><a href="{% url 'home' %}#benefits">Benefits</a><a href="{% url 'home' %}#membership">Membership fee</a></div>

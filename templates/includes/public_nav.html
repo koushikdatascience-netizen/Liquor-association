@@ -1,6 +1,6 @@
 <header class="nav">
   <div class="container nav-inner">
-    <a href="{% url 'home' %}" class="brand"><span class="brand-mark">W</span> {{ ASSOCIATION_NAME }}</a>
+    <a href="{% url 'home' %}" class="brand">{% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}</a>
     <nav class="nav-links">
       <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
       <a href="{% url 'home' %}#about">About</a>

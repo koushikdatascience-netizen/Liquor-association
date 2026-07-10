@@ -14,7 +14,7 @@
 
 {% block branding %}
 <div class="admin-brand">
-  <div class="admin-brand__mark" aria-hidden="true">W</div>
+  <div class="admin-brand__mark" aria-hidden="true">{% include "includes/brand_logo.html" %}</div>
   <div>
     <h1 id="site-name"><a href="{% url 'admin:index' %}">Liquor Association</a></h1>
     <p>Membership Operations Dashboard</p>

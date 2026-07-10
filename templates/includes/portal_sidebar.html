@@ -1,7 +1,7 @@
 <div class="sidebar-backdrop"></div>
 <aside class="sidebar">
   <button class="sidebar-close" data-sidebar-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
-  <a href="{% url 'member_dashboard' %}" class="brand"><span class="brand-mark">W</span> WBFL Portal</a>
+  <a href="{% url 'member_dashboard' %}" class="brand">{% include "includes/brand_logo.html" %} WBFL Portal</a>
   <div class="side-section">Overview</div>
   <a href="{% url 'member_dashboard' %}" class="side-link {% if request.resolver_match.url_name == 'member_dashboard' %}active{% endif %}"><i class="bi bi-grid"></i> Dashboard</a>
   <a href="{% url 'member_notifications' %}" class="side-link {% if request.resolver_match.url_name == 'member_notifications' %}active{% endif %}"><i class="bi bi-bell"></i> Notifications</a>
