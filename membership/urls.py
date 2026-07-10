@@ -47,8 +47,6 @@ urlpatterns = [
     path("office/membership-cards/<int:pk>/download/", views.staff_member_card_pdf, name="staff_member_card_pdf_legacy"),
     path("office/membership-cards/<int:pk>/image/", views.staff_member_card_image, name="staff_member_card_image_legacy"),
     path("office/notifications/", views.staff_notifications, name="staff_notifications_legacy"),
-    path("office/reports/", views.staff_reports, name="staff_reports_legacy"),
-    path("office/masters/", views.staff_masters, name="staff_masters_legacy"),
     path("office/settings/", views.staff_settings, name="staff_settings_legacy"),
     path("office/profile/", views.staff_profile, name="staff_profile_legacy"),
     path(
