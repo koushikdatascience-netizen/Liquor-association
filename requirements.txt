@@ -9,3 +9,5 @@ gunicorn==23.0.0
 
 django-cloudinary-storage==0.3.0
 cloudinary==1.44.1
+django-storages==1.14.4
+boto3==1.35.99

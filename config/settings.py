@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "cloudinary",
     "cloudinary_storage",
+    "storages",
     "accounts",
     "membership",
 ]
@@ -111,6 +112,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 USE_CLOUDINARY = env.bool("USE_CLOUDINARY", default=False)
+USE_R2 = env.bool("USE_R2", default=False)
 
 if USE_CLOUDINARY:
     CLOUDINARY_STORAGE = {
@@ -121,6 +123,25 @@ if USE_CLOUDINARY:
     }
     STORAGES = {
         "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    }
+elif USE_R2:
+    # Cloudflare R2 (S3-compatible): 10GB free, no egress fees, serves PDFs
+    # inline with correct content-type. Set in .env:
+    #   USE_R2=True
+    #   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET
+    #   R2_PUBLIC_URL (custom domain or the r2.dev URL)
+    AWS_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
+    AWS_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
+    AWS_STORAGE_BUCKET_NAME = env("R2_BUCKET", default="")
+    AWS_S3_ENDPOINT_URL = f"https://{env('R2_ACCOUNT_ID', default='')}.r2.cloudflarestorage.com"
+    AWS_S3_CUSTOM_DOMAIN = env("R2_PUBLIC_URL", default="")
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = "public-read"
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_ADDRESSING_STYLE = "path"
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.s3.S3Storage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
 else:
