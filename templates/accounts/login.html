@@ -6,8 +6,8 @@
 <div class="auth-wrap">
 <div class="auth-card auth-card-otp">
   <span class="eyebrow"><span class="dot"></span> Passwordless access</span>
-  <h2>Member Login</h2>
-  <p class="sub">Enter your email and mobile number. If you are already registered we will sign you in, otherwise a new account is created automatically — with a single OTP.</p>
+  <h2>Member Registration</h2>
+  <p class="sub">Enter your email and mobile number to register. If you already have an account we will simply sign you in — either way, a single OTP verifies and logs you in.</p>
   <form method="post" class="form django-form">
     {% csrf_token %}
     <div class="field">
@@ -24,7 +24,7 @@
       <i class="bi bi-shield-check"></i>
       <span>OTP will be sent to your email and WhatsApp.</span>
     </div>
-    <button class="btn btn-primary btn-block" type="submit">Send OTP</button>
+    <button class="btn btn-primary btn-block" type="submit">Register & Send OTP</button>
   </form>
   <p class="auth-alt">Admin user? <a href="{% url 'admin_login' %}">Use password login</a></p>
 </div>
