@@ -133,7 +133,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "member_dashboard"
-LOGOUT_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "https://wbliquorsocity.com/"
 
 ASSOCIATION_NAME = env("ASSOCIATION_NAME", default="Liquor Association")
 MEMBERSHIP_FEE = env("MEMBERSHIP_FEE")
