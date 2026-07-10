@@ -1,8 +1,9 @@
-from django.conf import settings
+from .models import SitePaymentSettings
 
 
 def association_settings(request):
+    fee = SitePaymentSettings.load().membership_fee
     return {
-        "ASSOCIATION_NAME": settings.ASSOCIATION_NAME,
-        "MEMBERSHIP_FEE": settings.MEMBERSHIP_FEE,
+        "ASSOCIATION_NAME": SitePaymentSettings.load().account_name or "Liquor Association",
+        "MEMBERSHIP_FEE": fee,
     }

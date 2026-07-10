@@ -28,6 +28,7 @@ class SitePaymentSettings(TimeStampedModel):
     ifsc = models.CharField(max_length=40, blank=True)
     upi_id = models.CharField(max_length=120, blank=True)
     qr_code = models.ImageField(upload_to="payments/qr/", blank=True)
+    membership_fee = models.DecimalField(max_digits=10, decimal_places=2, default=settings.MEMBERSHIP_FEE)
 
     class Meta:
         verbose_name = "payment setting"
@@ -46,6 +47,7 @@ class SitePaymentSettings(TimeStampedModel):
                 "account_number": settings.PAYMENT_ACCOUNT_NUMBER,
                 "ifsc": settings.PAYMENT_IFSC,
                 "upi_id": settings.PAYMENT_UPI_ID,
+                "membership_fee": settings.MEMBERSHIP_FEE,
             },
         )
         return instance

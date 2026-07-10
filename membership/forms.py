@@ -171,7 +171,7 @@ class PaymentProofForm(forms.ModelForm):
 class SitePaymentSettingsForm(forms.ModelForm):
     class Meta:
         model = SitePaymentSettings
-        fields = ["account_name", "bank_name", "account_number", "ifsc", "upi_id", "qr_code"]
+        fields = ["account_name", "bank_name", "account_number", "ifsc", "upi_id", "qr_code", "membership_fee"]
         labels = {
             "account_name": "Account holder",
             "bank_name": "Bank",

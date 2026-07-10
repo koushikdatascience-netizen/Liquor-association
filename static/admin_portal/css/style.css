@@ -470,9 +470,12 @@ p  { margin: 0; color: var(--text-2); }
 .table-toolbar {
   display: flex; gap: 10px; padding: 16px 18px;
   border-bottom: 1px solid var(--border);
-  flex-wrap: wrap; align-items: center;
+  flex-wrap: wrap; align-items: center; flex-direction: row;
 }
-.table-toolbar .search { width: 260px; }
+.table-toolbar .search { width: 260px; flex: 0 1 260px; }
+.table-toolbar .select { flex: 0 1 auto; min-width: 150px; }
+.table-toolbar .input[type="date"] { flex: 0 1 auto; }
+.table-toolbar .btn { flex: 0 0 auto; }
 .select {
   height: 38px; border-radius: var(--r-input);
   border: 1px solid var(--border); background: #fff;

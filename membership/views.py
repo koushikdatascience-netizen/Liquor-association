@@ -156,6 +156,7 @@ def payment_settings_context():
         "account_number": payment_settings.account_number,
         "ifsc": payment_settings.ifsc,
         "qr_url": storage_url(payment_settings.qr_code),
+        "membership_fee": payment_settings.membership_fee,
     }
 
 
@@ -460,7 +461,7 @@ def payment_upload(request, application_id):
         if form.is_valid():
             payment = form.save(commit=False)
             payment.application = application
-            payment.amount = settings.MEMBERSHIP_FEE
+            payment.amount = SitePaymentSettings.load().membership_fee
             payment.status = payment.Status.PENDING
             payment.save()
             application.status = MembershipApplication.Status.PAYMENT_SUBMITTED
@@ -1219,35 +1220,6 @@ def staff_membership_cards(request):
 
 
 @staff_member_required
-def staff_masters(request):
-    districts = MembershipApplication.objects.values("district").annotate(total=Count("id")).order_by("district")
-    license_types = MembershipApplication.objects.values("excise_license_type").annotate(total=Count("id")).order_by("excise_license_type")
-    categories = Member.objects.values("category").annotate(total=Count("id")).order_by("category")
-    document_types = [
-        ("Passport Photo", "Yes", "JPG, PNG"),
-        ("Aadhaar Card", "Yes", "PDF, JPG, PNG"),
-        ("PAN Card", "Yes", "PDF, JPG, PNG"),
-        ("Excise License", "Yes", "PDF, JPG, PNG"),
-        ("Trade License", "Yes", "PDF, JPG, PNG"),
-        ("GST Certificate", "No", "PDF, JPG, PNG"),
-        ("Address Proof", "Yes", "PDF, JPG, PNG"),
-        ("Signature", "Yes", "JPG, PNG"),
-    ]
-    return render(
-        request,
-        "admin_portal/masters.html",
-        {
-            "active_page": "masters",
-            "districts": districts,
-            "license_types": license_types,
-            "categories": categories,
-            "document_types": document_types,
-            "membership_fee": settings.MEMBERSHIP_FEE,
-        },
-    )
-
-
-@staff_member_required
 def staff_settings(request):
     payment_settings = SitePaymentSettings.load()
     if request.method == "POST":
@@ -1262,7 +1234,7 @@ def staff_settings(request):
                 "admin_portal/settings.html",
                 {
                     "active_page": "settings",
-                    "membership_fee": settings.MEMBERSHIP_FEE,
+                    "membership_fee": payment_settings.membership_fee,
                     "payment_settings": payment_settings_context(),
                     "payment_settings_form": form,
                 },
@@ -1275,7 +1247,7 @@ def staff_settings(request):
         "admin_portal/settings.html",
         {
             "active_page": "settings",
-            "membership_fee": settings.MEMBERSHIP_FEE,
+            "membership_fee": payment_settings.membership_fee,
             "payment_settings": payment_settings_context(),
             "payment_settings_form": form,
         },
@@ -1364,24 +1336,6 @@ def staff_notifications(request):
             "whatsapp_count": BroadcastMessage.objects.filter(
                 channel__in=[BroadcastMessage.Channel.WHATSAPP, BroadcastMessage.Channel.EMAIL_WHATSAPP]
             ).count(),
-        },
-    )
-
-
-@staff_member_required
-def staff_reports(request):
-    districts = list(
-        MembershipApplication.objects.values("district").annotate(total=Count("id")).order_by("-total")[:6]
-    )
-    return render(
-        request,
-        "admin_portal/reports.html",
-        {
-            "active_page": "reports",
-            "stats": admin_stats(),
-            "districts": districts,
-            "max_district_total": max([item["total"] for item in districts] or [1]),
-            "recent_logs": AuditLog.objects.select_related("actor").order_by("-created_at")[:6],
         },
     )
 

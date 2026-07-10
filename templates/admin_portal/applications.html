@@ -39,13 +39,6 @@
 </div>
 {% endif %}
 
-<div class="grid cols-4" style="margin-bottom:20px;">
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-inbox"></i></div></div><div class="stat__num">{{ counts.pending }}</div><div class="stat__label">Pending Review</div></div>
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-check2-circle"></i></div></div><div class="stat__num">{{ counts.approved }}</div><div class="stat__label">Approved</div></div>
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-x-circle"></i></div></div><div class="stat__num">{{ counts.rejected }}</div><div class="stat__label">Rejected</div></div>
-  <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-envelope-paper"></i></div></div><div class="stat__num">{{ counts.docs_requested }}</div><div class="stat__label">Docs Requested</div></div>
-</div>
-
 <div class="table-wrap">
   <div class="table-toolbar">
     <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..." /></div>
