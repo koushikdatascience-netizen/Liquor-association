@@ -105,14 +105,28 @@ def storage_url(file):
 def file_kind(file):
     """Return 'image', 'pdf', or 'other' for a FieldFile (Cloudinary-aware).
 
-    On Cloudinary the stored ``name`` is a public id without a file extension, so
-    we detect the real type from the delivery URL, which embeds the resource type:
-        ``/image/upload/...`` -> image
-        ``/raw/upload/...``   -> pdf / document
-    Falls back to the filename extension for local filesystem storage.
+    Cloudinary stores files without a file extension and may serve PDFs from an
+    ``/image/upload/`` delivery path, so we cannot rely on the URL alone. We
+    inspect the file's magic bytes (``%PDF`` for PDFs, image signatures for
+    images) to determine the real type. Falls back to the URL/extension when the
+    file cannot be read.
     """
     if not file:
         return "other"
+
+    try:
+        file.open("rb")
+        head = file.read(8)
+        file.close()
+    except (OSError, ValueError):
+        head = b""
+
+    if head.startswith(b"%PDF"):
+        return "pdf"
+    if head[:4] in (b"\xff\xd8\xff\xe0", b"\xff\xd8\xff\xe1", b"\xff\xd8\xff\xe2") or head.startswith(b"\x89PNG") or head.startswith(b"GIF8") or head.startswith(b"RIFF"):
+        return "image"
+
+    # Fallback: use the URL / filename extension.
     name = (getattr(file, "name", "") or "").lower()
     url = storage_url(file)
     if url:
