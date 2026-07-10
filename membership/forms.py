@@ -3,12 +3,55 @@ from django.core.exceptions import ValidationError
 
 from .models import MembershipApplication, PaymentProof, SitePaymentSettings
 
+# Allowed upload types
+IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+DOCUMENT_TYPES = IMAGE_TYPES | {"application/pdf"}
+DOCUMENT_EXTENSIONS = IMAGE_EXTENSIONS | {".pdf"}
+
+IMAGE_MAGIC = (
+    b"\xff\xd8\xff",  # JPEG
+    b"\x89PNG",      # PNG
+    b"GIF8",         # GIF
+    b"RIFF",         # WEBP (RIFF....WEBP)
+)
+PDF_MAGIC = b"%PDF"
+
+
+def _file_signature(uploaded_file):
+    """Return 'pdf', 'image', or 'other' based on the file's magic bytes."""
+    try:
+        uploaded_file.seek(0)
+        head = uploaded_file.read(8)
+        uploaded_file.seek(0)
+    except (OSError, ValueError):
+        return "other"
+    if head.startswith(PDF_MAGIC):
+        return "pdf"
+    if head.startswith(IMAGE_MAGIC):
+        return "image"
+    return "other"
+
+
+def _has_allowed_extension(uploaded_file, allowed):
+    name = (getattr(uploaded_file, "name", "") or "").lower()
+    return any(name.endswith(ext) for ext in allowed)
+
 
 class MembershipApplicationForm(forms.ModelForm):
     image_upload_fields = {
         "passport_photo",
         "primary_delegate_photo",
         "alternate_delegate_photo",
+    }
+
+    document_fields = {
+        "excise_license",
+        "pan_card",
+        "aadhaar_card",
+        "partnership_deed",
+        "gst_certificate",
+        "address_proof",
     }
 
     class Meta:
@@ -145,16 +188,37 @@ class MembershipApplicationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+
+        # Photo fields: images only (JPG / JPEG / PNG / WebP).
         for field_name in self.image_upload_fields:
             uploaded_file = cleaned_data.get(field_name)
             if not uploaded_file:
                 continue
-            content_type = getattr(uploaded_file, "content_type", "")
-            if content_type and content_type not in {"image/jpeg", "image/png", "image/webp"}:
+            signature = _file_signature(uploaded_file)
+            if signature != "image" or not _has_allowed_extension(uploaded_file, IMAGE_EXTENSIONS):
                 self.add_error(
                     field_name,
-                    ValidationError("Upload a valid JPG, PNG or WebP image."),
+                    ValidationError(
+                        "File type not supported. Please upload only a JPG, JPEG or PNG image."
+                    ),
                 )
+
+        # Document fields: PDF or image (JPG / JPEG / PNG / WebP) only.
+        for field_name in self.document_fields:
+            uploaded_file = cleaned_data.get(field_name)
+            if not uploaded_file:
+                continue
+            signature = _file_signature(uploaded_file)
+            if signature not in {"pdf", "image"} or not _has_allowed_extension(
+                uploaded_file, DOCUMENT_EXTENSIONS
+            ):
+                self.add_error(
+                    field_name,
+                    ValidationError(
+                        "File type not supported. Please upload only a PDF or a JPG, JPEG, PNG image."
+                    ),
+                )
+
         return cleaned_data
 
 
@@ -166,6 +230,18 @@ class PaymentProofForm(forms.ModelForm):
             "payment_date": forms.DateInput(attrs={"type": "date"}),
             "remarks": forms.Textarea(attrs={"rows": 3}),
         }
+
+    def clean_screenshot(self):
+        uploaded_file = self.cleaned_data.get("screenshot")
+        if not uploaded_file:
+            return uploaded_file
+        if _file_signature(uploaded_file) != "image" or not _has_allowed_extension(
+            uploaded_file, IMAGE_EXTENSIONS
+        ):
+            raise ValidationError(
+                "File type not supported. Please upload only a JPG, JPEG or PNG payment screenshot."
+            )
+        return uploaded_file
 
 
 class SitePaymentSettingsForm(forms.ModelForm):
