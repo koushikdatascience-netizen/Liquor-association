@@ -386,6 +386,40 @@ p  { margin: 0; color: var(--text-2); }
 }
 .stat__delta.down { background: var(--red-bg); color: var(--red); }
 
+/* Clickable stat cards (dashboard) */
+.stat--link {
+  display: block;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+}
+.stat--link:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: #111;
+}
+.stat--link:active { transform: translateY(-1px); }
+.stat--link .stat__icon { transition: transform .18s var(--ease); }
+.stat--link:hover .stat__icon { transform: scale(1.06); }
+
+/* Active filter chip (list pages) */
+.filter-chip-row { margin-bottom: 16px; }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 999px;
+  background: var(--blue-bg); color: var(--blue);
+  font-size: 13px; font-weight: 600;
+}
+.filter-chip__clear {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,.06); color: inherit;
+  transition: background .15s var(--ease);
+}
+.filter-chip__clear:hover { background: rgba(0,0,0,.12); }
+
 /* Charts (placeholders) */
 .chart-ph {
   height: 240px;

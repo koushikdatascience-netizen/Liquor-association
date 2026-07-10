@@ -25,6 +25,20 @@
   </div>
 </div>
 
+{% if active_filter %}
+<div class="filter-chip-row">
+  <span class="filter-chip">
+    {% if active_filter == 'pending' %}Pending Review
+    {% elif active_filter == 'approved' %}Approved
+    {% elif active_filter == 'rejected' %}Rejected
+    {% elif active_filter == 'docs_requested' %}Docs Requested
+    {% elif active_filter == 'today' %}Today's Registrations
+    {% else %}{{ active_filter }}{% endif %}
+    <a href="{% url 'staff_applications' %}" class="filter-chip__clear" title="Clear filter"><i class="bi bi-x"></i></a>
+  </span>
+</div>
+{% endif %}
+
 <div class="grid cols-4" style="margin-bottom:20px;">
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-inbox"></i></div></div><div class="stat__num">{{ counts.pending }}</div><div class="stat__label">Pending Review</div></div>
   <div class="stat"><div class="stat__top"><div class="stat__icon"><i class="bi bi-check2-circle"></i></div></div><div class="stat__num">{{ counts.approved }}</div><div class="stat__label">Approved</div></div>

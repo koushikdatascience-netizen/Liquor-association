@@ -24,13 +24,26 @@
 <div class="page-head">
   <div>
     <h1>Payment Verification</h1>
-    <p class="subtitle">Reconcile UPI &amp; bank transfers with member payments.</p>
+    <p class="subtitle">Reconcile UPI & bank transfers with member payments.</p>
   </div>
   <div class="page-actions">
     <a class="btn" href="{% url 'staff_payments' %}"><i class="bi bi-arrow-clockwise"></i> Refresh</a>
     <a class="btn primary" href="{% url 'export_report' 'pending-payments' 'excel' %}"><i class="bi bi-download"></i> Export</a>
   </div>
 </div>
+
+{% if active_filter %}
+<div class="filter-chip-row">
+  <span class="filter-chip">
+    {% if active_filter == 'pending' %}Pending Verification
+    {% elif active_filter == 'approved' %}Approved
+    {% elif active_filter == 'rejected' %}Rejected
+    {% elif active_filter == 'reupload' %}Re-upload Requested
+    {% else %}{{ active_filter }}{% endif %}
+    <a href="{% url 'staff_payments' %}" class="filter-chip__clear" title="Clear filter"><i class="bi bi-x"></i></a>
+  </span>
+</div>
+{% endif %}
 
 <div class="payment-drawer-backdrop" data-payment-close></div>
 <aside class="payment-drawer" aria-live="polite" aria-label="Payment details side panel" data-payment-drawer>

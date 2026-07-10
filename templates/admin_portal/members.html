@@ -14,6 +14,18 @@
   </div>
 </div>
 
+{% if active_filter %}
+<div class="filter-chip-row">
+  <span class="filter-chip">
+    {% if active_filter == 'active' %}Active Members
+    {% elif active_filter == 'expired' %}Expired Members
+    {% elif active_filter == 'renewals' %}Renewals Due (30 days)
+    {% else %}{{ active_filter }}{% endif %}
+    <a href="{% url 'staff_members' %}" class="filter-chip__clear" title="Clear filter"><i class="bi bi-x"></i></a>
+  </span>
+</div>
+{% endif %}
+
 <div class="table-wrap">
   <div class="table-toolbar">
     <div class="search"><i class="bi bi-search"></i><input data-table-search="#membersTable" placeholder="Search members..." /></div>

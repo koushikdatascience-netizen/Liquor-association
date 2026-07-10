@@ -769,7 +769,25 @@ def staff_dashboard(request):
 
 @staff_member_required
 def staff_applications(request):
-    applications = list(MembershipApplication.objects.select_related("applicant").order_by("-created_at")[:200])
+    active_filter = request.GET.get("status", "")
+    qs = MembershipApplication.objects.select_related("applicant")
+    if active_filter == "pending":
+        qs = qs.filter(status__in=DOCUMENT_REVIEW_STATUSES)
+    elif active_filter == "approved":
+        qs = qs.filter(
+            status__in=[
+                MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+                MembershipApplication.Status.PAYMENT_APPROVED,
+                MembershipApplication.Status.MEMBER_ACTIVE,
+            ]
+        )
+    elif active_filter == "rejected":
+        qs = qs.filter(status=MembershipApplication.Status.REJECTED)
+    elif active_filter == "docs_requested":
+        qs = qs.filter(status=MembershipApplication.Status.ADDITIONAL_DOCUMENTS)
+    elif active_filter == "today":
+        qs = qs.filter(created_at__date=timezone.localdate())
+    applications = list(qs.order_by("-created_at")[:200])
     for application in applications:
         application.can_inline_review = is_document_review_status(application.status)
     return render(
@@ -778,6 +796,7 @@ def staff_applications(request):
         {
             "active_page": "applications",
             "applications": applications,
+            "active_filter": active_filter,
             "counts": {
                 "pending": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
                 "approved": MembershipApplication.objects.filter(
@@ -993,12 +1012,24 @@ def staff_application_action(request, pk):
 
 @staff_member_required
 def staff_payments(request):
+    active_filter = request.GET.get("status", "")
+    qs = PaymentProof.objects.select_related("application")
+    if active_filter == "pending":
+        qs = qs.filter(status=PaymentProof.Status.PENDING)
+    elif active_filter == "approved":
+        qs = qs.filter(status=PaymentProof.Status.APPROVED)
+    elif active_filter == "rejected":
+        qs = qs.filter(status=PaymentProof.Status.REJECTED)
+    elif active_filter == "reupload":
+        qs = qs.filter(status=PaymentProof.Status.REUPLOAD_REQUESTED)
+    payments = qs.order_by("-created_at")[:50]
     return render(
         request,
         "admin_portal/payments.html",
         {
             "active_page": "payments",
-            "payments": PaymentProof.objects.select_related("application").order_by("-created_at")[:50],
+            "payments": payments,
+            "active_filter": active_filter,
         },
     )
 
@@ -1127,12 +1158,23 @@ def staff_payment_action(request, pk):
 
 @staff_member_required
 def staff_members(request):
+    active_filter = request.GET.get("status", "")
+    qs = Member.objects.select_related("application")
+    if active_filter == "active":
+        qs = qs.filter(is_active=True)
+    elif active_filter == "expired":
+        qs = qs.filter(is_active=False)
+    elif active_filter == "renewals":
+        today = timezone.localdate()
+        qs = qs.filter(valid_till__range=(today, today + timezone.timedelta(days=30)))
+    members = qs.order_by("-created_at")[:50]
     return render(
         request,
         "admin_portal/members.html",
         {
             "active_page": "members",
-            "members": Member.objects.select_related("application").order_by("-created_at")[:50],
+            "members": members,
+            "active_filter": active_filter,
         },
     )
 
