@@ -1,68 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Membership Card - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block body_class %}no-sidebar{% endblock %}
 {% block body %}
-<div class="portal">
-  {% include "includes/portal_sidebar.html" %}
-  <div class="portal-main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
-        <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"></div>
-      </div>
-      <div class="topbar-right"><div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div></div>
-    </header>
-    {% include "includes/messages.html" %}
-    <div class="page">
-      <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Membership Card</div>
-      <div class="page-head">
-        <div>
-          <h1 class="page-title">Digital membership card</h1>
-          <p class="small mt-8">Download or share your QR-verifiable association membership.</p>
-        </div>
-      </div>
-      <div class="grid grid-2">
-        <div class="mcard">
-          <div class="mcard-head">
-            <div class="mcard-logo"><span class="l-mark">W</span> {{ ASSOCIATION_NAME }}</div>
-            <span class="badge gold">Active</span>
-          </div>
-          <div class="mcard-body">
-            <div class="mcard-photo">
-              {% if passport_photo_url %}
-                <img src="{{ passport_photo_url }}" alt="{{ member.application.full_name }}">
-              {% else %}
-                <i class="bi bi-person"></i>
-              {% endif %}
-            </div>
-            <div>
-              <div class="mcard-name">{{ member.application.full_name }}</div>
-              <div class="mcard-role">{{ member.application.shop_name }}</div>
-              <div class="small mt-8">{{ member.membership_number }}</div>
-            </div>
-            <div class="mcard-qr">
-              {% if qr_code_url %}
-                <img src="{{ qr_code_url }}" alt="Membership QR code">
-              {% else %}
-                <i class="bi bi-qr-code"></i>
-              {% endif %}
-            </div>
-          </div>
-          <div class="mcard-foot">
-            <div>District<span>{{ member.application.district }}</span></div>
-            <div>Mobile<span>{{ member.application.mobile_number }}</span></div>
-            <div>Category<span>{{ member.category }}</span></div>
-            <div>Valid Till<span>{{ member.valid_till|date:"d M Y" }}</span></div>
-          </div>
-        </div>
-        <div class="card">
-          <h3 class="h-card mb-16">Card downloads</h3>
-          <p class="small">The card contains the association logo, member photo, membership number, shop details, QR code, validity and digital signature.</p>
-          <div class="actions mt-24">
-            <a class="btn btn-primary" href="{% url 'membership_card_pdf' %}"><i class="bi bi-filetype-pdf"></i> Download PDF</a>
-            <a class="btn btn-secondary" href="{% url 'membership_card_image' %}"><i class="bi bi-image"></i> Download Image</a>
-            <a class="btn btn-secondary" href="{% url 'membership_certificate' %}"><i class="bi bi-award"></i> Certificate</a>
-          </div>
-        </div>
+{% include "includes/messages.html" %}
+{% include "includes/member_topbar.html" %}
+<div class="member-shell">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Digital membership card</h1>
+      <p class="small mt-8">Download or share your QR-verifiable association membership.</p>
+    </div>
+  </div>
+  <div class="grid grid-2">
+    {% include "includes/member_card.html" with application=member.application member=member locked=False passport_photo_url=passport_photo_url qr_code_url=qr_code_url %}
+    <div class="card">
+      <h3 class="h-card mb-16">Card downloads</h3>
+      <p class="small">The card contains the association logo, member photo, membership number, shop details, QR code, validity and digital signature.</p>
+      <div class="actions mt-24">
+        <a class="btn btn-primary" href="{% url 'membership_card_pdf' %}"><i class="bi bi-filetype-pdf"></i> Download PDF</a>
+        <a class="btn btn-secondary" href="{% url 'membership_card_image' %}"><i class="bi bi-image"></i> Download Image</a>
+        <a class="btn btn-secondary" href="{% url 'membership_certificate' %}"><i class="bi bi-award"></i> Certificate</a>
       </div>
     </div>
   </div>

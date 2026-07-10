@@ -164,6 +164,48 @@ def member_dashboard(request):
             )
         )
     )
+    # Prepare additional context for simplified landing
+    passport_photo_url = storage_url(application.passport_photo) if application else ""
+    qr_code_url = storage_url(member.qr_code) if member else ""
+    card_locked = not (member and member.is_active)
+    # Status banner
+    if not application:
+        status_message = "No application submitted."
+        banner_class = "warn"
+        banner_icon = "bi bi-file-earmark"
+    else:
+        status = application.status
+        if status == MembershipApplication.Status.SUBMITTED or status in ("PENDING", "PENDING_REVIEW", "APPLICATION_PENDING", "DOCUMENTS_SUBMITTED", "DOCUMENTS_REUPLOADED"):
+            status_message = "Your application is submitted and pending document approval."
+            banner_class = "warn"
+            banner_icon = "bi bi-hourglass-split"
+        elif status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT:
+            status_message = "Documents verified. Please complete your payment."
+            banner_class = "ok"
+            banner_icon = "bi bi-credit-card"
+        elif status == MembershipApplication.Status.PAYMENT_SUBMITTED:
+            status_message = "Payment submitted. Waiting for verification."
+            banner_class = "warn"
+            banner_icon = "bi bi-hourglass"
+        elif status == MembershipApplication.Status.MEMBER_ACTIVE:
+            status_message = "Your membership is active."
+            banner_class = "ok"
+            banner_icon = "bi bi-check-circle"
+        elif status == MembershipApplication.Status.REJECTED:
+            status_message = f"Application rejected. {application.remarks or ''}"
+            banner_class = "warn"
+            banner_icon = "bi bi-x-circle"
+        else:
+            status_message = "Status unknown."
+            banner_class = "warn"
+            banner_icon = "bi bi-question-circle"
+    payment_unlocked = bool(
+        application
+        and (
+            application.status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT
+            or payment
+        )
+    )
     return render(
         request,
         "membership/dashboard.html",
@@ -175,6 +217,13 @@ def member_dashboard(request):
             "payment": payment,
             "can_upload_payment": can_upload_payment,
             "payment_settings": payment_settings_context(),
+            "passport_photo_url": passport_photo_url,
+            "qr_code_url": qr_code_url,
+            "card_locked": card_locked,
+            "status_message": status_message,
+            "banner_class": banner_class,
+            "banner_icon": banner_icon,
+            "payment_unlocked": payment_unlocked,
         },
     )
 

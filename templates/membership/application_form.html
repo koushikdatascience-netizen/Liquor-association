@@ -1,26 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Application Form - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block body_class %}no-sidebar{% endblock %}
 {% block body %}
-<div class="portal">
-  {% include "includes/portal_sidebar.html" %}
-  <div class="portal-main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
-        <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"></div>
-      </div>
-      <div class="topbar-right"><div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div></div>
-    </header>
-    {% include "includes/messages.html" %}
-    <div class="page">
-      <div class="breadcrumb"><a href="{% url 'member_dashboard' %}">Home</a> <i class="bi bi-chevron-right"></i> Application</div>
-      <div class="page-head">
-        <div>
-          <h1 class="page-title">{% if is_update %}Update documents{% else %}Membership application{% endif %}</h1>
-          <p class="small mt-8">Complete all steps to submit your application for review.</p>
-        </div>
-      </div>
-      <div class="stepper application-stepper" role="navigation" aria-label="Application steps">
+{% include "includes/messages.html" %}
+{% include "includes/member_topbar.html" %}
+<div class="member-shell">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">{% if is_update %}Update documents{% else %}Membership application{% endif %}</h1>
+      <p class="small mt-8">Complete all steps to submit your application for review.</p>
+    </div>
+  </div>
+  <div class="stepper application-stepper" role="navigation" aria-label="Application steps">
         <div class="st active" data-step-indicator="1"><div class="st-num">1</div><div class="st-label">Personal</div></div><div class="st-sep"></div>
         <div class="st" data-step-indicator="2"><div class="st-num">2</div><div class="st-label">Business</div></div><div class="st-sep"></div>
         <div class="st" data-step-indicator="3"><div class="st-num">3</div><div class="st-label">Delegate</div></div><div class="st-sep"></div>
@@ -116,6 +107,4 @@
         </div>
       </form>
     </div>
-  </div>
-</div>
 {% endblock %}
