@@ -54,4 +54,9 @@ urlpatterns = [
         views.admin_document_review,
         name="admin_document_review",
     ),
+    path(
+        "documents/<str:source>/<int:pk>/<str:field_name>/",
+        views.document_file,
+        name="document_file",
+    ),
 ]

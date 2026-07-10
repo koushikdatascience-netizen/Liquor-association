@@ -1416,6 +1416,57 @@ def report_rows(report_type):
 
 
 @login_required
+def document_file(request, source, pk, field_name):
+    """Stream a stored document (image or PDF) with correct content-type.
+
+    Cloudinary's raw delivery URLs often carry headers (content-disposition /
+    nosniff) that block in-browser preview and downloads. This view proxies the
+    file through Django so the browser always receives a usable response.
+    """
+    if source == "application":
+        obj = get_object_or_404(MembershipApplication, pk=pk)
+        if not request.user.is_staff and obj.applicant_id != request.user.id:
+            raise Http404("Document not found")
+    elif source == "payment":
+        obj = get_object_or_404(PaymentProof, pk=pk)
+        if not request.user.is_staff and obj.application.applicant_id != request.user.id:
+            raise Http404("Document not found")
+    else:
+        raise Http404("Document not found")
+
+    file = getattr(obj, field_name, None)
+    if not file:
+        raise Http404("Document not uploaded")
+
+    url = storage_url(file)
+    if not url:
+        raise Http404("Document URL is not available")
+
+    kind = file_kind(file)
+    if kind == "pdf":
+        content_type = "application/pdf"
+    elif kind == "image":
+        content_type = "image/jpeg"
+    else:
+        content_type = "application/octet-stream"
+
+    try:
+        file.open("rb")
+        data = file.read()
+    except (OSError, ValueError):
+        # Fall back to redirecting to the remote URL if we cannot read locally.
+        return redirect(url)
+
+    response = HttpResponse(data, content_type=content_type)
+    disposition = request.GET.get("disposition", "inline")
+    if disposition == "attachment":
+        response["Content-Disposition"] = f'attachment; filename="{file.name.rsplit("/", 1)[-1]}"'
+    else:
+        response["Content-Disposition"] = f'inline; filename="{file.name.rsplit("/", 1)[-1]}"'
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
 def admin_document_review(request, source, pk, field_name):
     application_fields = {
         "excise_license": "Licence copy",
@@ -1460,6 +1511,8 @@ def admin_document_review(request, source, pk, field_name):
     if not file_url:
         raise Http404("Document URL is not available")
 
+    doc_url = reverse("document_file", args=[source, obj.pk, field_name])
+
     return render(
         request,
         "membership/admin_document_review.html",
@@ -1469,6 +1522,7 @@ def admin_document_review(request, source, pk, field_name):
             "file": file,
             "file_name": file.name.rsplit("/", 1)[-1],
             "file_url": file_url,
+            "doc_url": doc_url,
             "is_image": is_image,
             "is_pdf": is_pdf,
             "back_url": request.META.get("HTTP_REFERER") or back_url,
