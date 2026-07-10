@@ -7,17 +7,25 @@
 <div class="auth-card auth-card-otp">
   <span class="eyebrow"><span class="dot"></span> Passwordless access</span>
   <h2>Member Login</h2>
-  <p class="sub">Enter your registered email or mobile number. We will send a fresh OTP every time you sign in.</p>
+  <p class="sub">Enter your email and mobile number. If you are already registered we will sign you in, otherwise a new account is created automatically — with a single OTP.</p>
   <form method="post" class="form django-form">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="field">
+      {{ form.email.label_tag }}
+      {{ form.email }}
+      {{ form.email.errors }}
+    </div>
+    <div class="field">
+      {{ form.mobile_number.label_tag }}
+      {{ form.mobile_number }}
+      {{ form.mobile_number.errors }}
+    </div>
     <div class="otp-note">
       <i class="bi bi-shield-check"></i>
-      <span>OTP will be sent to your registered email and WhatsApp.</span>
+      <span>OTP will be sent to your email and WhatsApp.</span>
     </div>
     <button class="btn btn-primary btn-block" type="submit">Send OTP</button>
   </form>
-  <p class="auth-alt">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
   <p class="auth-alt">Admin user? <a href="{% url 'admin_login' %}">Use password login</a></p>
 </div>
 </div>

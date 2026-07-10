@@ -52,6 +52,29 @@ class MemberLoginRequestForm(forms.Form):
     )
 
 
+class UnifiedAuthForm(forms.Form):
+    """Single entry point for both login and registration (email + mobile)."""
+
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "you@example.com"}),
+    )
+    mobile_number = forms.CharField(
+        max_length=15,
+        required=True,
+        widget=forms.TextInput(attrs={"autocomplete": "tel", "placeholder": "10-digit mobile number"}),
+    )
+
+    def clean_email(self):
+        return self.cleaned_data["email"].strip().lower()
+
+    def clean_mobile_number(self):
+        mobile = normalize_mobile(self.cleaned_data["mobile_number"])
+        if len(mobile) < 10:
+            raise forms.ValidationError("Enter a valid mobile number.")
+        return mobile
+
+
 class AdminAuthenticationForm(AuthenticationForm):
     username = forms.CharField(
         label="Admin username or email",
