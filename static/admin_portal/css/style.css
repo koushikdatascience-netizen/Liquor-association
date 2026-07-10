@@ -468,14 +468,16 @@ p  { margin: 0; color: var(--text-2); }
   overflow: hidden;
 }
 .table-toolbar {
-  display: flex; gap: 10px; padding: 16px 18px;
+  display: flex; gap: 8px; padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  flex-wrap: wrap; align-items: center; flex-direction: row;
+  flex-wrap: nowrap; align-items: center; flex-direction: row;
+  overflow-x: auto;
 }
-.table-toolbar .search { width: 260px; flex: 0 1 260px; }
-.table-toolbar .select { flex: 0 1 auto; min-width: 150px; }
-.table-toolbar .input[type="date"] { flex: 0 1 auto; }
-.table-toolbar .btn { flex: 0 0 auto; }
+.table-toolbar .search { width: 220px; flex: 0 0 220px; }
+.table-toolbar .select { flex: 0 0 auto; min-width: 130px; max-width: 180px; font-size: 12px; height: 34px; }
+.table-toolbar .input[type="date"] { flex: 0 0 auto; font-size: 12px; height: 34px; }
+.table-toolbar .btn { flex: 0 0 auto; height: 34px; font-size: 12px; padding: 0 12px; }
+.table-toolbar .search input { height: 34px; font-size: 12px; }
 .select {
   height: 38px; border-radius: var(--r-input);
   border: 1px solid var(--border); background: #fff;
