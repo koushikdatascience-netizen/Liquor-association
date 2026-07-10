@@ -5,6 +5,21 @@
 (function(){
   "use strict";
 
+  // ---------- Client-side validators (used by the application wizard) ----------
+  window.WBFLValidators = {
+    isValidEmail: function(v){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim());
+    },
+    isValidPhone: function(v){
+      const s = String(v).trim();
+      const digits = s.replace(/[^\d]/g, "");
+      return /^[+\d][\d\s-]{6,}$/.test(s) && digits.length >= 10 && digits.length <= 15;
+    },
+    isValidPin: function(v){
+      return /^\d{6}$/.test(String(v).trim());
+    }
+  };
+
   // ---------- Toast ----------
   function ensureToastHost(){
     let host = document.getElementById("toastHost");
@@ -205,6 +220,43 @@
       alternate_delegate_role: "Relationship / Role"
     };
 
+    const DRAFT_KEY = "wbfl_application_draft";
+    function collectDraft(){
+      const data = {};
+      applicationWizard.querySelectorAll("input, select, textarea").forEach(function(el){
+        if(el.type === "file") return;
+        if(el.type === "checkbox"){ data[el.name || el.id] = el.checked; }
+        else if(el.name || el.id){ data[el.name || el.id] = el.value; }
+      });
+      return data;
+    }
+    let persistTimer = null;
+    function persistDraft(){
+      try{
+        const existing = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+        const merged = Object.assign(existing, collectDraft());
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(merged));
+      }catch(_){}
+    }
+    function schedulePersist(){
+      if(persistTimer) clearTimeout(persistTimer);
+      persistTimer = setTimeout(persistDraft, 600);
+    }
+    function restoreDraft(){
+      try{
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        applicationWizard.querySelectorAll("input, select, textarea").forEach(function(el){
+          if(el.type === "file") return;
+          const key = el.name || el.id;
+          if(!(key in data)) return;
+          if(el.type === "checkbox"){ el.checked = !!data[key]; }
+          else { el.value = data[key]; }
+        });
+      }catch(_){}
+    }
+
     function fieldLabel(field){
       const name = field.name;
       if(fieldLabels[name]) return fieldLabels[name];
@@ -394,6 +446,21 @@
       if(validateStep(currentStep)) showStep(currentStep + 1);
     });
     prevBtn && prevBtn.addEventListener("click", function(){ showStep(currentStep - 1); });
+    const saveDraftBtn = applicationWizard.querySelector("[data-save-draft]");
+    saveDraftBtn && saveDraftBtn.addEventListener("click", function(){
+      persistDraft();
+      const fd = new FormData(applicationWizard);
+      fd.set("save_draft", "1");
+      saveDraftBtn.disabled = true;
+      saveDraftBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Saving...';
+      fetch(window.location.pathname, { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest" }, body: fd })
+        .then(function(){ window.toast("Draft saved"); })
+        .catch(function(){ window.toast("Draft saved on this device", "warn"); })
+        .finally(function(){
+          saveDraftBtn.disabled = false;
+          saveDraftBtn.innerHTML = "Save draft";
+        });
+    });
     applicationWizard.querySelectorAll("[data-go-step]").forEach(function(btn){
       btn.addEventListener("click", function(){ showStep(Number(btn.dataset.goStep)); });
     });
@@ -405,19 +472,21 @@
       });
     });
     applicationWizard.querySelectorAll("input, select, textarea").forEach(function(field){
-      field.addEventListener("input", function(){ clearFieldError(field); });
-      field.addEventListener("change", function(){ clearFieldError(field); });
+      field.addEventListener("input", function(){ clearFieldError(field); schedulePersist(); });
+      field.addEventListener("change", function(){ clearFieldError(field); schedulePersist(); });
     });
     applicationWizard.addEventListener("submit", function(e){
       if(!validateAllSteps()){
         e.preventDefault();
         return;
       }
+      try{ localStorage.removeItem(DRAFT_KEY); }catch(_){}
       if(nextBtn){
         nextBtn.disabled = true;
         nextBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Submitting...';
       }
     });
+    restoreDraft();
     const errorPanel = panels.find(function(panel){ return panel.querySelector(".errorlist"); });
     showStep(errorPanel ? Number(errorPanel.dataset.stepPanel) : 1);
   }

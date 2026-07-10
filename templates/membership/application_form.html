@@ -110,7 +110,7 @@
         <div class="wiz-footer application-wizard-footer">
           <button class="btn btn-secondary" data-prev-step type="button"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
           <div class="flex gap-8 application-wizard-actions">
-            <a class="btn btn-ghost" href="{% url 'member_dashboard' %}">Save draft</a>
+            <button type="button" class="btn btn-ghost" data-save-draft>Save draft</button>
             <button class="btn btn-primary" data-next-step type="button" data-submit-label="{% if is_update %}Resubmit Documents{% else %}Submit Application{% endif %}">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
           </div>
         </div>

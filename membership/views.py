@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -231,16 +231,50 @@ def application_create(request):
         messages.error(request, "Please verify your email OTP before submitting the application.")
         return redirect("verify_registration_otp")
 
+    # Active (non-draft) applications block a new one; drafts are resumable.
     existing = MembershipApplication.objects.filter(applicant=request.user).exclude(
-        status=MembershipApplication.Status.REJECTED
+        status__in=[
+            MembershipApplication.Status.REJECTED,
+            MembershipApplication.Status.DRAFT,
+        ]
+    ).first()
+    draft = MembershipApplication.objects.filter(
+        applicant=request.user, status=MembershipApplication.Status.DRAFT
     ).first()
     can_update_documents = existing and existing.status == MembershipApplication.Status.ADDITIONAL_DOCUMENTS
     if existing and not can_update_documents:
         messages.info(request, "You already have an active application.")
         return redirect("member_dashboard")
 
+    instance = draft or (existing if can_update_documents else None)
+
     if request.method == "POST":
-        form = MembershipApplicationForm(request.POST, request.FILES, instance=existing if can_update_documents else None)
+        # ---- Save draft (lenient, no strict validation) ----
+        if request.POST.get("save_draft"):
+            form = MembershipApplicationForm(request.POST, request.FILES, instance=instance)
+            form.is_valid()  # populate cleaned_data; ignore errors for draft
+            application = form.save(commit=False)
+            application.applicant = request.user
+            application.status = MembershipApplication.Status.DRAFT
+            for field in [
+                "full_name",
+                "gender",
+                "residential_address",
+                "pin_code",
+                "email",
+                "excise_license_number",
+                "primary_delegate_name",
+            ]:
+                if not getattr(application, field, ""):
+                    setattr(application, field, "(draft)")
+            application.save()
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": True})
+            messages.success(request, "Draft saved.")
+            return redirect("application_create")
+
+        # ---- Submit application ----
+        form = MembershipApplicationForm(request.POST, request.FILES, instance=instance)
         submitted_document_fields = set(request.FILES).intersection(APPLICATION_DOCUMENT_FIELDS)
         existing_document_fields = {
             field_name
@@ -275,14 +309,14 @@ def application_create(request):
         messages.error(request, "Application was not submitted. Please fix the highlighted fields and submit again.")
     else:
         form = MembershipApplicationForm(
-            instance=existing if can_update_documents else None,
+            instance=instance,
             initial={
                 "email": request.user.email,
                 "mobile_number": profile.mobile_number,
                 "whatsapp_number": profile.mobile_number,
                 "full_name": request.user.get_full_name(),
                 "nationality": "Indian",
-            }
+            } if not instance else {},
         )
     return render(
         request,
