@@ -96,9 +96,51 @@ def storage_url(file):
     if not file:
         return ""
     try:
-        return file.url
+        url = file.url
     except (ValueError, OSError):
         return ""
+    return str(url)
+
+
+def file_kind(file):
+    """Return 'image', 'pdf', or 'other' for a FieldFile (Cloudinary-aware).
+
+    On Cloudinary the stored ``name`` is a public id without a file extension, so
+    we detect the real type from the delivery URL, which embeds the resource type:
+        ``/image/upload/...`` -> image
+        ``/raw/upload/...``   -> pdf / document
+    Falls back to the filename extension for local filesystem storage.
+    """
+    if not file:
+        return "other"
+    name = (getattr(file, "name", "") or "").lower()
+    url = storage_url(file)
+    if url:
+        url_l = url.lower()
+        if "/raw/upload/" in url_l or url_l.endswith(".pdf"):
+            return "pdf"
+        if "/image/upload/" in url_l or name.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")):
+            return "image"
+    if name.endswith(".pdf"):
+        return "pdf"
+    if name.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")):
+        return "image"
+    return "other"
+
+
+def preview_url(file):
+    """URL suitable for <img>/<iframe> preview.
+
+    Cloudinary serves raw PDFs without a file extension, which browsers will not
+    render as a PDF inside an iframe. Appending ``.pdf`` forces the correct
+    content type and lets the browser display the document.
+    """
+    url = storage_url(file)
+    if not url or file_kind(file) != "pdf":
+        return url
+    if not url.lower().endswith(".pdf"):
+        url = f"{url}.pdf"
+    return url
 
 
 def portal_url(path):
@@ -768,7 +810,7 @@ def application_documents(application):
     ]
     for document in documents:
         file = document["file"]
-        document["is_image"] = bool(file and file.name.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")))
+        document["is_image"] = file_kind(file) == "image"
         document["url"] = storage_url(file)
         document["uploaded"] = bool(document["url"])
     return documents
@@ -1415,10 +1457,10 @@ def admin_document_review(request, source, pk, field_name):
     if not file:
         raise Http404("Document not uploaded")
 
-    file_name = file.name.lower()
-    is_image = file_name.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp"))
-    is_pdf = file_name.endswith(".pdf")
-    file_url = storage_url(file)
+    kind = file_kind(file)
+    is_image = kind == "image"
+    is_pdf = kind == "pdf"
+    file_url = preview_url(file)
     if not file_url:
         raise Http404("Document URL is not available")
 
