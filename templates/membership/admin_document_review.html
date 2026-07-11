@@ -16,11 +16,11 @@
     </div>
   </div>
 
-  <div class="document-review__stage">
+  <div class="document-review__stage"></div>
     {% if is_image %}
-      <img src="{{ doc_url }}" alt="{{ label }}">
+      <img src="{{ file_url }}" alt="{{ label }}">
     {% elif is_pdf %}
-      <iframe src="{{ doc_url }}" title="{{ label }}"></iframe>
+      <iframe src="{{ file_url }}" title="{{ label }}"></iframe>
     {% else %}
       <div class="document-review__fallback">
         <h2>Preview unavailable</h2>
