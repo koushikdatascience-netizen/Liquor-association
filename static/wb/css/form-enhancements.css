@@ -1,227 +1,516 @@
 /* =========================================================
-   WBFL Association — Form Enhancements
+   WBFL Association - Application Form Experience
    ========================================================= */
 
-/* ---------- Form Background ---------- */
+.application-portal .portal-main {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(201, 162, 39, .18), transparent 28rem),
+    radial-gradient(circle at 92% 16%, rgba(163, 22, 31, .20), transparent 32rem),
+    linear-gradient(135deg, #fff7f2 0%, #f8ece6 42%, #f4e0dc 100%);
+}
+
+.application-portal .topbar {
+  background: rgba(255, 252, 249, .86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.page-textured {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100vh - 72px);
+  background:
+    linear-gradient(135deg, rgba(109, 15, 26, .08), rgba(201, 162, 39, .12)),
+    url("/static/img/form-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  border-radius: 0;
+}
+
+.page-textured::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .76), rgba(255, 247, 242, .88)),
+    radial-gradient(circle at 20% 0%, rgba(109, 15, 26, .16), transparent 28rem);
+}
+
+.page-textured .page-head {
+  margin-bottom: 18px;
+  padding: 22px 24px;
+  border: 1px solid rgba(109, 15, 26, .12);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 18px 50px rgba(74, 10, 18, .10);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.page-textured .page-title {
+  color: var(--maroon-dark);
+  letter-spacing: 0;
+}
+
+.application-stepper {
+  position: sticky;
+  top: 88px;
+  z-index: 12;
+  margin-bottom: 22px;
+  background: rgba(255, 255, 255, .82);
+  border: 1px solid rgba(109, 15, 26, .14);
+  box-shadow: 0 14px 34px rgba(74, 10, 18, .10);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.application-stepper .st {
+  border-radius: 14px;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.application-stepper .st:hover {
+  background: rgba(247, 237, 208, .45);
+}
+
+.application-stepper .st.active {
+  transform: translateY(-1px);
+}
+
+.application-stepper .st-num {
+  box-shadow: 0 2px 8px rgba(74, 10, 18, .08);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.application-stepper .st.active .st-num {
+  background: linear-gradient(135deg, var(--maroon), var(--red));
+  border-color: transparent;
+  box-shadow: 0 9px 20px rgba(109, 15, 26, .22);
+}
+
+.application-stepper .st.done .st-num {
+  background: var(--gold);
+  border-color: transparent;
+}
+
 .application-wizard {
   position: relative;
+  display: grid;
+  gap: 18px;
 }
 
 .application-wizard::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(163, 22, 31, 0.1), rgba(109, 15, 26, 0.15));
-  background-size: 200px 200px;
-  background-image:
-    radial-gradient(circle at 25% 25%, rgba(163, 22, 31, 0.2) 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, rgba(109, 15, 26, 0.2) 1px, transparent 1px);
-  opacity: 0.6;
-  border-radius: var(--radius-card);
-  z-index: 0;
+  inset: 12px -12px 54px;
+  z-index: -1;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 0 20%, rgba(109, 15, 26, .16), transparent 24rem),
+    radial-gradient(circle at 100% 0, rgba(201, 162, 39, .22), transparent 22rem),
+    linear-gradient(135deg, rgba(109, 15, 26, .10), rgba(255, 255, 255, .28));
+  border: 1px solid rgba(109, 15, 26, .10);
   pointer-events: none;
 }
 
-/* ---------- Form Card Background ---------- */
-.wizard-card {
+.application-portal .wizard-card {
   position: relative;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(236, 223, 216, 0.4);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding: 34px;
+  border: 1px solid rgba(109, 15, 26, .16);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 22px 60px rgba(74, 10, 18, .12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: formPanelIn 240ms var(--ease);
 }
 
-/* ---------- Form Fields ---------- */
-.field {
-  position: relative;
-  margin-bottom: 16px;
+.application-portal .wizard-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, var(--maroon), var(--gold), var(--red));
 }
 
-.field input,
-.field select,
-.field textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-input);
-  font: inherit;
-  font-size: 14px;
-  background: #fff;
-  transition: all var(--dur) var(--ease);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+.application-portal .wizard-card h3 {
+  color: var(--maroon-dark);
+  letter-spacing: 0;
 }
 
-.field input:focus,
-.field select:focus,
-.field textarea:focus {
-  outline: none;
-  border-color: var(--maroon);
-  box-shadow: 0 0 0 3px rgba(109, 15, 26, 0.1);
-  transform: translateY(-1px);
+.application-portal .wizard-card .sub {
+  max-width: 640px;
 }
 
-.field input:hover,
-.field select:hover,
-.field textarea:hover {
-  border-color: var(--border-strong);
-}
-
-.field label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-/* ---------- Form Rows ---------- */
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-@media (max-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr;
+@keyframes formPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* ---------- License Type Field ---------- */
-.license-type-field {
-  position: relative;
+.application-portal .wizard-card > .card {
+  border-color: rgba(109, 15, 26, .12);
+  background: rgba(255, 252, 249, .72);
+  box-shadow: 0 12px 28px rgba(74, 10, 18, .06);
 }
 
-.license-type-field select {
+.application-portal .form {
+  gap: 18px;
+}
+
+.application-portal .form-row {
+  gap: 18px;
+}
+
+.application-portal .field {
+  position: relative;
+  margin-bottom: 0;
+}
+
+.application-portal .field label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 8px;
+  color: var(--maroon-dark);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+.application-portal .field input,
+.application-portal .field select,
+.application-portal .field textarea {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 44px 13px 15px;
+  border: 1.5px solid rgba(109, 15, 26, .18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .92);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), 0 1px 2px rgba(74, 10, 18, .04);
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.application-portal .field textarea {
+  min-height: 108px;
+  resize: vertical;
+}
+
+.application-portal .field select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b5f5c' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 32px;
 }
 
-/* ---------- Upload Fields ---------- */
-.upload {
-  border: 1.5px dashed var(--border-strong);
-  transition: all var(--dur) var(--ease);
-  background: rgba(255, 255, 255, 0.7);
+.application-portal .field input:hover,
+.application-portal .field select:hover,
+.application-portal .field textarea:hover {
+  border-color: rgba(109, 15, 26, .38);
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(74, 10, 18, .07);
 }
 
-.upload:hover {
+.application-portal .field input:focus,
+.application-portal .field select:focus,
+.application-portal .field textarea:focus {
+  outline: none;
   border-color: var(--maroon);
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(109, 15, 26, .10), 0 12px 28px rgba(74, 10, 18, .10);
+  transform: translateY(-1px);
 }
 
-.upload.is-drag {
-  border-color: var(--maroon);
-  background: rgba(255, 255, 255, 0.95);
-  transform: translateY(-2px);
-}
-
-/* ---------- Stepper Enhancements ---------- */
-.stepper {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(236, 223, 216, 0.3);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-/* ---------- Wizard Footer ---------- */
-.wiz-footer {
-  position: relative;
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-}
-
-/* ---------- Field Animations ---------- */
-.field input:focus + .field-icon,
-.field select:focus + .field-icon,
-.field textarea:focus + .field-icon {
-  color: var(--maroon);
-  transform: scale(1.1);
-}
-
-.field-icon {
+.application-portal .field-icon {
   position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 15px;
+  top: 42px;
+  z-index: 2;
   color: var(--text-3);
-  transition: all var(--dur) var(--ease);
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+  transition: color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.application-portal .field textarea + .field-icon {
+  top: 45px;
+}
+
+.application-portal .field input:focus + .field-icon,
+.application-portal .field select:focus + .field-icon,
+.application-portal .field textarea:focus + .field-icon {
+  color: var(--maroon);
+  transform: translateY(-1px) scale(1.08);
+}
+
+.application-portal .field.has-error label,
+.application-portal .upload.has-error .upload-head h5,
+.application-portal .checkbox.has-error span {
+  color: var(--danger);
+}
+
+.application-portal .field input.is-error,
+.application-portal .field select.is-error,
+.application-portal .field textarea.is-error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px rgba(180, 35, 24, .10);
+}
+
+.application-portal .field .errorlist,
+.application-portal .upload .errorlist,
+.application-portal .checkbox + .errorlist,
+.application-portal .field-error {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.application-portal .upload-grid {
+  gap: 18px;
+}
+
+.application-portal .upload {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px dashed rgba(109, 15, 26, .28);
+  border-radius: 18px;
+  background: rgba(255, 252, 249, .78);
+  box-shadow: 0 10px 24px rgba(74, 10, 18, .06);
+  transition:
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.application-portal .upload::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -55% 28%;
+  height: 100px;
+  background: radial-gradient(circle, rgba(201, 162, 39, .16), transparent 68%);
   pointer-events: none;
 }
 
-/* ---------- Error States ---------- */
-.field input:invalid,
-.field select:invalid,
-.field textarea:invalid {
-  border-color: var(--danger);
-}
-
-.field input:invalid:focus,
-.field select:invalid:focus,
-.field textarea:invalid:focus {
-  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.1);
-}
-
-.field .errors {
-  color: var(--danger);
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
-}
-
-/* ---------- Checkbox & Radio ---------- */
-.checkbox,
-.radio {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.checkbox input,
-.radio input {
-  width: auto;
-  margin: 0;
-}
-
-.checkbox span,
-.radio span {
-  font-size: 14px;
-  color: var(--text);
-}
-
-/* ---------- Declaration Box ---------- */
-.declaration-box {
-  background: rgba(247, 237, 208, 0.3);
-  border: 1px solid rgba(232, 210, 154, 0.5);
-  border-radius: var(--radius-input);
-  padding: 16px;
-  margin-bottom: 16px;
-  transition: all var(--dur) var(--ease);
-}
-
-.declaration-box:hover {
-  background: rgba(247, 237, 208, 0.5);
-  border-color: var(--gold);
-}
-
-/* ---------- Review Section ---------- */
-.review-block {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(236, 223, 216, 0.3);
-  transition: all var(--dur) var(--ease);
-}
-
-.review-block:hover {
+.application-portal .upload:hover,
+.application-portal .upload.is-drag {
   border-color: var(--maroon);
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(74, 10, 18, .12);
+  transform: translateY(-3px);
+}
+
+.application-portal .upload-head {
+  position: relative;
+  z-index: 1;
+}
+
+.application-portal .u-ic {
+  background: linear-gradient(135deg, rgba(109, 15, 26, .10), rgba(201, 162, 39, .22));
+  color: var(--maroon);
+}
+
+.application-portal .upload-drop {
+  position: relative;
+  z-index: 1;
+  min-height: 78px;
+  border-radius: 14px;
+  border: 1px solid rgba(109, 15, 26, .12);
+  background: rgba(255, 255, 255, .70);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.application-portal .upload:hover .upload-drop,
+.application-portal .upload.is-drag .upload-drop {
+  background: rgba(247, 237, 208, .44);
+  color: var(--maroon);
+}
+
+.application-portal .upload-drop i {
+  font-size: 22px;
+}
+
+.application-portal .upload-file.upload-preview {
+  position: relative;
+  z-index: 1;
+  border-color: rgba(109, 15, 26, .14);
+  background: #fff;
+}
+
+.application-portal .upload-preview .upload-thumb {
+  background: var(--surface-3);
+  color: var(--maroon);
+}
+
+.application-portal .checkbox {
+  padding: 16px;
+  border: 1px solid rgba(109, 15, 26, .14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .78);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.application-portal .checkbox:hover {
+  border-color: rgba(109, 15, 26, .32);
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(74, 10, 18, .08);
+}
+
+.application-portal .checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--maroon);
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.application-portal .declaration-box {
+  background:
+    linear-gradient(135deg, rgba(247, 237, 208, .54), rgba(255, 255, 255, .78));
+  border: 1px solid rgba(201, 162, 39, .42);
+  border-radius: 18px;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.application-portal .declaration-box:hover {
+  border-color: var(--gold);
+  box-shadow: 0 12px 28px rgba(201, 162, 39, .16);
+  transform: translateY(-1px);
+}
+
+.application-portal .review-block {
+  background: rgba(255, 255, 255, .80);
+  border: 1px solid rgba(109, 15, 26, .14);
+  border-radius: 18px;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.application-portal .review-block:hover {
+  border-color: rgba(109, 15, 26, .42);
+  box-shadow: 0 14px 30px rgba(74, 10, 18, .10);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.application-portal .review-grid div {
+  background: rgba(253, 249, 246, .92);
+  border: 1px solid rgba(109, 15, 26, .08);
+}
+
+.application-portal .wiz-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin-top: 2px;
+  padding: 16px;
+  border: 1px solid rgba(109, 15, 26, .12);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .84);
+  box-shadow: 0 -12px 34px rgba(74, 10, 18, .09);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.application-wizard .btn {
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.application-wizard .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(74, 10, 18, .10);
+}
+
+.application-wizard .btn-primary {
+  background: linear-gradient(135deg, var(--maroon), var(--red));
+  box-shadow: 0 12px 26px rgba(109, 15, 26, .18);
+}
+
+.application-wizard .btn-primary:hover {
+  background: linear-gradient(135deg, var(--maroon-dark), var(--maroon));
+}
+
+.application-portal .form-error-summary {
+  border-color: rgba(180, 35, 24, .24);
+  background: #fff8f8;
+  color: var(--danger);
+}
+
+@media (max-width: 960px) {
+  .application-stepper {
+    top: 64px;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-textured {
+    background-attachment: scroll;
+  }
+
+  .page-textured .page-head {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .application-stepper {
+    top: 64px;
+    margin-left: -16px;
+    margin-right: -16px;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  .application-wizard::before {
+    inset: 8px 0 52px;
+    border-radius: 22px;
+  }
+
+  .application-portal .wizard-card {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+
+  .application-portal .form,
+  .application-portal .form-row,
+  .application-portal .upload-grid {
+    gap: 14px;
+  }
+
+  .application-portal .wiz-footer {
+    margin-left: -2px;
+    margin-right: -2px;
+    border-radius: 18px 18px 0 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .application-portal .field input,
+  .application-portal .field select,
+  .application-portal .field textarea {
+    padding-right: 40px;
+  }
+
+  .application-portal .field-icon {
+    right: 12px;
+  }
+
+  .application-portal .upload {
+    padding: 16px;
+  }
 }

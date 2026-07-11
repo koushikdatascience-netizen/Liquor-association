@@ -1,5 +1,42 @@
 /* Responsive */
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.main,
+.content,
+.card,
+.table-wrap,
+.modal,
+.payment-drawer,
+.mem-card,
+.stat,
+.quick-tile {
+  min-width: 0;
+}
+
+h1,
+h2,
+h3,
+.page-title,
+.subtitle,
+.card__title,
+.card__sub,
+.stat__label,
+.table td,
+.kv dd,
+.timeline .t,
+.timeline .d,
+.doc-card .name,
+.mem-card .title,
+.mem-card .num,
+.mem-card .val {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1200px) {
   .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
@@ -26,6 +63,186 @@
   .kv { grid-template-columns: 1fr; gap: 4px 0; }
   .kv dt { margin-top: 8px; }
   .admin-two-col { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --content-pad: 16px;
+    --header-h: 64px;
+  }
+
+  .app,
+  .app.collapsed,
+  .app.mobile-open {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(var(--sidebar-w), 86vw);
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform .22s var(--ease);
+    box-shadow: 24px 0 60px rgba(17, 17, 17, .18);
+  }
+
+  .app.mobile-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .app .sidebar__brand-text,
+  .app .nav-item span,
+  .app .sidebar__footer .meta,
+  .app .sidebar__section,
+  .app.collapsed .sidebar__brand-text,
+  .app.collapsed .nav-item span,
+  .app.collapsed .sidebar__footer .meta,
+  .app.collapsed .sidebar__section {
+    display: initial;
+    visibility: visible;
+    height: auto;
+  }
+
+  .app .nav-item,
+  .app.collapsed .nav-item {
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
+
+  .main {
+    width: 100%;
+  }
+
+  .header {
+    height: var(--header-h);
+    padding: 0 14px;
+  }
+
+  .header__left {
+    flex: 1;
+  }
+
+  .header__right {
+    gap: 6px;
+  }
+
+  .header__right .avatar,
+  .header__right .icon-btn[aria-label="Settings"] {
+    display: none;
+  }
+
+  .breadcrumb {
+    min-width: 0;
+  }
+
+  .page-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 54vw;
+  }
+
+  .content {
+    padding: 18px 14px 44px;
+  }
+
+  .page-head {
+    display: grid;
+    gap: 14px;
+    align-items: stretch;
+    margin-bottom: 18px;
+  }
+
+  .page-head h1 {
+    font-size: 22px;
+    letter-spacing: 0;
+  }
+
+  .page-actions,
+  .action-bar,
+  .modal .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .page-actions .btn,
+  .action-bar .btn,
+  .modal .actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .card {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .card__head {
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .table-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .table-toolbar .search,
+  .table-toolbar .select,
+  .table-toolbar .input[type="date"],
+  .table-toolbar .btn {
+    width: 100%;
+    max-width: none;
+    flex: 0 0 auto;
+  }
+
+  .tabs,
+  .segmented {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .form-grid .full {
+    grid-column: auto;
+  }
+
+  .quick-tile {
+    padding: 16px;
+  }
+
+  .timeline .item {
+    grid-template-columns: 36px 1fr;
+  }
+
+  .timeline .when {
+    grid-column: 2;
+    white-space: normal;
+  }
+
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .modal {
+    max-width: none;
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .action-bar {
+    margin: 24px -14px -44px;
+    padding: 12px 14px;
+  }
+
+  [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 640px) {
@@ -61,4 +278,51 @@
     text-align: left;
   }
   .table-footer { flex-direction: column; gap: 10px; align-items: flex-start; }
+}
+
+@media (max-width: 420px) {
+  .content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .stat {
+    padding: 16px;
+  }
+
+  .stat__num {
+    font-size: 24px;
+  }
+
+  .btn,
+  .icon-btn {
+    min-width: 0;
+  }
+
+  .table td {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+  }
+
+  table.table td::before {
+    margin-right: 0;
+  }
+
+  .mem-card {
+    padding: 20px 16px;
+  }
+
+  .mem-card .row,
+  .mem-card .grid2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .mem-card .qr {
+    position: static;
+    margin-top: 18px;
+  }
 }

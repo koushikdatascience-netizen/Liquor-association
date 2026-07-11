@@ -1,11 +1,294 @@
 /* =========================================================
-   WBFL Association — Global Responsive Overrides
+   WBFL Association - Global Responsive Overrides
    ========================================================= */
-@media(max-width:1024px){
-  .container,.container-sm,.page{padding-left:20px;padding-right:20px}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
 }
-@media(max-width:720px){
-  .hero,.hero-tight{padding:56px 0 28px}
-  .section{padding:40px 0}
-  .card{padding:20px}
+
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+.card,
+.wizard-card,
+.upload,
+.review-block,
+.mcard,
+.payment-details,
+.document-review__stage {
+  min-width: 0;
+}
+
+.page-title,
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card h5,
+.lead,
+.small,
+.muted,
+.status-pill,
+.mcard-name,
+.mcard-role,
+.mcard-foot span,
+.detail-grid dd,
+.payment-details,
+.review-grid b,
+.upload-preview .name {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1024px) {
+  .container,
+  .container-sm,
+  .page {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 960px) {
+  .portal {
+    display: block;
+  }
+
+  .portal-main {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .topbar {
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .topbar-left {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .topbar-search {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 8px;
+  }
+
+  .page {
+    max-width: none;
+    width: 100%;
+    padding: 20px 16px 48px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .hero-tight {
+    padding: 44px 0 28px;
+  }
+
+  .hero h1,
+  .hero-tight h1 {
+    font-size: 30px;
+    line-height: 1.14;
+    letter-spacing: 0;
+  }
+
+  .hero h1 br,
+  .hero-tight h1 br {
+    display: none;
+  }
+
+  .hero-actions,
+  .page-head,
+  .report-actions,
+  .actions,
+  .btn-group {
+    align-items: stretch;
+  }
+
+  .hero-actions .btn,
+  .page-head .btn,
+  .report-actions .btn,
+  .actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .section {
+    padding: 40px 0;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .footer {
+    padding: 36px 0 20px;
+    margin-top: 20px;
+  }
+
+  .member-topbar {
+    height: auto;
+    min-height: 60px;
+    padding: 10px 16px;
+    gap: 12px;
+  }
+
+  .member-topbar .mt-left {
+    min-width: 0;
+  }
+
+  .member-shell {
+    padding: 20px 16px 48px;
+  }
+
+  .member-status-banner {
+    align-items: flex-start;
+    padding: 12px 14px;
+  }
+
+  .stepper {
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .wizard-card {
+    padding: 20px 16px;
+  }
+
+  .wiz-footer,
+  .application-wizard-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .application-wizard-actions .btn,
+  .wiz-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .review-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .review-head .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .upload-head {
+    align-items: flex-start;
+  }
+
+  .upload-preview {
+    min-width: 0;
+  }
+
+  .document-review__header {
+    gap: 12px;
+  }
+
+  .document-review__stage {
+    min-height: 55vh;
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0;
+  }
+
+  .document-review__stage iframe {
+    min-height: 62vh;
+  }
+}
+
+@media (max-width: 560px) {
+  .container,
+  .container-sm,
+  .page {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .card,
+  .card-tight,
+  .auth-card {
+    padding: 18px;
+  }
+
+  .auth-wrap {
+    padding: 24px 16px;
+  }
+
+  .auth-split {
+    padding: 16px;
+  }
+
+  .social-row {
+    grid-template-columns: 1fr;
+  }
+
+  .qa-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mcard {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .mcard-head {
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .mcard-logo .brand-logo-img {
+    height: 42px;
+  }
+
+  .mcard-foot {
+    gap: 12px;
+  }
+
+  .toast-host {
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: 16px;
+  }
+
+  .toast {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero h1,
+  .hero-tight h1 {
+    font-size: 27px;
+  }
+
+  .btn,
+  .btn-lg {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .mcard-foot {
+    grid-template-columns: 1fr;
+  }
 }

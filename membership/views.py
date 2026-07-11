@@ -123,7 +123,7 @@ def file_kind(file):
 
     if head.startswith(b"%PDF"):
         return "pdf"
-    if head[:4] in (b"\xff\xd8\xff\xe0", b"\xff\xd8\xff\xe1", b"\xff\xd8\xff\xe2") or head.startswith(b"\x89PNG") or head.startswith(b"GIF8") or head.startswith(b"RIFF"):
+    if head.startswith(b"\xff\xd8\xff") or head.startswith(b"\x89PNG") or head.startswith(b"GIF8") or head.startswith(b"RIFF"):
         return "image"
 
     # Fallback: use the URL / filename extension.
@@ -155,6 +155,21 @@ def preview_url(file):
     if not url.lower().endswith(".pdf"):
         url = f"{url}.pdf"
     return url
+
+
+def document_content_type(file, kind):
+    if kind == "pdf":
+        return "application/pdf"
+    if kind == "image":
+        name = (getattr(file, "name", "") or "").lower()
+        if name.endswith(".png"):
+            return "image/png"
+        if name.endswith(".gif"):
+            return "image/gif"
+        if name.endswith(".webp"):
+            return "image/webp"
+        return "image/jpeg"
+    return "application/octet-stream"
 
 
 def portal_url(path):
@@ -1555,19 +1570,15 @@ def document_file(request, source, pk, field_name):
         raise Http404("Document URL is not available")
 
     kind = file_kind(file)
-    if kind == "pdf":
-        content_type = "application/pdf"
-    elif kind == "image":
-        content_type = "image/jpeg"
-    else:
-        content_type = "application/octet-stream"
+    content_type = document_content_type(file, kind)
 
     try:
         file.open("rb")
         data = file.read()
+        file.close()
     except (OSError, ValueError):
         # Fall back to redirecting to the remote URL if we cannot read locally.
-        return redirect(url)
+        return redirect(preview_url(file) or url)
 
     response = HttpResponse(data, content_type=content_type)
     disposition = request.GET.get("disposition", "inline")
@@ -1576,6 +1587,7 @@ def document_file(request, source, pk, field_name):
     else:
         response["Content-Disposition"] = f'inline; filename="{file.name.rsplit("/", 1)[-1]}"'
     response["X-Content-Type-Options"] = "nosniff"
+    response["X-Frame-Options"] = "SAMEORIGIN"
     return response
 
 
@@ -1620,10 +1632,10 @@ def admin_document_review(request, source, pk, field_name):
     is_image = kind == "image"
     is_pdf = kind == "pdf"
     file_url = preview_url(file)
-    if not file_url:
-        raise Http404("Document URL is not available")
-
     doc_url = reverse("document_file", args=[source, obj.pk, field_name])
+    preview_src = doc_url
+    if not file_url and not preview_src:
+        raise Http404("Document URL is not available")
 
     return render(
         request,
@@ -1635,6 +1647,7 @@ def admin_document_review(request, source, pk, field_name):
             "file_name": file.name.rsplit("/", 1)[-1],
             "file_url": file_url,
             "doc_url": doc_url,
+            "preview_src": preview_src,
             "is_image": is_image,
             "is_pdf": is_pdf,
             "back_url": request.META.get("HTTP_REFERER") or back_url,
