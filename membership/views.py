@@ -441,6 +441,12 @@ def application_create(request):
 
 @login_required
 def payment_upload(request, application_id):
+    # Check if user has any application at all
+    any_application = MembershipApplication.objects.filter(applicant=request.user).first()
+    if not any_application:
+        messages.error(request, "Please submit your membership application before opening payment.")
+        return redirect("member_dashboard")
+
     application = MembershipApplication.objects.filter(id=application_id, applicant=request.user).first()
     if application is None:
         fallback_application = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at").first()
@@ -449,6 +455,32 @@ def payment_upload(request, application_id):
             return redirect("payment_upload", application_id=fallback_application.id)
         messages.error(request, "Please submit your membership application before opening payment.")
         return redirect("member_dashboard")
+
+    # If application exists but is not in a state where payment should be shown
+    if application.status in [
+        MembershipApplication.Status.DRAFT,
+        MembershipApplication.Status.SUBMITTED,
+        MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+        MembershipApplication.Status.REJECTED
+    ]:
+        instance = getattr(application, "payment", None)
+        payment_unlocked = False
+        can_submit_payment = False
+        show_payment_form = False
+        return render(
+            request,
+            "membership/payment_form.html",
+            {
+                "form": None,
+                "application": application,
+                "payment": instance,
+                "can_submit_payment": can_submit_payment,
+                "show_payment_form": show_payment_form,
+                "payment_unlocked": payment_unlocked,
+                "payment_settings": payment_settings_context(),
+            },
+        )
+
     instance = getattr(application, "payment", None)
     can_submit_payment = (
         application.status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT
@@ -520,7 +552,40 @@ def verify_member(request, public_id):
 
 @login_required
 def card(request):
-    member = get_object_or_404(Member.objects.select_related("application"), user=request.user, is_active=True)
+    # Check if user has any application at all
+    any_application = MembershipApplication.objects.filter(applicant=request.user).first()
+    if not any_application:
+        messages.error(request, "Please submit your membership application to view your membership card.")
+        return redirect("member_dashboard")
+
+    # Check if user has an active membership
+    member = Member.objects.filter(user=request.user, is_active=True).select_related("application").first()
+
+    # If no active member, check if there's an application in progress
+    if not member:
+        application = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at").first()
+        if not application:
+            messages.error(request, "Please submit your membership application to view your membership card.")
+            return redirect("member_dashboard")
+
+        # Show waiting message based on application status
+        if application.status in [
+            MembershipApplication.Status.DRAFT,
+            MembershipApplication.Status.SUBMITTED,
+            MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+            MembershipApplication.Status.REJECTED
+        ]:
+            return render(
+                request,
+                "membership/card.html",
+                {
+                    "member": None,
+                    "application": application,
+                    "locked": True,
+                },
+            )
+
+    # If we get here, we have an active member
     application = member.application
     # Card is locked if member is not active (payment not completed)
     card_locked = not member.is_active
@@ -538,7 +603,11 @@ def card(request):
 
 @login_required
 def card_pdf(request):
-    member = get_object_or_404(Member.objects.select_related("application"), user=request.user, is_active=True)
+    member = Member.objects.filter(user=request.user, is_active=True).select_related("application").first()
+    if not member:
+        messages.error(request, "Your membership card is not available yet. Please complete your application and payment process.")
+        return redirect("member_dashboard")
+
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{member.membership_number}.pdf"'
 
@@ -581,7 +650,10 @@ def card_pdf(request):
 
 @login_required
 def card_image(request):
-    member = get_object_or_404(Member.objects.select_related("application"), user=request.user, is_active=True)
+    member = Member.objects.filter(user=request.user, is_active=True).select_related("application").first()
+    if not member:
+        messages.error(request, "Your membership card is not available yet. Please complete your application and payment process.")
+        return redirect("member_dashboard")
     return render_member_card_image(member)
 
 
@@ -687,7 +759,10 @@ def render_member_card_image(member):
 
 @login_required
 def membership_certificate(request):
-    member = get_object_or_404(Member.objects.select_related("application"), user=request.user, is_active=True)
+    member = Member.objects.filter(user=request.user, is_active=True).select_related("application").first()
+    if not member:
+        messages.error(request, "Your membership certificate is not available yet. Please complete your application and payment process.")
+        return redirect("member_dashboard")
     application = member.application
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{member.membership_number}-certificate.pdf"'
@@ -711,8 +786,16 @@ def membership_certificate(request):
 
 @login_required
 def payment_receipt(request):
-    application = get_object_or_404(MembershipApplication, applicant=request.user)
-    payment = get_object_or_404(PaymentProof, application=application, status=PaymentProof.Status.APPROVED)
+    application = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at").first()
+    if not application:
+        messages.error(request, "No membership application found.")
+        return redirect("member_dashboard")
+
+    payment = PaymentProof.objects.filter(application=application, status=PaymentProof.Status.APPROVED).first()
+    if not payment:
+        messages.error(request, "No approved payment receipt found. Please complete your payment process.")
+        return redirect("member_dashboard")
+
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="payment-receipt-{payment.utr_number}.pdf"'
     page = canvas.Canvas(response, pagesize=A4)

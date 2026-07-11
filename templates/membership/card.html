@@ -24,18 +24,43 @@
       <p class="small mt-8">Download or share your QR-verifiable association membership.</p>
     </div>
   </div>
-  <div class="grid grid-2">
-    {% include "includes/member_card.html" with application=member.application member=member locked=locked passport_photo_url=passport_photo_url qr_code_url=qr_code_url %}
-    <div class="card">
-      <h3 class="h-card mb-16">Card downloads</h3>
-      <p class="small">The card contains the association logo, member photo, membership number, shop details, QR code, validity and digital signature.</p>
-      <div class="actions mt-24">
-        <a class="btn btn-primary" href="{% url 'membership_card_pdf' %}"><i class="bi bi-filetype-pdf"></i> Download PDF</a>
-        <a class="btn btn-secondary" href="{% url 'membership_card_image' %}"><i class="bi bi-image"></i> Download Image</a>
-        <a class="btn btn-secondary" href="{% url 'membership_certificate' %}"><i class="bi bi-award"></i> Certificate</a>
+
+  {% if not member and application %}
+    <div class="card card-center">
+      <h2 class="page-title">Membership Card</h2>
+      {% if application.status == "DRAFT" %}
+        <p class="small mt-8">Please complete and submit your membership application to view your digital membership card.</p>
+      {% elif application.status == "SUBMITTED" %}
+        <p class="small mt-8">Your application is submitted and pending document approval. Your membership card will be available after document verification.</p>
+      {% elif application.status == "ADDITIONAL_DOCUMENTS" %}
+        <p class="small mt-8">Additional documents have been requested. Please upload the requested documents. Your membership card will be available after document verification.</p>
+        {% if application.remarks %}
+          <p class="small mt-8"><strong>Remarks:</strong> {{ application.remarks }}</p>
+        {% endif %}
+      {% elif application.status == "REJECTED" %}
+        <p class="small mt-8">Your application has been rejected. Please review the remarks and contact the association office if needed.</p>
+        {% if application.remarks %}
+          <p class="small mt-8"><strong>Remarks:</strong> {{ application.remarks }}</p>
+        {% endif %}
+      {% else %}
+        <p class="small mt-8">Your membership card will be available once your application is processed.</p>
+      {% endif %}
+      <a class="btn btn-primary mt-16" href="{% url 'member_dashboard' %}">Back to Dashboard</a>
+    </div>
+  {% else %}
+    <div class="grid grid-2">
+      {% include "includes/member_card.html" with application=member.application member=member locked=locked passport_photo_url=passport_photo_url qr_code_url=qr_code_url %}
+      <div class="card">
+        <h3 class="h-card mb-16">Card downloads</h3>
+        <p class="small">The card contains the association logo, member photo, membership number, shop details, QR code, validity and digital signature.</p>
+        <div class="actions mt-24">
+          <a class="btn btn-primary" href="{% url 'membership_card_pdf' %}"><i class="bi bi-filetype-pdf"></i> Download PDF</a>
+          <a class="btn btn-secondary" href="{% url 'membership_card_image' %}"><i class="bi bi-image"></i> Download Image</a>
+          <a class="btn btn-secondary" href="{% url 'membership_certificate' %}"><i class="bi bi-award"></i> Certificate</a>
+        </div>
       </div>
     </div>
-  </div>
+  {% endif %}
     </div>
   </div>
 </div>
