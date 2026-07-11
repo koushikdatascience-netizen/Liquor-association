@@ -30,7 +30,7 @@
       <h3 class="h-card mb-16">Payment details</h3>
       {% if payment_unlocked %}
         <div class="payment-details">
-          <strong>Membership Fee: Rs. {{ MEMBERSHIP_FEE }}</strong>
+            <strong>Membership Fee: Rs. {{ payment_settings.membership_fee }}</strong>
           <span><b>UPI:</b> {{ payment_settings.upi_id|default:"Will be shared by the association office" }}</span>
           <span><b>Bank:</b> {{ payment_settings.bank_name|default:"Will be shared by the association office" }}</span>
           <span><b>Account:</b> {{ payment_settings.account_name|default:"-" }} - {{ payment_settings.account_number|default:"-" }}</span>

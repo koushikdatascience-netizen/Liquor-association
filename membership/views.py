@@ -514,13 +514,17 @@ def verify_member(request, public_id):
 @login_required
 def card(request):
     member = get_object_or_404(Member.objects.select_related("application"), user=request.user, is_active=True)
+    application = member.application
+    # Card is locked if member is not active (payment not completed)
+    card_locked = not member.is_active
     return render(
         request,
         "membership/card.html",
         {
             "member": member,
-            "passport_photo_url": storage_url(member.application.passport_photo),
+            "passport_photo_url": storage_url(application.passport_photo),
             "qr_code_url": storage_url(member.qr_code),
+            "locked": card_locked,
         },
     )
 
