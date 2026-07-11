@@ -198,6 +198,11 @@
       "gst_certificate",
       "address_proof"
     ];
+    const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+    const MAX_DOCUMENT_BYTES = 15 * 1024 * 1024;
+    const IMAGE_COMPRESS_THRESHOLD = 1200 * 1024;
+    const IMAGE_MAX_DIMENSION = 1600;
+    const IMAGE_JPEG_QUALITY = 0.78;
     const fieldLabels = {
       full_name: "Full name",
       nationality: "Nationality",
@@ -307,6 +312,20 @@
       return !String(field.value || "").trim();
     }
 
+    function formatFileSize(bytes){
+      if(bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1).replace(".0", "") + " MB";
+      return Math.max(1, Math.round(bytes / 1024)) + " KB";
+    }
+
+    function fileAcceptsPdf(field){
+      return (field.getAttribute("accept") || "").indexOf("application/pdf") >= 0;
+    }
+
+    function fileLimitForField(field, file){
+      if(file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) return MAX_DOCUMENT_BYTES;
+      return fileAcceptsPdf(field) ? MAX_DOCUMENT_BYTES : MAX_IMAGE_BYTES;
+    }
+
     function validateField(field){
       if(field.disabled || field.type === "hidden" || field.type === "button" || field.type === "submit") return true;
       clearFieldError(field);
@@ -320,10 +339,17 @@
         const accept = field.getAttribute("accept") || "";
         const acceptedTypes = accept.split(",").map(function(type){ return type.trim(); }).filter(Boolean);
         const isAccepted = !acceptedTypes.length || acceptedTypes.some(function(type){
-          return type.endsWith("/*") ? file.type.indexOf(type.slice(0, -1)) === 0 : file.type === type;
+          if(type.endsWith("/*")) return file.type.indexOf(type.slice(0, -1)) === 0;
+          if(type.charAt(0) === ".") return file.name.toLowerCase().endsWith(type.toLowerCase());
+          return file.type === type || file.name.toLowerCase().endsWith("." + type.split("/").pop().toLowerCase());
         });
         if(!isAccepted){
           setFieldError(field, accept.indexOf("application/pdf") >= 0 ? "Upload a PDF, JPG, PNG or WebP file." : "Upload a JPG, PNG or WebP image.");
+          return false;
+        }
+        const limit = fileLimitForField(field, file);
+        if(file.size > limit){
+          setFieldError(field, "File is too large. Maximum allowed size is " + formatFileSize(limit) + ".");
           return false;
         }
       }
@@ -342,6 +368,75 @@
         }
       }
       return true;
+    }
+
+    function replaceInputFile(input, file){
+      if(!window.DataTransfer) return false;
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      return true;
+    }
+
+    function imageFileNeedsCompression(file){
+      return file && file.type && file.type.indexOf("image/") === 0 && file.size > IMAGE_COMPRESS_THRESHOLD;
+    }
+
+    function loadImageFromFile(file){
+      return new Promise(function(resolve, reject){
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = function(){
+          URL.revokeObjectURL(url);
+          resolve(img);
+        };
+        img.onerror = function(){
+          URL.revokeObjectURL(url);
+          reject(new Error("Could not read image"));
+        };
+        img.src = url;
+      });
+    }
+
+    function canvasToBlob(canvas, type, quality){
+      return new Promise(function(resolve){
+        canvas.toBlob(resolve, type, quality);
+      });
+    }
+
+    async function compressImageFile(file){
+      const image = await loadImageFromFile(file);
+      const scale = Math.min(1, IMAGE_MAX_DIMENSION / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d", { alpha: false });
+      ctx.drawImage(image, 0, 0, width, height);
+      const blob = await canvasToBlob(canvas, "image/jpeg", IMAGE_JPEG_QUALITY);
+      if(!blob || blob.size >= file.size) return file;
+      const name = file.name.replace(/\.(jpe?g|png|webp)$/i, "") + ".jpg";
+      return new File([blob], name, { type: "image/jpeg", lastModified: Date.now() });
+    }
+
+    async function compressWizardImages(){
+      const inputs = Array.from(applicationWizard.querySelectorAll("input[type='file']"));
+      let compressedCount = 0;
+      let savedBytes = 0;
+      for(const input of inputs){
+        const file = input.files && input.files[0];
+        if(!imageFileNeedsCompression(file)) continue;
+        const compressed = await compressImageFile(file);
+        if(compressed !== file && replaceInputFile(input, compressed)){
+          compressedCount += 1;
+          savedBytes += Math.max(0, file.size - compressed.size);
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+      if(compressedCount && window.toast){
+        window.toast("Compressed " + compressedCount + " image(s), saved " + formatFileSize(savedBytes) + ".");
+      }
     }
 
     function validateDocuments(panel){
@@ -495,16 +590,35 @@
       field.addEventListener("input", function(){ clearFieldError(field); schedulePersist(); });
       field.addEventListener("change", function(){ clearFieldError(field); schedulePersist(); });
     });
-    applicationWizard.addEventListener("submit", function(e){
+    let submitReady = false;
+    applicationWizard.addEventListener("submit", async function(e){
+      if(submitReady) return;
+      e.preventDefault();
       if(!validateAllSteps()){
-        e.preventDefault();
+        return;
+      }
+      if(nextBtn){
+        nextBtn.disabled = true;
+        nextBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Optimizing files...';
+      }
+      try{
+        await compressWizardImages();
+      }catch(_){
+        window.toast && window.toast("Could not optimize one image. Uploading original file.", "warn");
+      }
+      if(!validateAllSteps()){
+        if(nextBtn){
+          nextBtn.disabled = false;
+          nextBtn.innerHTML = submitLabel + ' <i class="bi bi-check2-circle" aria-hidden="true"></i>';
+        }
         return;
       }
       try{ localStorage.removeItem(DRAFT_KEY); }catch(_){}
+      submitReady = true;
       if(nextBtn){
-        nextBtn.disabled = true;
-        nextBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Submitting...';
+        nextBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Uploading...';
       }
+      applicationWizard.submit();
     });
     restoreDraft();
     const errorPanel = panels.find(function(panel){ return panel.querySelector(".errorlist"); });
@@ -516,6 +630,17 @@
   }
 
   // ---------- Upload widgets (drag/drop + preview) ----------
+  function uploadWidgetFormatSize(bytes){
+    if(bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1).replace(".0", "") + " MB";
+    return Math.max(1, Math.round(bytes / 1024)) + " KB";
+  }
+
+  function uploadWidgetLimit(input, file){
+    const acceptsPdf = (input.getAttribute("accept") || "").indexOf("application/pdf") >= 0;
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    return isPdf || acceptsPdf ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+  }
+
   document.querySelectorAll(".upload").forEach(function(root){
     const input = root.querySelector('input[type="file"]');
     if(!input) return;
@@ -561,14 +686,15 @@
       if(dropEl) dropEl.style.display = "flex";
     });
     function showFile(f){
-      if(f.size > 10 * 1024 * 1024){
-        window.toast("Max file size is 10 MB", "warn");
+      const limit = uploadWidgetLimit(input, f);
+      if(f.size > limit){
+        window.toast("Max file size is " + uploadWidgetFormatSize(limit), "warn");
         input.value = "";
         return;
       }
       root.classList.add("is-loading");
       if(nameEl) nameEl.textContent = f.name;
-      if(sizeEl) sizeEl.textContent = (f.size/1024).toFixed(0) + " KB";
+      if(sizeEl) sizeEl.textContent = uploadWidgetFormatSize(f.size);
       if(thumbEl) thumbEl.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i>';
       if(fileEl) fileEl.style.display = "flex";
       if(dropEl) dropEl.style.display = "none";

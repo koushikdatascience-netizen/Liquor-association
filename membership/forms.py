@@ -8,6 +8,9 @@ IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 DOCUMENT_TYPES = IMAGE_TYPES | {"application/pdf"}
 DOCUMENT_EXTENSIONS = IMAGE_EXTENSIONS | {".pdf"}
+MAX_IMAGE_UPLOAD_SIZE = 5 * 1024 * 1024
+MAX_DOCUMENT_UPLOAD_SIZE = 15 * 1024 * 1024
+MAX_PAYMENT_SCREENSHOT_SIZE = 5 * 1024 * 1024
 
 IMAGE_MAGIC = (
     b"\xff\xd8\xff",  # JPEG
@@ -36,6 +39,14 @@ def _file_signature(uploaded_file):
 def _has_allowed_extension(uploaded_file, allowed):
     name = (getattr(uploaded_file, "name", "") or "").lower()
     return any(name.endswith(ext) for ext in allowed)
+
+
+def _file_size(uploaded_file):
+    return getattr(uploaded_file, "size", 0) or 0
+
+
+def _format_mb(size):
+    return f"{size / (1024 * 1024):.0f} MB"
 
 
 class MembershipApplicationForm(forms.ModelForm):
@@ -194,6 +205,14 @@ class MembershipApplicationForm(forms.ModelForm):
             uploaded_file = cleaned_data.get(field_name)
             if not uploaded_file:
                 continue
+            if _file_size(uploaded_file) > MAX_IMAGE_UPLOAD_SIZE:
+                self.add_error(
+                    field_name,
+                    ValidationError(
+                        f"Image is too large. Please upload an image up to {_format_mb(MAX_IMAGE_UPLOAD_SIZE)}."
+                    ),
+                )
+                continue
             signature = _file_signature(uploaded_file)
             if signature != "image" or not _has_allowed_extension(uploaded_file, IMAGE_EXTENSIONS):
                 self.add_error(
@@ -207,6 +226,14 @@ class MembershipApplicationForm(forms.ModelForm):
         for field_name in self.document_fields:
             uploaded_file = cleaned_data.get(field_name)
             if not uploaded_file:
+                continue
+            if _file_size(uploaded_file) > MAX_DOCUMENT_UPLOAD_SIZE:
+                self.add_error(
+                    field_name,
+                    ValidationError(
+                        f"Document is too large. Please upload a file up to {_format_mb(MAX_DOCUMENT_UPLOAD_SIZE)}."
+                    ),
+                )
                 continue
             signature = _file_signature(uploaded_file)
             if signature not in {"pdf", "image"} or not _has_allowed_extension(
@@ -235,6 +262,10 @@ class PaymentProofForm(forms.ModelForm):
         uploaded_file = self.cleaned_data.get("screenshot")
         if not uploaded_file:
             return uploaded_file
+        if _file_size(uploaded_file) > MAX_PAYMENT_SCREENSHOT_SIZE:
+            raise ValidationError(
+                f"Payment screenshot is too large. Please upload an image up to {_format_mb(MAX_PAYMENT_SCREENSHOT_SIZE)}."
+            )
         if _file_signature(uploaded_file) != "image" or not _has_allowed_extension(
             uploaded_file, IMAGE_EXTENSIONS
         ):
