@@ -416,6 +416,39 @@
   color: var(--text-3);
 }
 
+/* ---------- Pill / segmented toggle group (light-surface pattern) ---------- */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  transition: all var(--dur) var(--ease);
+}
+.btn-pill:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.btn-pill.active {
+  background: var(--gold-soft);
+  border-color: transparent;
+  color: var(--maroon);
+}
+/* Segmented group container */
+.btn-group {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* ---------- Wizard / stepper ---------- */
 .stepper {
   display: flex;
