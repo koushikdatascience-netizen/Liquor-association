@@ -106,7 +106,7 @@ body.no-sidebar .topbar-left {
 
 /* Real liquor logo replacing the dummy "W" mark */
 .brand-logo-img {
-  height: 44px;
+  height: 64px;
   width: auto;
   display: inline-block;
   vertical-align: middle;
@@ -114,12 +114,12 @@ body.no-sidebar .topbar-left {
   object-fit: contain;
 }
 .mcard-logo .brand-logo-img {
-  height: 52px;
+  height: 72px;
 }
 .brand .brand-logo-img {
-  height: 44px;
+  height: 64px;
 }
 .admin-brand__mark .brand-logo-img {
-  height: 48px;
+  height: 64px;
   width: auto;
 }
