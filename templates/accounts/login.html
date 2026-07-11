@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Login - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+{% include "includes/messages.html" %}
+<div class="auth-wrap">
+<div class="auth-card auth-card-otp">
+  <span class="eyebrow"><span class="dot"></span> Passwordless access</span>
+  <h2>Member Registration</h2>
+  <p class="sub">Enter your email and mobile number to register. If you already have an account we will simply sign you in — either way, a single OTP verifies and logs you in.</p>
+  <form method="post" class="form django-form">
+    {% csrf_token %}
+    <div class="field">
+      {{ form.email.label_tag }}
+      {{ form.email }}
+      {{ form.email.errors }}
+    </div>
+    <div class="field">
+      {{ form.mobile_number.label_tag }}
+      {{ form.mobile_number }}
+      {{ form.mobile_number.errors }}
+    </div>
+    <div class="otp-note">
+      <i class="bi bi-shield-check"></i>
+      <span>OTP will be sent to your email and WhatsApp.</span>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">Send OTP</button>
+  </form>
+  <a class="btn btn-ghost btn-block mt-8" href="https://wbliquorsocity.com">Back to home</a>
+  
+</div>
+</div>
+{% endblock %}

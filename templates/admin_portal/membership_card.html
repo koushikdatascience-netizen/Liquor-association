@@ -1,0 +1,48 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Membership Card - WB Foreign Liquor and IML Licensees Admin{% endblock %}
+{% block page_title %}Membership Cards{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Membership Card</h1><p class="subtitle">Preview and issue a digital card for the member.</p></div>
+  <div class="page-actions">
+    {% if selected_member %}
+      <a class="btn" href="{% url 'staff_member_card_image' selected_member.id %}"><i class="bi bi-image"></i> Download PNG</a>
+      <a class="btn primary" href="{% url 'staff_member_card_pdf' selected_member.id %}"><i class="bi bi-file-earmark-pdf"></i> Download PDF</a>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+  <div class="card" style="display:grid;place-items:center;background:#fafafa;">
+    {% if selected_member %}
+      <div class="mem-card">
+        <div class="row"><div><div class="brand">{{ selected_member.application.shop_name }}</div><div class="title">Membership Card</div></div><div class="brand" style="text-align:right;">{{ selected_member.valid_till|date:"Y" }}</div></div>
+        <div class="num">{{ selected_member.membership_number }}</div>
+        <div class="grid2">
+          <div><div class="lbl">Member</div><div class="val">{{ selected_member.application.full_name }}</div></div>
+          <div><div class="lbl">Category</div><div class="val">{{ selected_member.category }}</div></div>
+          <div><div class="lbl">Shop</div><div class="val">{{ selected_member.application.shop_name }}</div></div>
+          <div><div class="lbl">District</div><div class="val">{{ selected_member.application.district }}</div></div>
+          <div><div class="lbl">Valid Till</div><div class="val">{{ selected_member.valid_till|date:"d M Y" }}</div></div>
+          <div><div class="lbl">Issued</div><div class="val">{{ selected_member.membership_since|date:"d M Y" }}</div></div>
+        </div>
+        <div class="gold-bar"></div>
+        {% if selected_member.qr_code %}<img class="qr" src="{{ selected_member.qr_code.url }}" alt="QR code">{% else %}<div class="qr" aria-label="QR code"></div>{% endif %}
+      </div>
+    {% else %}
+      <div class="empty"><i class="bi bi-card-heading"></i><div class="t">No members yet</div><div class="s">Generate membership after approving payment.</div></div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card__head"><div class="card__title">Card Options</div></div>
+    <form method="get" class="form-grid">
+      <div class="field full"><label>Member</label><select class="select" name="member" onchange="this.form.submit()">{% for member in members %}<option value="{{ member.id }}" {% if selected_member.id == member.id %}selected{% endif %}>{{ member.application.full_name }} - {{ member.membership_number }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Category</label><input class="input" value="{{ selected_member.category|default:'Regular' }}" readonly></div>
+      <div class="field"><label>Valid till</label><input class="input" value="{{ selected_member.valid_till|date:'Y-m-d' }}" readonly></div>
+      <div class="field full"><label>Verification URL</label><input class="input" value="{{ selected_member.verification_payload }}" readonly></div>
+      {% if selected_member %}<div class="field full"><a class="btn primary" href="{% url 'staff_member_detail' selected_member.id %}"><i class="bi bi-person-badge"></i> Open Member Details</a></div>{% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Liquor Association Admin{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div class="admin-brand">
+  <div class="admin-brand__mark" aria-hidden="true">{% include "includes/brand_logo.html" %}</div>
+  <div>
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">Liquor Association</a></h1>
+    <p>Membership Operations Dashboard</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block nav-global %}
+<a class="admin-portal-link" href="{% url 'home' %}">Member Portal</a>
+{% endblock %}

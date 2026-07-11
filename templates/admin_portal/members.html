@@ -1,0 +1,59 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Members - WB Foreign Liquor and IML Licensees Admin{% endblock %}
+{% block page_title %}Members{% endblock %}
+{% block search_target %}#membersTable{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Members</h1>
+    <p class="subtitle">All active, pending and expired members across the Society.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'export_report' 'renewal-report' 'excel' %}"><i class="bi bi-download"></i> Export</a>
+    <a class="btn primary" href="{% url 'staff_membership_cards' %}"><i class="bi bi-card-heading"></i> Membership Cards</a>
+  </div>
+</div>
+
+{% if active_filter %}
+<div class="filter-chip-row">
+  <span class="filter-chip">
+    {% if active_filter == 'active' %}Active Members
+    {% elif active_filter == 'expired' %}Expired Members
+    {% elif active_filter == 'renewals' %}Renewals Due (30 days)
+    {% else %}{{ active_filter }}{% endif %}
+    <a href="{% url 'staff_members' %}" class="filter-chip__clear" title="Clear filter"><i class="bi bi-x"></i></a>
+  </span>
+</div>
+{% endif %}
+
+<div class="table-wrap">
+  <div class="table-toolbar">
+    <div class="search"><i class="bi bi-search"></i><input data-table-search="#membersTable" placeholder="Search members..." /></div>
+    <select class="select" data-table-filter="#membersTable" data-filter-column="6"><option value="">All statuses</option><option value="Active">Active</option><option value="Expired">Expired</option></select>
+    <select class="select" data-table-filter="#membersTable" data-filter-column="3"><option value="">All districts</option>{% for member in members %}<option value="{{ member.application.district }}">{{ member.application.district }}</option>{% endfor %}</select>
+    <select class="select" data-table-filter="#membersTable"><option value="">All categories</option><option value="Gold">Gold</option><option value="Silver">Silver</option><option value="Regular">Regular</option></select>
+  </div>
+  <table class="table" id="membersTable">
+    <thead><tr><th>Membership</th><th>Member</th><th>Shop</th><th>District</th><th>Mobile</th><th>Validity</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for member in members %}
+      <tr>
+        <td data-label="No">{{ member.membership_number }}</td>
+        <td data-label="Member"><div class="who"><div class="avatar">{{ member.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ member.application.full_name }}</div><div class="s">{{ member.category }}</div></div></div></td>
+        <td data-label="Shop">{{ member.application.shop_name }}</td>
+        <td data-label="District">{{ member.application.district }}</td>
+        <td data-label="Mobile">{{ member.application.mobile_number }}</td>
+        <td data-label="Validity">{{ member.valid_till|date:"d M Y" }}</td>
+        <td data-label="Status"><span class="badge {% if member.is_active %}active{% else %}expired{% endif %}">{% if member.is_active %}Active{% else %}Expired{% endif %}</span></td>
+        <td data-label="Actions"><div class="row-actions">
+          <a class="icon-btn" href="{% url 'staff_member_detail' member.id %}" title="View member"><i class="bi bi-eye"></i></a>
+          <a class="icon-btn" href="{% url 'staff_membership_cards' %}?member={{ member.id }}" title="Card"><i class="bi bi-printer"></i></a>
+          <a class="icon-btn" href="{% url 'staff_member_detail' member.id %}" title="More"><i class="bi bi-three-dots"></i></a>
+        </div></td>
+      </tr>
+      {% empty %}<tr><td colspan="8">No members yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  <div class="table-footer"><span>Showing latest {{ members|length }} members</span><div class="pagination"><button class="pg"><i class="bi bi-chevron-left"></i></button><button class="pg active">1</button><button class="pg"><i class="bi bi-chevron-right"></i></button></div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Dashboard - WB Foreign Liquor and IML Licensees Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Good morning, {{ request.user.get_full_name|default:request.user.username }}</h1>
+    <p class="subtitle">Here's what's happening across the Society today. Click any card to drill down.</p>
+  </div>
+  <div class="page-actions">
+      <!-- Export button removed -->
+  </div>
+</div>
+
+<div class="grid cols-4" style="margin-bottom:24px;">
+  <a class="stat stat--link" href="{% url 'staff_members' %}?status=active">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-people"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Live</span></div><div class="stat__num">{{ stats.total_members }}</div><div class="stat__label">Total Members</div>
+  </a>
+  <a class="stat stat--link" href="{% url 'staff_applications' %}?status=pending">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-hourglass-split"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> New</span></div><div class="stat__num">{{ stats.pending_applications }}</div><div class="stat__label">Pending Applications</div>
+  </a>
+  <a class="stat stat--link" href="{% url 'staff_payments' %}?status=pending">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-cash-stack"></i></div><span class="stat__delta down"><i class="bi bi-arrow-down"></i> Verify</span></div><div class="stat__num">{{ stats.pending_payments }}</div><div class="stat__label">Pending Payments</div>
+  </a>
+  <a class="stat stat--link" href="{% url 'staff_members' %}?status=active">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-shield-check"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Active</span></div><div class="stat__num">{{ stats.active_members }}</div><div class="stat__label">Active Members</div>
+  </a>
+  <a class="stat stat--link" href="{% url 'staff_members' %}?status=expired">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-calendar-x"></i></div><span class="stat__delta down"><i class="bi bi-arrow-down"></i> Watch</span></div><div class="stat__num">{{ stats.expired_members }}</div><div class="stat__label">Expired Members</div>
+  </a>
+  <a class="stat stat--link" href="{% url 'staff_members' %}?status=renewals">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-arrow-repeat"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Due</span></div><div class="stat__num">{{ stats.renewals_due }}</div><div class="stat__label">Renewals Due</div>
+  </a>
+  <a class="stat stat--link" href="{% url 'staff_payments' %}?status=approved">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-currency-rupee"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Paid</span></div><div class="stat__num">&#8377;{{ stats.payment_collection }}</div><div class="stat__label">Revenue Collected</div>
+  </a>
+  <a class="stat stat--link" href="{% url 'staff_applications' %}?status=today">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-person-plus"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Today</span></div><div class="stat__num">{{ stats.today_registrations }}</div><div class="stat__label">Today's Registrations</div>
+  </a>
+</div>
+
+<div class="card">
+  <div class="card__head"><div><div class="card__title">Recent Activity</div><div class="card__sub">Real-time system events</div></div></div>
+  <div class="timeline">
+    {% for log in recent_logs %}
+      <div class="item"><div class="ic gold"><i class="bi bi-activity"></i></div><div><div class="t">{{ log.action }}</div><div class="d">{{ log.target }}{% if log.actor %} by {{ log.actor }}{% endif %}</div></div><div class="when">{{ log.created_at|timesince }} ago</div></div>
+    {% empty %}
+      <p>No activity yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

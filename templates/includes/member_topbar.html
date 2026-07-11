@@ -1,0 +1,11 @@
+<header class="member-topbar">
+  <div class="mt-left">
+    {% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}
+  </div>
+  <div class="mt-right">
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="btn btn-ghost btn-sm" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign out</button>
+    </form>
+  </div>
+</header>

@@ -1,0 +1,46 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Masters - WB Foreign Liquor and IML Licensees Admin{% endblock %}
+{% block page_title %}Masters{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Masters</h1><p class="subtitle">Manage reference data used across the system.</p></div><div class="page-actions"><button class="btn primary" type="button"><i class="bi bi-plus-lg"></i> Add entry</button></div></div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="districts">Districts</button>
+  <button class="tab" data-tab="categories">Membership Category</button>
+  <button class="tab" data-tab="licenses">License Types</button>
+  <button class="tab" data-tab="doctypes">Document Types</button>
+  <button class="tab" data-tab="fees">Membership Fees</button>
+</div>
+
+<div data-tab-panel="districts">
+  <div class="table-wrap"><div class="table-toolbar"><div class="search"><i class="bi bi-search"></i><input placeholder="Search districts..." data-table-search="#districtsTable"></div></div>
+    <table class="table" id="districtsTable"><thead><tr><th>Code</th><th>District</th><th>Zone</th><th>Members</th><th></th></tr></thead><tbody>
+      {% for district in districts %}<tr><td>{{ district.district|slice:":3"|upper }}</td><td>{{ district.district|default:"Not provided" }}</td><td>West Bengal</td><td>{{ district.total }}</td><td><div class="row-actions"><button class="icon-btn" type="button"><i class="bi bi-pencil"></i></button></div></td></tr>{% empty %}<tr><td colspan="5">No district data yet.</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+
+<div data-tab-panel="categories" style="display:none;">
+  <div class="table-wrap"><table class="table"><thead><tr><th>Category</th><th>Annual Fee</th><th>Members</th><th></th></tr></thead><tbody>
+    {% for category in categories %}<tr><td><span class="badge {% if category.category == 'Gold' %}gold{% endif %}">{{ category.category|default:"Regular" }}</span></td><td>&#8377;{{ membership_fee }}</td><td>{{ category.total }}</td><td><div class="row-actions"><button class="icon-btn" type="button"><i class="bi bi-pencil"></i></button></div></td></tr>{% empty %}<tr><td><span class="badge">Regular</span></td><td>&#8377;{{ membership_fee }}</td><td>0</td><td></td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+
+<div data-tab-panel="licenses" style="display:none;">
+  <div class="table-wrap"><table class="table"><thead><tr><th>Code</th><th>License</th><th>Members</th><th></th></tr></thead><tbody>
+    {% for license in license_types %}<tr><td>{{ license.excise_license_type|slice:":6"|upper }}</td><td>{{ license.excise_license_type|default:"Not provided" }}</td><td>{{ license.total }}</td><td><div class="row-actions"><button class="icon-btn" type="button"><i class="bi bi-pencil"></i></button></div></td></tr>{% empty %}<tr><td colspan="4">No license data yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+
+<div data-tab-panel="doctypes" style="display:none;">
+  <div class="table-wrap"><table class="table"><thead><tr><th>Document</th><th>Required</th><th>Formats</th><th></th></tr></thead><tbody>
+    {% for name, required, formats in document_types %}<tr><td>{{ name }}</td><td>{{ required }}</td><td>{{ formats }}</td><td><div class="row-actions"><button class="icon-btn" type="button"><i class="bi bi-pencil"></i></button></div></td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+
+<div data-tab-panel="fees" style="display:none;">
+  <div class="table-wrap"><table class="table"><thead><tr><th>Category</th><th>New Fee</th><th>Renewal Fee</th><th>Late Fee</th><th></th></tr></thead><tbody>
+    <tr><td>Regular</td><td>&#8377;{{ membership_fee }}</td><td>&#8377;{{ membership_fee }}</td><td>&#8377;0</td><td><div class="row-actions"><button class="icon-btn" type="button"><i class="bi bi-pencil"></i></button></div></td></tr>
+  </tbody></table></div>
+</div>
+{% endblock %}

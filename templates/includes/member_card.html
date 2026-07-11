@@ -1,0 +1,33 @@
+<div class="mcard {% if locked %}locked{% endif %}">
+  <div class="mcard-head">
+    <div class="mcard-logo">{% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}</div>
+    <span class="badge {% if locked %}muted{% else %}gold{% endif %}">{% if locked %}Pending{% else %}Active{% endif %}</span>
+  </div>
+  <div class="mcard-body">
+    <div class="mcard-photo">
+      {% if passport_photo_url %}
+        <img src="{{ passport_photo_url }}" alt="{{ application.full_name|default:'' }}">
+      {% else %}
+        <i class="bi bi-person"></i>
+      {% endif %}
+    </div>
+    <div>
+      <div class="mcard-name">{{ application.full_name|default:"Member" }}</div>
+      <div class="mcard-role">{{ application.shop_name|default:"" }}</div>
+      <div class="small mt-8 mcard-hidden">{{ member.membership_number|default:"MEM-XXXX-XXXX" }}</div>
+    </div>
+    <div class="mcard-qr">
+      {% if qr_code_url and not locked %}
+        <img src="{{ qr_code_url }}" alt="Membership QR code">
+      {% else %}
+        <i class="bi bi-qr-code"></i>
+      {% endif %}
+    </div>
+  </div>
+  <div class="mcard-foot">
+    <div>District<span class="mcard-hidden">{{ application.district|default:"—" }}</span></div>
+    <div>Mobile<span class="mcard-hidden">{{ application.mobile_number|default:"—" }}</span></div>
+    <div>Category<span class="mcard-hidden">{{ member.category|default:"—" }}</span></div>
+    <div>Valid Till<span class="mcard-hidden">{{ member.valid_till|date:"d M Y"|default:"—" }}</span></div>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="sidebar-backdrop"></div>
+<aside class="sidebar">
+  <button class="sidebar-close" data-sidebar-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
+  <a href="{% url 'member_dashboard' %}" class="brand">{% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}</a>
+
+  <a href="{% url 'member_dashboard' %}" class="side-link {% if request.resolver_match.url_name == 'member_dashboard' %}active{% endif %}"><i class="bi bi-house"></i> Dashboard</a>
+
+  <div class="side-section">Application</div>
+  <a href="{% url 'application_create' %}#step=1" class="side-link" data-step-target="1"><i class="bi bi-person"></i> Personal Details</a>
+  <a href="{% url 'application_create' %}#step=2" class="side-link" data-step-target="2"><i class="bi bi-shop"></i> Business Details</a>
+  <a href="{% url 'application_create' %}#step=3" class="side-link" data-step-target="3"><i class="bi bi-people"></i> Partners / Entity</a>
+  <a href="{% url 'application_create' %}#step=4" class="side-link" data-step-target="4"><i class="bi bi-file-earmark-text"></i> Documents</a>
+
+  <div class="side-section">Account</div>
+  {% if application and application.id %}
+    <a href="{% url 'payment_upload' application.id %}" class="side-link {% if request.resolver_match.url_name == 'payment_upload' %}active{% endif %}"><i class="bi bi-credit-card"></i> Payments</a>
+  {% else %}
+    <a href="{% url 'member_dashboard' %}#payment" class="side-link"><i class="bi bi-credit-card"></i> Payments</a>
+  {% endif %}
+  <a href="{% url 'membership_card' %}" class="side-link {% if request.resolver_match.url_name == 'membership_card' %}active{% endif %}"><i class="bi bi-person-vcard"></i> Membership Card</a>
+  <a href="{% url 'member_profile' %}" class="side-link {% if request.resolver_match.url_name == 'member_profile' %}active{% endif %}"><i class="bi bi-person-circle"></i> Profile</a>
+
+  <form method="post" action="{% url 'logout' %}" class="side-logout">
+    {% csrf_token %}
+    <button class="side-link" type="submit"><i class="bi bi-box-arrow-right"></i> Sign out</button>
+  </form>
+</aside>

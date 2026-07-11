@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Application — Document upload — WBFL Association</title>
+<link rel="icon" href="../favicon.ico"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"/>
+<link rel="stylesheet" href="../assets/css/style.css"/>
+<link rel="stylesheet" href="../assets/css/components.css"/>
+<link rel="stylesheet" href="../assets/css/responsive.css"/>
+
+</head><body>
+<div class="portal">
+  <div class="sidebar-backdrop"></div>
+  <aside class="sidebar">
+    <button class="sidebar-close" data-sidebar-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
+    <a href="../index.html" class="brand"><span class="brand-mark">W</span> WBFL Portal</a>
+    <div class="side-section">Overview</div>
+    <a href="../dashboard.html" class="side-link"><i class="bi bi-grid"></i> Dashboard</a>
+    <a href="../member/notifications.html" class="side-link"><i class="bi bi-bell"></i> Notifications</a>
+    <div class="side-section">Membership</div>
+    <a href="../membership/step1.html" class="side-link active"><i class="bi bi-file-earmark-text"></i> Application</a>
+    <a href="../membership/status.html" class="side-link"><i class="bi bi-hourglass-split"></i> Status</a>
+    <a href="../payment/payment.html" class="side-link"><i class="bi bi-credit-card"></i> Payment</a>
+    <a href="../member/membership-card.html" class="side-link"><i class="bi bi-person-vcard"></i> Membership Card</a>
+    <div class="side-section">Account</div>
+    <a href="../member/profile.html" class="side-link"><i class="bi bi-person"></i> Profile</a>
+    <a href="../login.html" class="side-link"><i class="bi bi-box-arrow-right"></i> Sign out</a>
+  </aside>
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left"><button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+      <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search..." aria-label="Search"/></div></div>
+      <div class="topbar-right"><a href="../member/notifications.html" class="icon-btn" aria-label="Notifications"><i class="bi bi-bell"></i><span class="dot-badge"></span></a><div class="avatar">AK</div></div>
+    </header>
+    <div class="page">
+      <div class="breadcrumb"><a href="../dashboard.html">Home</a> <i class="bi bi-chevron-right"></i> Application</div>
+
+      <div class="page-head">
+        <div><h1 class="page-title">Membership application</h1><p class="small mt-8">Complete all steps to submit your application for review.</p></div>
+      </div>
+      <div class="stepper" role="navigation" aria-label="Application steps"><div class="st done"><div class="st-num"><i class="bi bi-check" aria-hidden="true"></i></div><div class="st-label">Personal</div></div><div class="st-sep"></div><div class="st done"><div class="st-num"><i class="bi bi-check" aria-hidden="true"></i></div><div class="st-label">Business</div></div><div class="st-sep"></div><div class="st done"><div class="st-num"><i class="bi bi-check" aria-hidden="true"></i></div><div class="st-label">Delegate</div></div><div class="st-sep"></div><div class="st active"><div class="st-num">4</div><div class="st-label">Documents</div></div><div class="st-sep"></div><div class="st "><div class="st-num">5</div><div class="st-label">Declaration</div></div><div class="st-sep"></div><div class="st "><div class="st-num">6</div><div class="st-label">Review</div></div></div>
+      <div class="wizard-card">
+        <section class="step-panel active">
+          <h3>Document upload</h3>
+          <p class="sub">Upload clear scans or photographs.</p>
+          
+          <p class="sub">Accepted formats: PDF, JPG, PNG (max 10 MB each).</p>
+          <div class="upload-grid">
+            <div class="upload" data-target="docLicence"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical" aria-hidden="true"></i></div><div><h5>Licence copy</h5><p>Current excise licence (Off / On / CS / Bar)</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+            <div class="upload" data-target="docPropPhoto"><div class="upload-head"><div class="u-ic"><i class="bi bi-person-badge" aria-hidden="true"></i></div><div><h5>Proprietor / Partner photo</h5><p>23mm x 23mm colour photograph</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+            <div class="upload" data-target="docAltPhoto"><div class="upload-head"><div class="u-ic"><i class="bi bi-person-vcard" aria-hidden="true"></i></div><div><h5>Alternate representative photo</h5><p>23mm x 23mm colour photograph</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+            <div class="upload" data-target="docPan"><div class="upload-head"><div class="u-ic"><i class="bi bi-card-text" aria-hidden="true"></i></div><div><h5>PAN card</h5><p>PAN of proprietor / firm / company</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+            <div class="upload" data-target="docAadhaar"><div class="upload-head"><div class="u-ic"><i class="bi bi-fingerprint" aria-hidden="true"></i></div><div><h5>Aadhaar</h5><p>Aadhaar of the delegate</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+            <div class="upload" data-target="docDeed"><div class="upload-head"><div class="u-ic"><i class="bi bi-building" aria-hidden="true"></i></div><div><h5>Partnership deed / MOA</h5><p>For firms and Pvt. Ltd. companies</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+            <div class="upload" data-target="docGst"><div class="upload-head"><div class="u-ic"><i class="bi bi-receipt" aria-hidden="true"></i></div><div><h5>GST certificate</h5><p>Latest GST registration document</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+            <div class="upload" data-target="docAddress"><div class="upload-head"><div class="u-ic"><i class="bi bi-geo-alt" aria-hidden="true"></i></div><div><h5>Address proof</h5><p>Utility bill / rent agreement</p></div></div>
+        <div class="upload-drop"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>Drag &amp; drop or click to upload</div>
+        <input type="file" hidden/><div class="upload-file" style="display:none"><i class="bi bi-file-earmark" aria-hidden="true"></i><span class="name"></span><span class="small size"></span><button class="rm" type="button" aria-label="Remove file"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></div>
+          </div>
+        </section>
+        <div class="wiz-footer">
+          <button class="btn btn-secondary" id="prevBtn" type="button"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
+          <div class="flex gap-8">
+            <button class="btn btn-ghost" id="saveBtn" type="button"><i class="bi bi-save" aria-hidden="true"></i> Save draft</button>
+            <button class="btn btn-primary" id="nextBtn" type="button">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/navigation.js"></script>
+<script src="../assets/js/validation.js"></script>
+<script>window.WIZARD_STEP=4;window.WIZARD_PREV="step3.html";window.WIZARD_NEXT="step5.html";</script>
+</body></html>

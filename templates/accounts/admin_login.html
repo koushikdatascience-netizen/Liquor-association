@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Admin Login - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+{% include "includes/messages.html" %}
+<div class="auth-wrap">
+  <div class="auth-card auth-card-otp">
+    <span class="eyebrow"><span class="dot"></span> Admin access</span>
+    <h2>Admin Login</h2>
+    <p class="sub">Administrators must sign in with their username or email and password.</p>
+<form method="post" class="form django-form">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="password-note">
+    <i class="bi bi-key"></i>
+    <span>Password login is required for admin users.</span>
+  </div>
+  <button class="btn btn-primary btn-block" type="submit">Sign in as Admin</button>
+</form>
+    <p class="auth-alt"><a href="https://wbliquorsocity.com/">Back to home</a></p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+/* Simple member portal: hide sidebar, top-right logout only */
+body.no-sidebar .sidebar,
+body.no-sidebar .sidebar-backdrop {
+  display: none !important;
+}
+body.no-sidebar .portal {
+  display: block;
+}
+body.no-sidebar .portal-main {
+  margin-left: 0;
+}
+body.no-sidebar .topbar-left {
+  display: none;
+}
+
+.member-topbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid var(--border, #eceef2);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.member-topbar .mt-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+.member-topbar .brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--maroon, #6d0f1a), var(--red, #a3161f));
+  color: #fff;
+  font-weight: 800;
+}
+
+.member-shell {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+.member-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--gold-soft, #f7edd0);
+  border: 1px solid #e8d29a;
+  color: #7a5c00;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  font-weight: 600;
+}
+.member-status-banner i {
+  font-size: 20px;
+}
+.member-status-banner.warn {
+  background: #fdeeee;
+  border-color: #f0c2c4;
+  color: var(--red, #a3161f);
+}
+.member-status-banner.ok {
+  background: #eef6ee;
+  border-color: #c3e0c3;
+  color: #1c7a43;
+}
+
+.member-payment {
+  margin-top: 26px;
+}
+.member-payment .card {
+  border-radius: 16px;
+}
+
+/* Locked card: blur photo + hide sensitive details until approval */
+.mcard.locked .mcard-photo img {
+  filter: blur(10px);
+}
+.mcard.locked .mcard-hidden {
+  filter: blur(6px);
+  user-select: none;
+}
+.mcard .badge.muted {
+  background: #eef0f4;
+  color: #8a93a6;
+}
+
+.card-center {
+  text-align: center;
+  padding: 48px 24px;
+  border-radius: 16px;
+}
+.card-center .btn {
+  margin-top: 18px;
+}
+
+/* Real liquor logo replacing the dummy "W" mark */
+.brand-logo-img {
+  height: 44px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.mcard-logo .brand-logo-img {
+  height: 52px;
+}
+.brand .brand-logo-img {
+  height: 44px;
+}
+.admin-brand__mark .brand-logo-img {
+  height: 48px;
+  width: auto;
+}

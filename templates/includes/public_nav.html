@@ -1,0 +1,41 @@
+<header class="nav">
+  <div class="container nav-inner">
+    <a href="{% url 'home' %}" class="brand">{% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}</a>
+    <nav class="nav-links">
+      <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+      <a href="{% url 'home' %}#about">About</a>
+      <a href="{% url 'home' %}#benefits">Benefits</a>
+      <a href="{% url 'home' %}#membership">Membership</a>
+      <a href="{% url 'home' %}#contact">Contact</a>
+    </nav>
+    <div class="nav-cta">
+      {% if user.is_authenticated %}
+        <a href="{% url 'member_dashboard' %}" class="btn btn-ghost btn-sm hide-mobile">Dashboard</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn btn-ghost btn-sm hide-mobile">Login</a>
+      {% endif %}
+      <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Get Started</a>
+      <a class="btn btn-admin btn-sm hide-mobile" href="{% url 'staff_dashboard' %}">
+        <i class="bi bi-arrow-up-right-square-fill" aria-hidden="true"></i>
+        Admin Login
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Menu" aria-expanded="false" aria-controls="mobileSheet">
+        <i class="bi bi-list"></i>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-sheet" id="mobileSheet">
+    <a href="{% url 'home' %}">Home</a>
+    <a href="{% url 'home' %}#about">About</a>
+    <a href="{% url 'home' %}#benefits">Benefits</a>
+    <a href="{% url 'home' %}#membership">Membership</a>
+    <a href="{% url 'home' %}#contact">Contact</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'member_dashboard' %}">Dashboard</a>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+    {% endif %}
+    <a href="{% url 'register' %}">Get Started</a>
+    <a href="{% url 'staff_dashboard' %}"><i class="bi bi-arrow-up-right-square-fill" aria-hidden="true"></i> Admin Login</a>
+  </div>
+</header>

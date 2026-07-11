@@ -1,0 +1,94 @@
+services:
+  - type: web
+    name: liquor-association-web
+    runtime: docker
+    plan: starter
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    autoDeploy: false
+    healthCheckPath: /
+    disk:
+      name: liquor-association-media
+      mountPath: /app/media
+      sizeGB: 1
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: liquor-association-db
+          property: connectionString
+      - key: ASSOCIATION_NAME
+        value: Liquor Association
+      - key: MEMBERSHIP_FEE
+        value: "5000.00"
+      - key: ACCOUNT_REQUIRE_OTP_VERIFICATION
+        value: "False"
+      - key: USE_CLOUDINARY
+        value: "True"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: DJANGO_ADMIN_USERNAME
+        value: admin
+      - key: DJANGO_ADMIN_EMAIL
+        value: admin@example.com
+      - key: DJANGO_ADMIN_PASSWORD
+        sync: false
+      - key: PAYMENT_UPI_ID
+        sync: false
+      - key: PAYMENT_BANK_NAME
+        sync: false
+      - key: PAYMENT_ACCOUNT_NAME
+        sync: false
+      - key: PAYMENT_ACCOUNT_NUMBER
+        sync: false
+      - key: PAYMENT_IFSC
+        sync: false
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: SMTP_HOST
+        value: smtp.hostinger.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USERNAME
+        value: wbliquor@snapkey.in
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        value: wbliquor@snapkey.in
+      - key: SMTP_FROM_NAME
+        value: Liquor Association
+      - key: SMTP_USE_SSL
+        value: "True"
+      - key: EMAIL_USE_SSL
+        value: "True"
+      - key: EMAIL_USE_TLS
+        value: "False"
+      - key: EMAIL_TIMEOUT
+        value: "10"
+      - key: ADMIN_NOTIFICATION_EMAIL
+        value: societywelfarewbfllicences@gmail.com
+      - key: PINBOT_API_BASE_URL
+        value: https://partnersv1.pinbot.ai/v3
+      - key: PINBOT_PHONE_NUMBER_ID
+        value: "908272842364302"
+      - key: PINBOT_API_KEY
+        sync: false
+      - key: PINBOT_LANGUAGE_CODE
+        value: en
+      - key: PINBOT_NOTIFICATION_TEMPLATE_NAME
+        value: support_request
+      - key: WHATSAPP_NOTIFICATIONS_ENABLED
+        value: "False"
+
+databases:
+  - name: liquor-association-db
+    plan: starter
+    databaseName: registration
+    user: registration

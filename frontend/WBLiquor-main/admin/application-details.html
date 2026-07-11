@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Application #APP-2841 — Liquor Society Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/responsive.css" />
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="page-head">
+    <div>
+      <h1>Application #APP-2841</h1>
+      <p class="subtitle">Submitted 06 Jul 2026 · <span class="badge pending" style="margin-left:8px;">Pending review</span></p>
+    </div>
+    <div class="page-actions">
+      <button class="btn"><i class="bi bi-printer"></i> Print</button>
+      <button class="btn"><i class="bi bi-download"></i> Download</button>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <div class="card__head"><div class="card__title">Applicant Information</div></div>
+      <dl class="kv">
+        <dt>Full name</dt><dd>Suman Ghosh</dd>
+        <dt>Father's name</dt><dd>Amitava Ghosh</dd>
+        <dt>Date of birth</dt><dd>14 Feb 1982</dd>
+        <dt>Mobile</dt><dd>+91 98765 43210</dd>
+        <dt>Email</dt><dd>suman@example.com</dd>
+        <dt>Address</dt><dd>14/B Park Street, Kolkata 700016</dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <div class="card__head"><div class="card__title">Business Information</div></div>
+      <dl class="kv">
+        <dt>Shop name</dt><dd>Suman Enterprise</dd>
+        <dt>License type</dt><dd>FL-Off (Foreign Liquor Off)</dd>
+        <dt>License number</dt><dd>WB-FL-OFF-88214</dd>
+        <dt>District</dt><dd>Kolkata</dd>
+        <dt>GST</dt><dd>19ABCDE1234F1Z5</dd>
+        <dt>Established</dt><dd>2011</dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <div class="card__head"><div class="card__title">Representative</div></div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="avatar" style="width:56px;height:56px;font-size:18px;">SM</div>
+        <div>
+          <div style="font-weight:600;">Sourav Mitra</div>
+          <div style="font-size:12px;color:var(--text-3);">Manager · +91 98311 22334</div>
+        </div>
+      </div>
+      <dl class="kv" style="margin-top:20px;">
+        <dt>Role</dt><dd>Authorised representative</dd>
+        <dt>Aadhaar</dt><dd>XXXX XXXX 4821</dd>
+        <dt>PAN</dt><dd>ABCDE1234F</dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <div class="card__head"><div class="card__title">Remarks</div></div>
+      <textarea class="textarea" placeholder="Add internal remarks visible to admins only…"></textarea>
+      <button class="btn primary sm" style="margin-top:12px;"><i class="bi bi-plus-lg"></i> Add remark</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="card__head">
+      <div><div class="card__title">Documents</div><div class="card__sub">6 files uploaded</div></div>
+      <button class="btn sm"><i class="bi bi-download"></i> Download all</button>
+    </div>
+    <div class="grid cols-4">
+      <div class="doc-card"><div class="thumb"><i class="bi bi-file-earmark-image"></i></div><div class="body"><div><div class="name">Aadhaar Card</div><div class="sub">PDF · 421 KB</div></div><button class="icon-btn"><i class="bi bi-eye"></i></button></div></div>
+      <div class="doc-card"><div class="thumb"><i class="bi bi-file-earmark-image"></i></div><div class="body"><div><div class="name">PAN Card</div><div class="sub">JPG · 88 KB</div></div><button class="icon-btn"><i class="bi bi-eye"></i></button></div></div>
+      <div class="doc-card"><div class="thumb"><i class="bi bi-file-earmark-pdf"></i></div><div class="body"><div><div class="name">Trade License</div><div class="sub">PDF · 1.2 MB</div></div><button class="icon-btn"><i class="bi bi-eye"></i></button></div></div>
+      <div class="doc-card"><div class="thumb"><i class="bi bi-file-earmark-pdf"></i></div><div class="body"><div><div class="name">Liquor License</div><div class="sub">PDF · 940 KB</div></div><button class="icon-btn"><i class="bi bi-eye"></i></button></div></div>
+      <div class="doc-card"><div class="thumb"><i class="bi bi-file-earmark-image"></i></div><div class="body"><div><div class="name">Shop Photo</div><div class="sub">JPG · 2.1 MB</div></div><button class="icon-btn"><i class="bi bi-eye"></i></button></div></div>
+      <div class="doc-card"><div class="thumb"><i class="bi bi-file-earmark-pdf"></i></div><div class="body"><div><div class="name">GST Certificate</div><div class="sub">PDF · 320 KB</div></div><button class="icon-btn"><i class="bi bi-eye"></i></button></div></div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn"><i class="bi bi-envelope"></i> Request Documents</button>
+    <button class="btn danger"><i class="bi bi-x-lg"></i> Reject</button>
+    <button class="btn primary" data-open-modal="approveModal"><i class="bi bi-check-lg"></i> Approve Application</button>
+  </div>
+
+  <div class="modal-backdrop" id="approveModal">
+    <div class="modal">
+      <h3>Approve this application?</h3>
+      <p>Approving will notify the applicant and generate an invoice for the membership fee. This cannot be undone.</p>
+      <div class="actions">
+        <button class="btn" data-close-modal>Cancel</button>
+        <button class="btn primary" onclick="toast('Application approved','success');closeModal('approveModal');">Yes, approve</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/modal.js"></script>
+<script src="assets/js/table.js"></script>
+<script>
+  mountShell({ page: "applications", title: "Application details", crumbs: [
+    { label: "Home", href: "dashboard.html" },
+    { label: "Applications", href: "applications.html" },
+  ]});
+</script>
+</body>
+</html>

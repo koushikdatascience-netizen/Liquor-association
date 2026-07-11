@@ -1,0 +1,102 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Applications - WB Foreign Liquor and IML Licensees Admin{% endblock %}
+{% block page_title %}Applications{% endblock %}
+{% block search_target %}#applicationsTable{% endblock %}
+{% block content %}
+<style>
+  .application-actions{display:flex;gap:6px;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap}
+  .application-actions form{margin:0}
+  .reject-inline{position:relative}
+  .reject-toggle{cursor:pointer}
+  .reject-panel{position:absolute;right:0;top:36px;z-index:5;width:260px;padding:10px;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 18px 40px rgba(15,23,42,.14)}
+  .reject-panel textarea{min-height:84px;font-size:12px}
+  .reject-panel .btn{width:100%;margin-top:8px}
+  .reject-inline[open] .reject-toggle{background:#fff5f5;color:#b91c1c}
+  .application-actions .approve-action{background:#ecfdf5;color:#047857;border-color:#bbf7d0}
+  .application-actions .reject-action{background:#fff5f5;color:#b91c1c;border-color:#fecaca}
+</style>
+<div class="page-head">
+  <div>
+    <h1>Applications</h1>
+    <p class="subtitle">Review and process incoming membership applications.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="{% url 'export_report' 'pending-kyc' 'excel' %}"><i class="bi bi-download"></i> Export CSV</a>
+  </div>
+</div>
+
+{% if active_filter %}
+<div class="filter-chip-row">
+  <span class="filter-chip">
+    {% if active_filter == 'pending' %}Pending Review
+    {% elif active_filter == 'approved' %}Approved
+    {% elif active_filter == 'rejected' %}Rejected
+    {% elif active_filter == 'docs_requested' %}Docs Requested
+    {% elif active_filter == 'today' %}Today's Registrations
+    {% else %}{{ active_filter }}{% endif %}
+    <a href="{% url 'staff_applications' %}" class="filter-chip__clear" title="Clear filter"><i class="bi bi-x"></i></a>
+  </span>
+</div>
+{% endif %}
+
+<div class="table-wrap">
+  <div class="table-toolbar">
+    <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..." /></div>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="6"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option><option value="Additional">Docs Requested</option></select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="4"><option value="">All districts</option>{% for app in applications %}<option value="{{ app.district }}">{{ app.district }}</option>{% endfor %}</select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="3"><option value="">All licenses</option>{% for app in applications %}<option value="{{ app.excise_license_type }}">{{ app.excise_license_type }}</option>{% endfor %}</select>
+    <input class="input" style="max-width:180px;" type="date" />
+    <button class="btn" style="margin-left:auto;" type="button" data-table-reset="#applicationsTable"><i class="bi bi-funnel"></i> Clear filters</button>
+  </div>
+
+  <table class="table" id="applicationsTable">
+    <thead><tr><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for app in applications %}
+      <tr>
+        <td data-label="No">#APP-{{ app.id|stringformat:"04d" }}</td>
+        <td data-label="Applicant"><a class="who" href="{% url 'staff_application_detail' app.id %}" style="text-decoration:none;color:inherit;"><div class="avatar">{{ app.full_name|slice:":2"|upper }}</div><div><div class="n">{{ app.full_name }}</div><div class="s">{{ app.email }}</div></div></a></td>
+        <td data-label="Shop">{{ app.shop_name }}</td>
+        <td data-label="License">{{ app.excise_license_type }}</td>
+        <td data-label="District">{{ app.district }}</td>
+        <td data-label="Submitted">{{ app.created_at|date:"d M Y" }}</td>
+        <td data-label="Status"><span class="badge {% if app.status == 'REJECTED' %}rejected{% elif app.status == 'APPROVED_PENDING_PAYMENT' or app.status == 'PAYMENT_APPROVED' or app.status == 'MEMBER_ACTIVE' %}approved{% elif app.status == 'ADDITIONAL_DOCUMENTS' %}payment-pending{% else %}pending{% endif %}">{{ app.get_status_display }}</span></td>
+        <td data-label="Actions"><div class="application-actions">
+          <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="View details"><i class="bi bi-eye"></i></a>
+          {% if app.can_inline_review %}
+            <form method="post" action="{% url 'staff_application_action' app.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'staff_applications' %}">
+              <button class="icon-btn approve-action" name="action" value="approve_documents" type="submit" title="Approve documents"><i class="bi bi-check2"></i></button>
+            </form>
+            <details class="reject-inline">
+              <summary class="icon-btn reject-toggle reject-action" title="Reject application"><i class="bi bi-x-lg"></i></summary>
+              <form class="reject-panel" method="post" action="{% url 'staff_application_action' app.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'staff_applications' %}">
+                <textarea class="textarea" name="remarks" required placeholder="Write rejection remarks for the member...">{{ app.remarks }}</textarea>
+                <button class="btn danger sm" name="action" value="reject_documents" type="submit"><i class="bi bi-x-circle"></i> Reject</button>
+              </form>
+            </details>
+          {% elif app.status == 'APPROVED_PENDING_PAYMENT' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Waiting for payment"><i class="bi bi-hourglass-split"></i></a>
+          {% elif app.status == 'PAYMENT_SUBMITTED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Verify payment"><i class="bi bi-receipt"></i></a>
+          {% elif app.status == 'PAYMENT_APPROVED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Activate membership"><i class="bi bi-card-heading"></i></a>
+          {% elif app.status == 'MEMBER_ACTIVE' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Member active"><i class="bi bi-person-check"></i></a>
+          {% elif app.status == 'ADDITIONAL_DOCUMENTS' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Waiting for documents"><i class="bi bi-envelope-paper"></i></a>
+          {% elif app.status == 'REJECTED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Rejected"><i class="bi bi-x-circle"></i></a>
+          {% endif %}
+        </div></td>
+      </tr>
+      {% empty %}<tr><td colspan="8">No applications yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+
+  <div class="table-footer"><span>Showing latest {{ applications|length }} applications</span><div class="pagination"><button class="pg"><i class="bi bi-chevron-left"></i></button><button class="pg active">1</button><button class="pg"><i class="bi bi-chevron-right"></i></button></div></div>
+</div>
+{% endblock %}

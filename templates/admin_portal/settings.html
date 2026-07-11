@@ -1,0 +1,64 @@
+{% extends "admin_portal/base.html" %}
+{% block title %}Settings - WB Foreign Liquor and IML Licensees Admin{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Settings</h1><p class="subtitle">Update payment details shown to approved applicants.</p></div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card__head">
+      <div>
+        <div class="card__title">Payment Details & QR</div>
+        <div class="card__sub">These details appear on the member payment page after document approval.</div>
+      </div>
+      <button class="btn primary" type="submit"><i class="bi bi-check2"></i> Save changes</button>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        {{ payment_settings_form.account_name.label_tag }}
+        {{ payment_settings_form.account_name }}
+        {{ payment_settings_form.account_name.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.bank_name.label_tag }}
+        {{ payment_settings_form.bank_name }}
+        {{ payment_settings_form.bank_name.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.account_number.label_tag }}
+        {{ payment_settings_form.account_number }}
+        {{ payment_settings_form.account_number.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.ifsc.label_tag }}
+        {{ payment_settings_form.ifsc }}
+        {{ payment_settings_form.ifsc.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.upi_id.label_tag }}
+        {{ payment_settings_form.upi_id }}
+        {{ payment_settings_form.upi_id.errors }}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.qr_code.label_tag }}
+        {{ payment_settings_form.qr_code }}
+        {{ payment_settings_form.qr_code.errors }}
+        {% if payment_settings.qr_url %}
+          <div class="upload" style="margin-top:12px;">
+            <img src="{{ payment_settings.qr_url }}" alt="Current UPI QR code" style="width:120px;height:120px;object-fit:contain;">
+            <div class="t">Current QR uploaded</div>
+          </div>
+        {% endif %}
+      </div>
+      <div class="field">
+        {{ payment_settings_form.membership_fee.label_tag }}
+        {{ payment_settings_form.membership_fee }}
+        {{ payment_settings_form.membership_fee.errors }}
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

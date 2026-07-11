@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Application Status - {{ ASSOCIATION_NAME }}{% endblock %}
+{% block body %}
+<div class="portal">
+  {% include "includes/portal_sidebar.html" %}
+  <div class="portal-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
+      </div>
+      <div class="topbar-right">
+        <a href="{% url 'member_notifications' %}" class="icon-btn" aria-label="Notifications"><i class="bi bi-bell"></i>{% if notifications %}<span class="dot-badge"></span>{% endif %}</a>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="btn btn-ghost btn-sm" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign out</button>
+        </form>
+      </div>
+    </header>
+    {% include "includes/messages.html" %}
+    <div class="page">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Application status</h1>
+      <p class="small mt-8">Track your membership application through every stage.</p>
+    </div>
+    <span class="badge gold"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {% if application %}{{ application.get_status_display }}{% else %}Not submitted{% endif %}</span>
+  </div>
+  <div class="grid grid-status">
+    <div class="card">
+      <h3 class="h-card mb-24">Timeline</h3>
+      <div class="tl">
+        <div class="tl-item {% if application %}done{% endif %}"><div class="tl-dot">{% if application %}<i class="bi bi-check"></i>{% endif %}</div><div class="tl-title">Application submitted</div><div class="tl-meta">{% if application %}{{ application.created_at|date:"d M Y, h:i A" }}{% else %}Pending{% endif %}</div></div>
+        <div class="tl-item {% if application %}done{% endif %}"><div class="tl-dot">{% if application %}<i class="bi bi-check"></i>{% endif %}</div><div class="tl-title">Received by office</div><div class="tl-meta">{% if application %}{{ application.created_at|date:"d M Y, h:i A" }}{% else %}Pending{% endif %}</div></div>
+        <div class="tl-item {% if application.status == 'SUBMITTED' %}current{% elif application %}done{% endif %}"><div class="tl-dot">{% if application.status != 'SUBMITTED' and application %}<i class="bi bi-check"></i>{% endif %}</div><div class="tl-title">Under verification</div><div class="tl-meta">{% if application %}{{ application.get_status_display }}{% else %}Pending{% endif %}</div></div>
+        <div class="tl-item {% if application.status == 'ADDITIONAL_DOCUMENTS' %}current{% elif application.status == 'APPROVED_PENDING_PAYMENT' or application.status == 'PAYMENT_SUBMITTED' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}done{% endif %}"><div class="tl-dot"></div><div class="tl-title">Document review</div><div class="tl-meta">{% if application.remarks %}{{ application.remarks }}{% else %}Pending{% endif %}</div></div>
+        <div class="tl-item {% if application.status == 'APPROVED_PENDING_PAYMENT' %}done{% elif application.status == 'PAYMENT_SUBMITTED' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}done{% endif %}"><div class="tl-dot"></div><div class="tl-title">Approved</div><div class="tl-meta">{% if application.status == 'APPROVED_PENDING_PAYMENT' or application.status == 'PAYMENT_SUBMITTED' or application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}Documents verified{% else %}Pending{% endif %}</div></div>
+        <div class="tl-item {% if application.status == 'APPROVED_PENDING_PAYMENT' %}current{% elif payment %}done{% endif %}"><div class="tl-dot"></div><div class="tl-title">Payment pending</div><div class="tl-meta">Rs. {{ MEMBERSHIP_FEE }} due after approval</div></div>
+        <div class="tl-item {% if application.status == 'PAYMENT_SUBMITTED' %}current{% elif application.status == 'PAYMENT_APPROVED' or application.status == 'MEMBER_ACTIVE' %}done{% endif %}"><div class="tl-dot"></div><div class="tl-title">Payment verified</div><div class="tl-meta">{% if payment %}{{ payment.get_status_display }}{% else %}Pending{% endif %}</div></div>
+        <div class="tl-item {% if member and member.is_active %}done{% endif %}"><div class="tl-dot"></div><div class="tl-title">Membership generated</div><div class="tl-meta">{% if member and member.is_active %}{{ member.membership_number }}{% else %}Digital card will be issued{% endif %}</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="card mb-16">
+        <h4 class="h-sm mb-8">Application reference</h4>
+        <div class="val-lg">{% if application %}APP-{{ application.created_at|date:"Y-m" }}-{{ application.id|stringformat:"04d" }}{% else %}Not submitted{% endif %}</div>
+        <div class="small mt-8">{% if application %}Submitted {{ application.created_at|date:"d M Y" }}{% else %}Start your application to receive a reference number.{% endif %}</div>
+      </div>
+      <div class="card">
+        <h4 class="h-sm mb-16">Assigned reviewer</h4>
+        <div class="officer officer-flat">
+          <div class="oa" aria-hidden="true">AO</div>
+          <div class="oi"><h5>Association Office</h5><p>Document and payment verification</p></div>
+        </div>
+        {% if application and application.status == 'APPROVED_PENDING_PAYMENT' %}
+        <a href="{% url 'payment_upload' application.id %}" class="btn btn-primary btn-block mt-16">Proceed to Payment <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        {% elif application %}
+        <a href="{% url 'payment_upload' application.id %}" class="btn btn-secondary btn-block mt-16">View Payment Status <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        {% elif not application %}
+        <a href="{% url 'application_create' %}" class="btn btn-primary btn-block mt-16">Start Application <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
