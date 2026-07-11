@@ -514,3 +514,80 @@
     padding: 16px;
   }
 }
+
+/* ---------- Rejected / approved document status (red / green) ---------- */
+.doc-reject-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(180, 35, 24, .35);
+  border-radius: 14px;
+  background: rgba(255, 244, 244, .92);
+  color: #7f1d1d;
+}
+
+.doc-reject-banner i {
+  font-size: 22px;
+  margin-top: 2px;
+  color: #b91c1c;
+}
+
+.doc-reject-banner strong {
+  display: block;
+  font-size: 14px;
+}
+
+.doc-reject-banner span {
+  font-size: 13px;
+  color: #9f1239;
+}
+
+.doc-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  pointer-events: none;
+}
+
+.doc-status.is-rejected {
+  background: #fde2e2;
+  color: #b91c1c;
+  border: 1px solid rgba(185, 28, 28, .4);
+}
+
+.doc-status.is-approved {
+  background: #e3f6e8;
+  color: #15803d;
+  border: 1px solid rgba(21, 128, 61, .35);
+}
+
+.application-portal .upload[data-doc-key].doc-rejected {
+  border-color: #b91c1c;
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, .14), 0 12px 28px rgba(74, 10, 18, .10);
+}
+
+.application-portal .upload[data-doc-key].doc-approved {
+  border-color: rgba(21, 128, 61, .4);
+  background: rgba(243, 252, 246, .7);
+}
+
+.application-portal .upload[data-doc-key].doc-rejected .upload-drop {
+  border-color: rgba(185, 28, 28, .5);
+  background: rgba(253, 226, 226, .5);
+}
+
+.application-portal .upload[data-doc-key].doc-rejected .u-ic {
+  background: linear-gradient(135deg, rgba(185, 28, 28, .14), rgba(201, 162, 39, .22));
+  color: #b91c1c;
+}

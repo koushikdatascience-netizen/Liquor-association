@@ -4,16 +4,9 @@
 <div class="portal application-portal">
   {% include "includes/portal_sidebar.html" %}
   <div class="portal-main">
-    <header class="topbar">
+    <header class="topbar application-topbar">
       <div class="topbar-left">
         <button class="icon-btn" data-sidebar-toggle aria-label="Open menu"><i class="bi bi-list"></i></button>
-      </div>
-      <div class="topbar-right">
-        <a href="{% url 'member_notifications' %}" class="icon-btn" aria-label="Notifications"><i class="bi bi-bell"></i>{% if notifications %}<span class="dot-badge"></span>{% endif %}</a>
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="btn btn-ghost btn-sm" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign out</button>
-        </form>
       </div>
     </header>
     {% include "includes/messages.html" %}
@@ -38,7 +31,7 @@
           {{ form.non_field_errors }}
         </div>
       {% endif %}
-      <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard data-document-required="{% if is_update %}false{% else %}true{% endif %}">
+      <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard data-document-required="{% if is_update %}false{% else %}true{% endif %}" data-rejected-documents='{{ rejected_documents|default:""|safe }}'>
         {% csrf_token %}
         <div class="wizard-card step-panel active" data-step-panel="1">
           <h3>Personal details</h3>
@@ -236,14 +229,23 @@
           <h3>Document upload</h3>
           <p class="sub">Upload clear scans or photographs.</p>
           <p class="sub">Accepted formats: PDF, JPG, PNG (max 10 MB each).</p>
+          {% if is_update and rejected_documents %}
+            <div class="doc-reject-banner">
+              <i class="bi bi-exclamation-triangle"></i>
+              <div>
+                <strong>Some documents were rejected.</strong>
+                <span>Only the highlighted (red) documents need to be re-uploaded. Green documents are approved and can be left as-is.</span>
+              </div>
+            </div>
+          {% endif %}
           <div class="upload-grid">
-            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Licence copy</h5><p>Current excise licence (Off / On / CS / Bar)</p></div></div><label class="upload-drop">{{ form.excise_license }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.excise_license.errors }}</div>
-            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-person-badge"></i></div><div><h5>Proprietor / Partner photo</h5><p>23mm x 23mm colour photograph</p></div></div><label class="upload-drop">{{ form.passport_photo }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.passport_photo.errors }}</div>
-            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-card-text"></i></div><div><h5>PAN card</h5><p>PAN of proprietor / firm / company</p></div></div><label class="upload-drop">{{ form.pan_card }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.pan_card.errors }}</div>
-            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-fingerprint"></i></div><div><h5>Aadhaar</h5><p>Aadhaar of the delegate</p></div></div><label class="upload-drop">{{ form.aadhaar_card }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.aadhaar_card.errors }}</div>
-            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-building"></i></div><div><h5>Partnership deed / MOA</h5><p>For firms and Pvt. Ltd. companies</p></div></div><label class="upload-drop">{{ form.partnership_deed }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.partnership_deed.errors }}</div>
-            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-receipt"></i></div><div><h5>GST certificate</h5><p>Latest GST registration document</p></div></div><label class="upload-drop">{{ form.gst_certificate }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.gst_certificate.errors }}</div>
-            <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-geo-alt"></i></div><div><h5>Address proof</h5><p>Utility bill / rent agreement</p></div></div><label class="upload-drop">{{ form.address_proof }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag &amp; drop or click to upload</span></label>{{ form.address_proof.errors }}</div>
+            <div class="upload django-upload" data-doc-key="excise_license">{% if is_update %}<span class="doc-status" data-status-for="excise_license"></span>{% endif %}<div class="upload-head"><div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div><div><h5>Licence copy</h5><p>Current excise licence (Off / On / CS / Bar)</p></div></div><label class="upload-drop">{{ form.excise_license }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag & drop or click to upload</span></label>{{ form.excise_license.errors }}</div>
+            <div class="upload django-upload" data-doc-key="passport_photo">{% if is_update %}<span class="doc-status" data-status-for="passport_photo"></span>{% endif %}<div class="upload-head"><div class="u-ic"><i class="bi bi-person-badge"></i></div><div><h5>Proprietor / Partner photo</h5><p>23mm x 23mm colour photograph</p></div></div><label class="upload-drop">{{ form.passport_photo }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag & drop or click to upload</span></label>{{ form.passport_photo.errors }}</div>
+            <div class="upload django-upload" data-doc-key="pan_card">{% if is_update %}<span class="doc-status" data-status-for="pan_card"></span>{% endif %}<div class="upload-head"><div class="u-ic"><i class="bi bi-card-text"></i></div><div><h5>PAN card</h5><p>PAN of proprietor / firm / company</p></div></div><label class="upload-drop">{{ form.pan_card }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag & drop or click to upload</span></label>{{ form.pan_card.errors }}</div>
+            <div class="upload django-upload" data-doc-key="aadhaar_card">{% if is_update %}<span class="doc-status" data-status-for="aadhaar_card"></span>{% endif %}<div class="upload-head"><div class="u-ic"><i class="bi bi-fingerprint"></i></div><div><h5>Aadhaar</h5><p>Aadhaar of the delegate</p></div></div><label class="upload-drop">{{ form.aadhaar_card }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag & drop or click to upload</span></label>{{ form.aadhaar_card.errors }}</div>
+            <div class="upload django-upload" data-doc-key="partnership_deed">{% if is_update %}<span class="doc-status" data-status-for="partnership_deed"></span>{% endif %}<div class="upload-head"><div class="u-ic"><i class="bi bi-building"></i></div><div><h5>Partnership deed / MOA</h5><p>For firms and Pvt. Ltd. companies</p></div></div><label class="upload-drop">{{ form.partnership_deed }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag & drop or click to upload</span></label>{{ form.partnership_deed.errors }}</div>
+            <div class="upload django-upload" data-doc-key="gst_certificate">{% if is_update %}<span class="doc-status" data-status-for="gst_certificate"></span>{% endif %}<div class="upload-head"><div class="u-ic"><i class="bi bi-receipt"></i></div><div><h5>GST certificate</h5><p>Latest GST registration document</p></div></div><label class="upload-drop">{{ form.gst_certificate }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag & drop or click to upload</span></label>{{ form.gst_certificate.errors }}</div>
+            <div class="upload django-upload" data-doc-key="address_proof">{% if is_update %}<span class="doc-status" data-status-for="address_proof"></span>{% endif %}<div class="upload-head"><div class="u-ic"><i class="bi bi-geo-alt"></i></div><div><h5>Address proof</h5><p>Utility bill / rent agreement</p></div></div><label class="upload-drop">{{ form.address_proof }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Drag & drop or click to upload</span></label>{{ form.address_proof.errors }}</div>
           </div>
         </div>
         <div class="wizard-card step-panel" data-step-panel="5" hidden>

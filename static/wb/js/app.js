@@ -198,6 +198,31 @@
       "gst_certificate",
       "address_proof"
     ];
+
+    // ---------- Rejected / approved document status (red / green) ----------
+    function applyDocumentStatus(){
+      let rejected = [];
+      try {
+        const raw = applicationWizard.dataset.rejectedDocuments;
+        if(raw) rejected = JSON.parse(raw) || [];
+      } catch(_) { rejected = []; }
+      if(!rejected.length) return;
+      const rejectedSet = new Set(rejected);
+      applicationWizard.querySelectorAll("[data-doc-key]").forEach(function(item){
+        const key = item.dataset.docKey;
+        const badge = item.querySelector("[data-status-for='" + key + "']");
+        const isRejected = rejectedSet.has(key);
+        item.classList.toggle("doc-rejected", isRejected);
+        item.classList.toggle("doc-approved", !isRejected);
+        if(badge){
+          badge.className = "doc-status " + (isRejected ? "is-rejected" : "is-approved");
+          badge.innerHTML = isRejected
+            ? '<i class="bi bi-x-circle"></i> Rejected — re-upload'
+            : '<i class="bi bi-check-circle"></i> Approved';
+        }
+      });
+    }
+    applyDocumentStatus();
     const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
     const MAX_DOCUMENT_BYTES = 15 * 1024 * 1024;
     const IMAGE_COMPRESS_THRESHOLD = 1200 * 1024;

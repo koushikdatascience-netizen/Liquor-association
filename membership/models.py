@@ -78,6 +78,11 @@ class MembershipApplication(TimeStampedModel):
     applicant = models.ForeignKey(User, on_delete=models.CASCADE, related_name="applications")
     status = models.CharField(max_length=40, choices=Status.choices, default=Status.DRAFT)
     remarks = models.TextField(blank=True)
+    rejected_documents = models.JSONField(
+        blank=True,
+        default=list,
+        help_text="List of document field keys rejected by admin (e.g. ['excise_license']).",
+    )
 
     full_name = models.CharField(max_length=160)
     father_or_husband_name = models.CharField(max_length=160, blank=True)

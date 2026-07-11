@@ -12,6 +12,9 @@
   .doc-card .body{padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
   .doc-card .name{font-weight:700;color:#0f172a}.doc-card .sub{font-size:12px;color:#64748b;margin-top:2px}
   .doc-card.missing{opacity:.72}.doc-card.missing .thumb{background:#fff7ed;color:#f97316}
+  .doc-check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+  .doc-check{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border,#e5e7eb);border-radius:10px;background:#fff;font-size:13px;cursor:pointer}
+  .doc-check input{width:16px;height:16px;accent-color:#b91c1c}
 </style>
 
 <div class="page-head">
@@ -47,6 +50,19 @@
     <form method="post" action="{% url 'staff_application_action' application.id %}">
       {% csrf_token %}
       <textarea class="textarea" name="remarks" placeholder="Optional remarks shown/saved with this action...">{{ application.remarks }}</textarea>
+      <div class="reject-docs" style="margin-top:14px;">
+        <label style="font-weight:700;font-size:13px;display:block;margin-bottom:8px;">Mark rejected documents (shown to applicant for re-upload):</label>
+        <div class="doc-check-grid">
+          {% for doc in documents %}
+            {% if doc.uploaded %}
+              <label class="doc-check">
+                <input type="checkbox" name="rejected_documents" value="{{ doc.key }}" {% if doc.rejected %}checked{% endif %}>
+                <span>{{ doc.label }}</span>
+              </label>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
       <div class="verify-actions">
         <button class="btn primary" name="action" value="approve_documents" type="submit"><i class="bi bi-check-lg"></i> Approve / Verify Documents</button>
         <button class="btn" name="action" value="request_documents" type="submit"><i class="bi bi-arrow-repeat"></i> Request Re-upload</button>

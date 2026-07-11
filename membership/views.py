@@ -478,6 +478,7 @@ def application_create(request):
             "form": form,
             "is_update": can_update_documents,
             "has_form_errors": form.is_bound and form.errors,
+            "rejected_documents": list(getattr(existing, "rejected_documents", []) or []) if can_update_documents else [],
         },
     )
 
@@ -994,11 +995,13 @@ def application_documents(application):
         {"key": "gst_certificate", "label": "GST certificate", "file": application.gst_certificate, "required": False},
         {"key": "address_proof", "label": "Address proof", "file": application.address_proof, "required": False},
     ]
+    rejected = set(getattr(application, "rejected_documents", []) or [])
     for document in documents:
         file = document["file"]
         document["is_image"] = file_kind(file) == "image"
         document["url"] = storage_url(file)
         document["uploaded"] = bool(document["url"])
+        document["rejected"] = document["key"] in rejected
     return documents
 
 
@@ -1150,6 +1153,12 @@ def staff_application_action(request, pk):
             messages.error(request, "Applications can only be rejected from the document review stage.")
             return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Documents did not meet verification requirements."
+        # Capture which documents were rejected (from checkboxes in the admin form)
+        rejected_keys = request.POST.getlist("rejected_documents")
+        if rejected_keys:
+            application.rejected_documents = list(dict.fromkeys(rejected_keys))
+        else:
+            application.rejected_documents = []
         application.reject_application(remarks)
         notify_member(
             application.applicant,

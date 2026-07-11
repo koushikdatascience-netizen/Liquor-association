@@ -237,7 +237,17 @@ body {
 }
 
 .django-upload .upload-drop input {
-  display: none;
+  /* Keep the input tappable on mobile (iOS blocks .click() on display:none inputs).
+     Visually hide it while keeping it in the layout and focusable. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .field.has-error label,
