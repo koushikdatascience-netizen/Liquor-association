@@ -43,22 +43,123 @@
         <div class="wizard-card step-panel active" data-step-panel="1">
           <h3>Personal details</h3>
           <p class="sub">Prospective member / licensee information.</p>
-          <div class="form">
-            <div class="form-row"><div class="field">{{ form.full_name.label_tag }}{{ form.full_name }}{{ form.full_name.errors }}</div><div class="field">{{ form.nationality.label_tag }}{{ form.nationality }}{{ form.nationality.errors }}</div></div>
-            <div class="form-row"><div class="field">{{ form.age.label_tag }}{{ form.age }}{{ form.age.errors }}</div><div class="field">{{ form.gender.label_tag }}{{ form.gender }}{{ form.gender.errors }}</div></div>
-            <div class="field">{{ form.residential_address.label_tag }}{{ form.residential_address }}{{ form.residential_address.errors }}</div>
-            <div class="form-row"><div class="field">{{ form.pin_code.label_tag }}{{ form.pin_code }}{{ form.pin_code.errors }}</div><div class="field">{{ form.whatsapp_number.label_tag }}{{ form.whatsapp_number }}{{ form.whatsapp_number.errors }}</div></div>
-            <div class="form-row"><div class="field">{{ form.email.label_tag }}{{ form.email }}{{ form.email.errors }}</div><div class="field">{{ form.residence_phone.label_tag }}{{ form.residence_phone }}{{ form.residence_phone.errors }}</div></div>
-          </div>
+<div class="form">
+  <div class="form-row">
+    <div class="field">
+      {{ form.full_name.label_tag }}
+      {{ form.full_name }}
+      <i class="bi bi-person field-icon"></i>
+      {{ form.full_name.errors }}
+    </div>
+    <div class="field">
+      {{ form.nationality.label_tag }}
+      {{ form.nationality }}
+      <i class="bi bi-globe field-icon"></i>
+      {{ form.nationality.errors }}
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="field">
+      {{ form.age.label_tag }}
+      {{ form.age }}
+      <i class="bi bi-calendar field-icon"></i>
+      {{ form.age.errors }}
+    </div>
+    <div class="field">
+      {{ form.gender.label_tag }}
+      {{ form.gender }}
+      <i class="bi bi-gender-ambiguous field-icon"></i>
+      {{ form.gender.errors }}
+    </div>
+  </div>
+  <div class="field">
+    {{ form.residential_address.label_tag }}
+    {{ form.residential_address }}
+    <i class="bi bi-geo-alt field-icon"></i>
+    {{ form.residential_address.errors }}
+  </div>
+  <div class="form-row">
+    <div class="field">
+      {{ form.pin_code.label_tag }}
+      {{ form.pin_code }}
+      <i class="bi bi-geo field-icon"></i>
+      {{ form.pin_code.errors }}
+    </div>
+    <div class="field">
+      {{ form.whatsapp_number.label_tag }}
+      {{ form.whatsapp_number }}
+      <i class="bi bi-phone field-icon"></i>
+      {{ form.whatsapp_number.errors }}
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="field">
+      {{ form.email.label_tag }}
+      {{ form.email }}
+      <i class="bi bi-envelope field-icon"></i>
+      {{ form.email.errors }}
+    </div>
+    <div class="field">
+      {{ form.residence_phone.label_tag }}
+      {{ form.residence_phone }}
+      <i class="bi bi-telephone field-icon"></i>
+      {{ form.residence_phone.errors }}
+    </div>
+  </div>
+</div>
         </div>
         <div class="wizard-card step-panel" data-step-panel="2" hidden>
           <h3>Business details</h3>
           <p class="sub">Details of the licensed establishment.</p>
           <div class="form">
-            <div class="form-row"><div class="field">{{ form.entity_type.label_tag }}{{ form.entity_type }}{{ form.entity_type.errors }}</div><div class="field">{{ form.licence_category.label_tag }}{{ form.licence_category }}{{ form.licence_category.errors }}</div></div>
-            <div class="form-row"><div class="field">{{ form.style_name.label_tag }}{{ form.style_name }}{{ form.style_name.errors }}</div><div class="field">{{ form.excise_license_number.label_tag }}{{ form.excise_license_number }}{{ form.excise_license_number.errors }}</div></div>
-            <div class="field">{{ form.partner_md_names.label_tag }}{{ form.partner_md_names }}{{ form.partner_md_names.errors }}</div>
-            <div class="form-row"><div class="field">{{ form.office_phone.label_tag }}{{ form.office_phone }}{{ form.office_phone.errors }}</div><div class="field">{{ form.shop_phone.label_tag }}{{ form.shop_phone }}{{ form.shop_phone.errors }}</div></div>
+            <div class="form-row">
+              <div class="field">
+                {{ form.entity_type.label_tag }}
+                {{ form.entity_type }}
+                <i class="bi bi-building field-icon"></i>
+                {{ form.entity_type.errors }}
+              </div>
+              <div class="field license-type-field">
+                {{ form.licence_category.label_tag }}
+                {{ form.licence_category }}
+                <i class="bi bi-file-earmark-medical field-icon"></i>
+                {{ form.licence_category.errors }}
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                {{ form.style_name.label_tag }}
+                {{ form.style_name }}
+                <i class="bi bi-shop field-icon"></i>
+                {{ form.style_name.errors }}
+              </div>
+              <div class="field">
+                {{ form.excise_license_number.label_tag }}
+                {{ form.excise_license_number }}
+                <i class="bi bi-123 field-icon"></i>
+                {{ form.excise_license_number.errors }}
+              </div>
+            </div>
+            <div class="field">
+              {{ form.partner_md_names.label_tag }}
+              {{ form.partner_md_names }}
+              <i class="bi bi-people field-icon"></i>
+              {{ form.partner_md_names.errors }}
+            </div>
+            <div class="form-row">
+              <div class="field">
+                {{ form.office_phone.label_tag }}
+                {{ form.office_phone }}
+                <i class="bi bi-telephone field-icon"></i>
+                {{ form.office_phone.errors }}
+              </div>
+              <div class="field">
+                {{ form.shop_phone.label_tag }}
+                {{ form.shop_phone }}
+                <i class="bi bi-phone field-icon"></i>
+                {{ form.shop_phone.errors }}
+              </div>
+            </div>
           </div>
         </div>
         <div class="wizard-card step-panel" data-step-panel="3" hidden>
@@ -67,17 +168,67 @@
           <div class="card card-tight mb-16">
             <div class="flex between center mb-16"><h5 class="h-card">Primary representative</h5><span class="badge gold">Delegate</span></div>
             <div class="form">
-              <div class="form-row"><div class="field">{{ form.primary_delegate_name.label_tag }}{{ form.primary_delegate_name }}{{ form.primary_delegate_name.errors }}</div><div class="field">{{ form.primary_delegate_designation.label_tag }}{{ form.primary_delegate_designation }}{{ form.primary_delegate_designation.errors }}</div></div>
-              <div class="field">{{ form.primary_delegate_address.label_tag }}{{ form.primary_delegate_address }}{{ form.primary_delegate_address.errors }}</div>
-              <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-person-badge"></i></div><div><h5>Photograph (23mm x 23mm)</h5><p>Primary delegate photo</p></div></div><label class="upload-drop">{{ form.primary_delegate_photo }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Upload passport photo</span></label>{{ form.primary_delegate_photo.errors }}</div>
+              <div class="form-row">
+                <div class="field">
+                  {{ form.primary_delegate_name.label_tag }}
+                  {{ form.primary_delegate_name }}
+                  <i class="bi bi-person field-icon"></i>
+                  {{ form.primary_delegate_name.errors }}
+                </div>
+                <div class="field">
+                  {{ form.primary_delegate_designation.label_tag }}
+                  {{ form.primary_delegate_designation }}
+                  <i class="bi bi-briefcase field-icon"></i>
+                  {{ form.primary_delegate_designation.errors }}
+                </div>
+              </div>
+              <div class="field">
+                {{ form.primary_delegate_address.label_tag }}
+                {{ form.primary_delegate_address }}
+                <i class="bi bi-geo-alt field-icon"></i>
+                {{ form.primary_delegate_address.errors }}
+              </div>
+              <div class="upload django-upload">
+                <div class="upload-head">
+                  <div class="u-ic"><i class="bi bi-person-badge"></i></div>
+                  <div><h5>Photograph (23mm x 23mm)</h5><p>Primary delegate photo</p></div>
+                </div>
+                <label class="upload-drop">{{ form.primary_delegate_photo }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Upload passport photo</span></label>
+                {{ form.primary_delegate_photo.errors }}
+              </div>
             </div>
           </div>
           <div class="card card-tight">
             <div class="flex between center mb-16"><h5 class="h-card">Alternate representative</h5><span class="badge">Proxy</span></div>
             <div class="form">
-              <div class="form-row"><div class="field">{{ form.alternate_delegate_name.label_tag }}{{ form.alternate_delegate_name }}{{ form.alternate_delegate_name.errors }}</div><div class="field">{{ form.alternate_delegate_role.label_tag }}{{ form.alternate_delegate_role }}{{ form.alternate_delegate_role.errors }}</div></div>
-              <div class="field">{{ form.alternate_delegate_address.label_tag }}{{ form.alternate_delegate_address }}{{ form.alternate_delegate_address.errors }}</div>
-              <div class="upload django-upload"><div class="upload-head"><div class="u-ic"><i class="bi bi-person-vcard"></i></div><div><h5>Photograph (23mm x 23mm)</h5><p>Alternate representative photo</p></div></div><label class="upload-drop">{{ form.alternate_delegate_photo }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Upload passport photo</span></label>{{ form.alternate_delegate_photo.errors }}</div>
+              <div class="form-row">
+                <div class="field">
+                  {{ form.alternate_delegate_name.label_tag }}
+                  {{ form.alternate_delegate_name }}
+                  <i class="bi bi-person field-icon"></i>
+                  {{ form.alternate_delegate_name.errors }}
+                </div>
+                <div class="field">
+                  {{ form.alternate_delegate_role.label_tag }}
+                  {{ form.alternate_delegate_role }}
+                  <i class="bi bi-briefcase field-icon"></i>
+                  {{ form.alternate_delegate_role.errors }}
+                </div>
+              </div>
+              <div class="field">
+                {{ form.alternate_delegate_address.label_tag }}
+                {{ form.alternate_delegate_address }}
+                <i class="bi bi-geo-alt field-icon"></i>
+                {{ form.alternate_delegate_address.errors }}
+              </div>
+              <div class="upload django-upload">
+                <div class="upload-head">
+                  <div class="u-ic"><i class="bi bi-person-vcard"></i></div>
+                  <div><h5>Photograph (23mm x 23mm)</h5><p>Alternate representative photo</p></div>
+                </div>
+                <label class="upload-drop">{{ form.alternate_delegate_photo }}<i class="bi bi-cloud-arrow-up"></i><span data-file-label>Upload passport photo</span></label>
+                {{ form.alternate_delegate_photo.errors }}
+              </div>
             </div>
           </div>
         </div>
