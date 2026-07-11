@@ -25,7 +25,7 @@
     </div>
   </div>
   <div class="grid grid-2">
-    {% include "includes/member_card.html" with application=member.application member=member locked=False passport_photo_url=passport_photo_url qr_code_url=qr_code_url %}
+    {% include "includes/member_card.html" with application=member.application member=member locked=locked passport_photo_url=passport_photo_url qr_code_url=qr_code_url %}
     <div class="card">
       <h3 class="h-card mb-16">Card downloads</h3>
       <p class="small">The card contains the association logo, member photo, membership number, shop details, QR code, validity and digital signature.</p>

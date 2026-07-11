@@ -63,7 +63,7 @@
       {% endif %}
     </div>
   </div>
-  {% if can_submit_payment %}
+  {% if show_payment_form %}
     <div class="wizard-card mt-24">
       <h3>{% if payment and payment.status == "REUPLOAD_REQUESTED" %}Correct payment proof{% else %}Payment submission{% endif %}</h3>
       <p class="sub">Upload a clear screenshot and accurate transaction details.</p>

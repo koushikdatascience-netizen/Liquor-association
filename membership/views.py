@@ -458,6 +458,12 @@ def payment_upload(request, application_id):
             and instance.status == PaymentProof.Status.REUPLOAD_REQUESTED
         )
     )
+    # Only show payment form if documents are approved and payment is not already submitted
+    show_payment_form = can_submit_payment and not (
+        application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
+        and instance
+        and instance.status == PaymentProof.Status.PENDING
+    )
     payment_unlocked = application.status in [
         MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
         MembershipApplication.Status.PAYMENT_SUBMITTED,
@@ -500,6 +506,7 @@ def payment_upload(request, application_id):
             "application": application,
             "payment": instance,
             "can_submit_payment": can_submit_payment,
+            "show_payment_form": show_payment_form,
             "payment_unlocked": payment_unlocked,
             "payment_settings": payment_settings_context(),
         },
