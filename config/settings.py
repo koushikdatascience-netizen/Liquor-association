@@ -190,7 +190,7 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "member_dashboard"
 LOGOUT_REDIRECT_URL = "https://wbliquorsocity.com/"
 
-ASSOCIATION_NAME = env("ASSOCIATION_NAME", default="Liquor Association")
+ASSOCIATION_NAME = env("ASSOCIATION_NAME", default="WB Foreign Liquor and IML Licensees")
 MEMBERSHIP_FEE = env("MEMBERSHIP_FEE")
 PAYMENT_UPI_ID = env("PAYMENT_UPI_ID", default="")
 PAYMENT_BANK_NAME = env("PAYMENT_BANK_NAME", default="")

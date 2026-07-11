@@ -1,4 +1,4 @@
-# Liquor Association Membership Management System
+# WB Foreign Liquor and IML Licensees Membership Management System
 
 Django + PostgreSQL membership portal for applicant registration, KYC upload, admin verification, manual payment proof approval, membership generation, QR verification, reports, and a digital membership card.
 

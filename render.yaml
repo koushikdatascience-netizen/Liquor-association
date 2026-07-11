@@ -21,7 +21,7 @@ services:
           name: liquor-association-db
           property: connectionString
       - key: ASSOCIATION_NAME
-        value: Liquor Association
+        value: WB Foreign Liquor and IML Licensees
       - key: MEMBERSHIP_FEE
         value: "5000.00"
       - key: ACCOUNT_REQUIRE_OTP_VERIFICATION
@@ -63,7 +63,7 @@ services:
       - key: SMTP_FROM_EMAIL
         value: wbliquor@snapkey.in
       - key: SMTP_FROM_NAME
-        value: Liquor Association
+        value: WB Foreign Liquor and IML Licensees
       - key: SMTP_USE_SSL
         value: "True"
       - key: EMAIL_USE_SSL

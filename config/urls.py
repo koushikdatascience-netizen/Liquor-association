@@ -4,8 +4,8 @@ from django.contrib import admin
 from django.urls import include, path
 from membership import views as membership_views
 
-admin.site.site_header = "Liquor Association Admin"
-admin.site.site_title = "Liquor Association"
+admin.site.site_header = "WB Foreign Liquor and IML Licensees Admin"
+admin.site.site_title = "WB Foreign Liquor and IML Licensees"
 admin.site.index_title = "Membership Operations"
 
 urlpatterns = [

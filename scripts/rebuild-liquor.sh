@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rebuild the Liquor Association stack cleanly.
+# Rebuild the WB Foreign Liquor and IML Licensees stack cleanly.
 # SCOPED to docker-compose.liquor.yml (project: liquor-association).
 # SocialSync containers (socialsync_*) are NEVER touched.
 #
