@@ -31,7 +31,7 @@
           {{ form.non_field_errors }}
         </div>
       {% endif %}
-      <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard data-document-required="{% if is_update %}false{% else %}true{% endif %}" data-rejected-documents='{{ rejected_documents|default:""|safe }}'>
+      <form method="post" enctype="multipart/form-data" class="application-wizard" novalidate data-application-wizard data-document-required="{% if is_update %}false{% else %}true{% endif %}" data-rejected-documents="{{ rejected_documents_json|default:"[]"|escape }}">
         {% csrf_token %}
         <div class="wizard-card step-panel active" data-step-panel="1">
           <h3>Personal details</h3>

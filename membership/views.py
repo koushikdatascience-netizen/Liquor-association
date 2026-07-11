@@ -1,5 +1,6 @@
 from io import BytesIO
 import csv
+import json
 import logging
 import time
 
@@ -479,6 +480,7 @@ def application_create(request):
             "is_update": can_update_documents,
             "has_form_errors": form.is_bound and form.errors,
             "rejected_documents": list(getattr(existing, "rejected_documents", []) or []) if can_update_documents else [],
+            "rejected_documents_json": json.dumps(list(getattr(existing, "rejected_documents", []) or []) if can_update_documents else []),
         },
     )
 
