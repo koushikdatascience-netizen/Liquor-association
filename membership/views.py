@@ -1,5 +1,7 @@
 from io import BytesIO
 import csv
+import logging
+import time
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
@@ -20,6 +22,9 @@ from reportlab.pdfgen import canvas
 from .forms import MembershipApplicationForm, PaymentProofForm, SitePaymentSettingsForm
 from .models import AuditLog, BroadcastMessage, Member, MembershipApplication, PaymentProof, SitePaymentSettings, notify_staff
 from .services import notify_member
+
+
+logger = logging.getLogger(__name__)
 
 
 APPLICATION_DOCUMENT_FIELDS = (
@@ -90,6 +95,12 @@ REUPLOAD_PAYMENT_PROOF_STATUSES = {
 def is_document_review_status(status):
     """Return True only when admins should review KYC/application documents."""
     return status in DOCUMENT_REVIEW_STATUSES
+
+
+def uploaded_files_summary(files):
+    count = len(files)
+    total_size = sum(getattr(file, "size", 0) or 0 for file in files.values())
+    return count, total_size
 
 
 def storage_url(file):
@@ -374,6 +385,8 @@ def application_create(request):
     instance = draft or (existing if can_update_documents else None)
 
     if request.method == "POST":
+        started_at = time.monotonic()
+        file_count, total_upload_bytes = uploaded_files_summary(request.FILES)
         # ---- Save draft (lenient, no strict validation) ----
         if request.POST.get("save_draft"):
             form = MembershipApplicationForm(request.POST, request.FILES, instance=instance)
@@ -393,6 +406,13 @@ def application_create(request):
                 if not getattr(application, field, ""):
                     setattr(application, field, "(draft)")
             application.save()
+            logger.info(
+                "Application draft saved user=%s files=%s bytes=%s duration=%.2fs",
+                request.user.pk,
+                file_count,
+                total_upload_bytes,
+                time.monotonic() - started_at,
+            )
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"ok": True})
             messages.success(request, "Draft saved.")
@@ -423,6 +443,14 @@ def application_create(request):
             except CloudinaryBadRequest:
                 form.add_error(None, "One of the uploaded image files is invalid. Please upload JPG, PNG or WebP images and submit again.")
             else:
+                logger.info(
+                    "Application submitted id=%s user=%s files=%s bytes=%s duration=%.2fs",
+                    application.pk,
+                    request.user.pk,
+                    file_count,
+                    total_upload_bytes,
+                    time.monotonic() - started_at,
+                )
                 notify_staff(
                     "New membership application" if not can_update_documents else "Documents resubmitted",
                     f"{application.full_name} / {application.shop_name} is ready for document verification.",
@@ -528,6 +556,8 @@ def payment_upload(request, application_id):
         messages.info(request, "Your payment proof is already waiting for admin verification.")
         return redirect("payment_upload", application_id=application.id)
     if request.method == "POST":
+        started_at = time.monotonic()
+        file_count, total_upload_bytes = uploaded_files_summary(request.FILES)
         form = PaymentProofForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
             payment = form.save(commit=False)
@@ -537,6 +567,15 @@ def payment_upload(request, application_id):
             payment.save()
             application.status = MembershipApplication.Status.PAYMENT_SUBMITTED
             application.save(update_fields=["status", "updated_at"])
+            logger.info(
+                "Payment proof submitted id=%s application=%s user=%s files=%s bytes=%s duration=%.2fs",
+                payment.pk,
+                application.pk,
+                request.user.pk,
+                file_count,
+                total_upload_bytes,
+                time.monotonic() - started_at,
+            )
             notify_staff(
                 "Payment submitted for verification",
                 f"{application.full_name} submitted payment proof. UTR: {payment.utr_number}.",

@@ -1,4 +1,6 @@
 import uuid
+import logging
+import threading
 from datetime import timedelta
 
 from django.conf import settings
@@ -11,6 +13,9 @@ from django.utils import timezone
 
 from .delivery import send_whatsapp_message
 from .utils import make_qr_file
+
+
+logger = logging.getLogger(__name__)
 
 
 class TimeStampedModel(models.Model):
@@ -278,7 +283,11 @@ def notify_staff(title, message):
     Notification.objects.bulk_create(
         [Notification(recipient=user, title=title, message=message) for user in staff_users]
     )
-    if settings.ADMIN_NOTIFICATION_EMAIL:
+
+    if not settings.ADMIN_NOTIFICATION_EMAIL:
+        return
+
+    def send_admin_email():
         try:
             send_mail(
                 subject=f"{settings.ASSOCIATION_NAME} - {title}",
@@ -288,7 +297,9 @@ def notify_staff(title, message):
                 fail_silently=True,
             )
         except (OSError, TimeoutError, BadHeaderError):
-            pass
+            logger.exception("Admin notification email failed")
+
+    threading.Thread(target=send_admin_email, daemon=True).start()
 
 
 class BroadcastMessage(TimeStampedModel):
