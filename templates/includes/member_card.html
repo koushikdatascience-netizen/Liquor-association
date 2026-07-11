@@ -1,20 +1,59 @@
 <div class="mcard {% if locked %}locked{% endif %}">
   <div class="mcard-head">
     <div class="mcard-logo">{% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}</div>
-    <span class="badge {% if locked %}muted{% else %}gold{% endif %}">{% if locked %}Pending{% else %}Active{% endif %}</span>
+    <span class="badge {% if locked %}muted{% else %}gold{% endif %}">
+      {% if locked %}
+        {% if application.status == 'REJECTED' %}Rejected
+        {% elif application.status == 'ADDITIONAL_DOCUMENTS' %}Documents Required
+        {% elif application.status == 'SUBMITTED' or application.status == 'PENDING' %}Pending Review
+        {% elif application.status == 'APPROVED_PENDING_PAYMENT' %}Pending Payment
+        {% elif application.status == 'PAYMENT_SUBMITTED' %}Payment Verification
+        {% elif application.status == 'PAYMENT_APPROVED' %}Pending Activation
+        {% else %}Pending{% endif %}
+      {% else %}Active{% endif %}
+    </span>
   </div>
   <div class="mcard-body">
     <div class="mcard-photo">
       {% if passport_photo_url %}
-        <img src="{{ passport_photo_url }}" alt="{{ application.full_name|default:'' }}">
+        {% if locked %}
+          <div class="blurred-image">
+            <img src="{{ passport_photo_url }}" alt="{{ application.full_name|default:'' }}">
+            <div class="blurred-overlay"></div>
+          </div>
+        {% else %}
+          <img src="{{ passport_photo_url }}" alt="{{ application.full_name|default:'' }}">
+        {% endif %}
       {% else %}
         <i class="bi bi-person"></i>
       {% endif %}
     </div>
     <div>
-      <div class="mcard-name">{{ application.full_name|default:"Member" }}</div>
-      <div class="mcard-role">{{ application.shop_name|default:"" }}</div>
-      <div class="small mt-8 mcard-hidden">{{ member.membership_number|default:"MEM-XXXX-XXXX" }}</div>
+      <div class="mcard-name">
+        {% if locked %}
+          {% if application.full_name %}
+            <span class="blurred-text">{{ application.full_name }}</span>
+          {% else %}
+            Member
+          {% endif %}
+        {% else %}
+          {{ application.full_name|default:"Member" }}
+        {% endif %}
+      </div>
+      <div class="mcard-role">
+        {% if locked %}
+          {% if application.shop_name %}
+            <span class="blurred-text">{{ application.shop_name }}</span>
+          {% else %}
+            &nbsp;
+          {% endif %}
+        {% else %}
+          {{ application.shop_name|default:"" }}
+        {% endif %}
+      </div>
+      <div class="small mt-8 {% if locked %}mcard-hidden{% endif %}">
+        {{ member.membership_number|default:"MEM-XXXX-XXXX" }}
+      </div>
     </div>
     <div class="mcard-qr">
       {% if qr_code_url and not locked %}
@@ -24,10 +63,29 @@
       {% endif %}
     </div>
   </div>
+  {% if locked %}
+  <div class="mcard-message">
+    {% if application.status == 'REJECTED' %}
+      Your application was rejected. Please review the remarks and contact the association office.
+    {% elif application.status == 'ADDITIONAL_DOCUMENTS' %}
+      Please upload the requested additional documents to proceed.
+    {% elif application.status == 'SUBMITTED' or application.status == 'PENDING' %}
+      Your application is under review. The membership card will appear after document verification.
+    {% elif application.status == 'APPROVED_PENDING_PAYMENT' %}
+      Please complete your payment to unlock your membership card.
+    {% elif application.status == 'PAYMENT_SUBMITTED' %}
+      Your payment is being verified. The membership card will appear after verification.
+    {% elif application.status == 'PAYMENT_APPROVED' %}
+      Your payment has been approved. Final membership activation is pending.
+    {% else %}
+      Your membership card will appear after your application is approved.
+    {% endif %}
+  </div>
+  {% endif %}
   <div class="mcard-foot">
-    <div>District<span class="mcard-hidden">{{ application.district|default:"—" }}</span></div>
-    <div>Mobile<span class="mcard-hidden">{{ application.mobile_number|default:"—" }}</span></div>
-    <div>Category<span class="mcard-hidden">{{ member.category|default:"—" }}</span></div>
-    <div>Valid Till<span class="mcard-hidden">{{ member.valid_till|date:"d M Y"|default:"—" }}</span></div>
+    <div>District<span class="{% if locked %}mcard-hidden{% endif %}">{{ application.district|default:"—" }}</span></div>
+    <div>Mobile<span class="{% if locked %}mcard-hidden{% endif %}">{{ application.mobile_number|default:"—" }}</span></div>
+    <div>Category<span class="{% if locked %}mcard-hidden{% endif %}">{{ member.category|default:"—" }}</span></div>
+    <div>Valid Till<span class="{% if locked %}mcard-hidden{% endif %}">{{ member.valid_till|date:"d M Y"|default:"—" }}</span></div>
   </div>
 </div>

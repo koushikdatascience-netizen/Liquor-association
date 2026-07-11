@@ -264,6 +264,8 @@ def member_dashboard(request):
         application
         and (
             application.status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT
+            or application.status == MembershipApplication.Status.PAYMENT_SUBMITTED
+            or application.status == MembershipApplication.Status.PAYMENT_APPROVED
             or payment
         )
     )
@@ -449,6 +451,19 @@ def payment_upload(request, application_id):
             return redirect("payment_upload", application_id=fallback_application.id)
         messages.error(request, "Please submit your membership application before opening payment.")
         return redirect("member_dashboard")
+
+    # Check if payment should be accessible
+    payment_unlocked = application.status in [
+        MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
+        MembershipApplication.Status.PAYMENT_SUBMITTED,
+        MembershipApplication.Status.PAYMENT_APPROVED,
+        MembershipApplication.Status.MEMBER_ACTIVE,
+    ]
+
+    if not payment_unlocked:
+        messages.error(request, "Payment is only available after document approval.")
+        return redirect("member_dashboard")
+
     instance = getattr(application, "payment", None)
     can_submit_payment = (
         application.status == MembershipApplication.Status.APPROVED_PENDING_PAYMENT
@@ -458,12 +473,6 @@ def payment_upload(request, application_id):
             and instance.status == PaymentProof.Status.REUPLOAD_REQUESTED
         )
     )
-    payment_unlocked = application.status in [
-        MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
-        MembershipApplication.Status.PAYMENT_SUBMITTED,
-        MembershipApplication.Status.PAYMENT_APPROVED,
-        MembershipApplication.Status.MEMBER_ACTIVE,
-    ]
     if request.method == "POST" and not can_submit_payment:
         messages.error(request, "Payment upload is available only after document approval.")
         return redirect("payment_upload", application_id=application.id)

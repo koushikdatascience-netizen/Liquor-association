@@ -95,6 +95,40 @@ body.no-sidebar .topbar-left {
   color: #8a93a6;
 }
 
+/* Blurred text effect for locked cards */
+.blurred-text {
+  color: transparent;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Blurred image container */
+.blurred-image {
+  position: relative;
+  display: inline-block;
+}
+
+.blurred-image .blurred-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Status message for locked cards */
+.mcard-message {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  font-size: 13px;
+  color: #495057;
+  text-align: center;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
 .card-center {
   text-align: center;
   padding: 48px 24px;
