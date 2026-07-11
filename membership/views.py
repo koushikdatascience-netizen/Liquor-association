@@ -252,6 +252,10 @@ def member_dashboard(request):
             status_message = f"Application rejected. {application.remarks or ''}"
             banner_class = "warn"
             banner_icon = "bi bi-x-circle"
+        elif status == MembershipApplication.Status.ADDITIONAL_DOCUMENTS:
+            status_message = f"Additional documents requested. {application.remarks or ''}"
+            banner_class = "warn"
+            banner_icon = "bi bi-file-earmark"
         else:
             status_message = "Status unknown."
             banner_class = "warn"
