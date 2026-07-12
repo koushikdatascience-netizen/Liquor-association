@@ -97,6 +97,14 @@
   updateMobileToggle();
   window.addEventListener("resize", updateMobileToggle);
 
+  // ---------- CSRF token helper ----------
+  function getCsrfToken(){
+    const meta = document.querySelector("meta[name='csrf-token']");
+    if(meta) return meta.getAttribute("content");
+    const cookieMatch = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+    return cookieMatch ? decodeURIComponent(cookieMatch[2]) : null;
+  }
+
   // ---------- FAQ accordion ----------
   document.querySelectorAll("[data-faq] .faq-q").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -593,7 +601,7 @@
       fd.set("save_draft", "1");
       saveDraftBtn.disabled = true;
       saveDraftBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Saving...';
-      fetch(window.location.pathname, { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest" }, body: fd })
+      fetch(window.location.pathname, { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": getCsrfToken() }, body: fd })
         .then(function(){ window.toast("Draft saved"); })
         .catch(function(){ window.toast("Draft saved on this device", "warn"); })
         .finally(function(){
