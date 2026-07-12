@@ -80,6 +80,21 @@ REJECTED_APPLICATION_STATUSES = {
     "REJECTED_APPLICATION",
 }
 
+DOCUMENT_RESUBMISSION_STATUSES = {
+    MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+    MembershipApplication.Status.REJECTED,
+    "REJECTED_APPLICATION",
+    "DOCUMENT_REJECTED",
+    "DOCUMENTS_REJECTED",
+    "DOCUMENT_REUPLOAD_REQUESTED",
+    "DOCUMENTS_REUPLOAD_REQUESTED",
+    "REUPLOAD_REQUESTED",
+    "RESUBMIT_DOCUMENTS",
+    "DOCUMENTS_RESUBMIT",
+    "DOCUMENTS_RESUBMISSION",
+    "DOCUMENTS_REUPLOADED",
+}
+
 PENDING_PAYMENT_PROOF_STATUSES = {
     PaymentProof.Status.PENDING,
     "PAYMENT_UPLOADED",
@@ -98,6 +113,11 @@ def is_document_review_status(status):
     return status in DOCUMENT_REVIEW_STATUSES
 
 
+def is_document_resubmission_status(status):
+    """Return True when a member should be allowed to replace documents."""
+    return status in DOCUMENT_RESUBMISSION_STATUSES
+
+
 def uploaded_files_summary(files):
     count = len(files)
     total_size = sum(getattr(file, "size", 0) or 0 for file in files.values())
@@ -112,6 +132,28 @@ def storage_url(file):
     except (ValueError, OSError):
         return ""
     return str(url)
+
+
+def clear_requested_application_documents(application, post, files):
+    cleared_fields = set()
+    for field_name in APPLICATION_DOCUMENT_FIELDS:
+        if post.get(f"clear_{field_name}") != "1" or field_name in files:
+            continue
+        current_file = getattr(application, field_name, None)
+        if not current_file:
+            continue
+        try:
+            current_file.delete(save=False)
+        except Exception:
+            logger.warning(
+                "Could not delete cleared application document field=%s application=%s",
+                field_name,
+                getattr(application, "pk", None),
+                exc_info=True,
+            )
+        setattr(application, field_name, "")
+        cleared_fields.add(field_name)
+    return cleared_fields
 
 
 def file_kind(file):
@@ -259,7 +301,11 @@ def member_dashboard(request):
         banner_icon = "bi bi-file-earmark"
     else:
         status = application.status
-        if status == MembershipApplication.Status.SUBMITTED or status in ("PENDING", "PENDING_REVIEW", "APPLICATION_PENDING", "DOCUMENTS_SUBMITTED", "DOCUMENTS_REUPLOADED"):
+        if is_document_resubmission_status(status):
+            status_message = f"Document update requested. {application.remarks or ''}"
+            banner_class = "warn"
+            banner_icon = "bi bi-file-earmark"
+        elif status == MembershipApplication.Status.SUBMITTED or status in ("PENDING", "PENDING_REVIEW", "APPLICATION_PENDING", "DOCUMENTS_SUBMITTED"):
             status_message = "Your application is submitted and pending document approval."
             banner_class = "warn"
             banner_icon = "bi bi-hourglass-split"
@@ -275,14 +321,6 @@ def member_dashboard(request):
             status_message = "Your membership is active."
             banner_class = "ok"
             banner_icon = "bi bi-check-circle"
-        elif status == MembershipApplication.Status.REJECTED:
-            status_message = f"Application rejected. {application.remarks or ''}"
-            banner_class = "warn"
-            banner_icon = "bi bi-x-circle"
-        elif status == MembershipApplication.Status.ADDITIONAL_DOCUMENTS:
-            status_message = f"Additional documents requested. {application.remarks or ''}"
-            banner_class = "warn"
-            banner_icon = "bi bi-file-earmark"
         else:
             status_message = "Status unknown."
             banner_class = "warn"
@@ -337,6 +375,7 @@ def member_profile(request):
     context = member_portal_context(request)
     application = context.get("application")
     context["documents"] = application_documents(application) if application else []
+    context["can_resubmit_documents"] = bool(application and is_document_resubmission_status(application.status))
     return render(request, "membership/profile.html", context)
 
 
@@ -371,22 +410,20 @@ def application_create(request):
     # Active applications block a new one. Drafts and document-review failures
     # are resumable so members can replace rejected/requested documents.
     applications = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at")
-    draft = applications.filter(status=MembershipApplication.Status.DRAFT).first()
-    resubmittable = applications.filter(
-        status__in=[
-            MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
-            MembershipApplication.Status.REJECTED,
-        ]
-    ).first()
-    existing = applications.exclude(
-        status__in=[
-            MembershipApplication.Status.REJECTED,
-            MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
-            MembershipApplication.Status.DRAFT,
-        ]
-    ).first()
+    latest_application = applications.first()
+    draft = None
+    resubmittable = None
+    existing = None
+    if latest_application:
+        if latest_application.status == MembershipApplication.Status.DRAFT:
+            draft = latest_application
+        elif is_document_resubmission_status(latest_application.status):
+            resubmittable = latest_application
+        else:
+            existing = latest_application
+
     can_update_documents = resubmittable is not None
-    if existing:
+    if existing is not None:
         messages.info(request, "You already have an active application.")
         return redirect("member_dashboard")
 
@@ -429,14 +466,23 @@ def application_create(request):
         # ---- Submit application ----
         form = MembershipApplicationForm(request.POST, request.FILES, instance=instance)
         submitted_document_fields = set(request.FILES).intersection(APPLICATION_DOCUMENT_FIELDS)
+        cleared_document_fields = {
+            field_name
+            for field_name in APPLICATION_DOCUMENT_FIELDS
+            if request.POST.get(f"clear_{field_name}") == "1" and field_name not in request.FILES
+        }
         existing_document_fields = {
             field_name
             for field_name in APPLICATION_DOCUMENT_FIELDS
-            if can_update_documents and resubmittable and getattr(resubmittable, field_name)
+            if can_update_documents
+            and resubmittable
+            and field_name not in cleared_document_fields
+            and getattr(resubmittable, field_name)
         }
         has_document_uploads = bool(submitted_document_fields or existing_document_fields)
         if form.is_valid() and has_document_uploads:
             application = form.save(commit=False)
+            clear_requested_application_documents(application, request.POST, request.FILES)
             application.applicant = request.user
             application.mobile_number = application.whatsapp_number or profile.mobile_number
             application.shop_name = application.style_name or application.full_name
@@ -488,6 +534,7 @@ def application_create(request):
             "has_form_errors": form.is_bound and form.errors,
             "rejected_documents": list(getattr(resubmittable, "rejected_documents", []) or []) if can_update_documents else [],
             "rejected_documents_json": json.dumps(list(getattr(resubmittable, "rejected_documents", []) or []) if can_update_documents else []),
+            "existing_documents": application_existing_document_map(resubmittable) if can_update_documents and resubmittable else {},
         },
     )
 
@@ -1011,6 +1058,16 @@ def application_documents(application):
         document["url"] = storage_url(file)
         document["uploaded"] = bool(document["url"])
         document["rejected"] = document["key"] in rejected
+    return documents
+
+
+def application_existing_document_map(application):
+    if not application:
+        return {}
+    documents = {}
+    for field_name in APPLICATION_DOCUMENT_FIELDS:
+        url = storage_url(getattr(application, field_name))
+        documents[field_name] = {"url": url, "uploaded": bool(url)}
     return documents
 
 

@@ -587,6 +587,52 @@
   background: rgba(253, 226, 226, .5);
 }
 
+.existing-doc {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(15, 23, 42, .1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .76);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.existing-doc a,
+.existing-doc label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.existing-doc a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.existing-doc label {
+  cursor: pointer;
+  color: #9f1239;
+}
+
+.existing-doc input {
+  width: 15px;
+  height: 15px;
+  accent-color: #b91c1c;
+}
+
+.application-portal .upload.is-clearing-existing {
+  border-color: rgba(185, 28, 28, .45);
+}
+
+.application-portal .upload.is-clearing-existing .existing-doc {
+  background: #fff1f2;
+  border-color: rgba(185, 28, 28, .24);
+}
+
 .application-portal .upload[data-doc-key].doc-rejected .u-ic {
   background: linear-gradient(135deg, rgba(185, 28, 28, .14), rgba(201, 162, 39, .22));
   color: #b91c1c;
