@@ -733,6 +733,17 @@
         input.value = "";
         return;
       }
+      if(input.hasAttribute("data-auto-submit-document")){
+        const form = input.closest("form");
+        const label = root.querySelector("[data-file-label]");
+        if(label) label.textContent = "Uploading...";
+        root.classList.add("is-loading");
+        window.setTimeout(function(){
+          if(form && form.requestSubmit) form.requestSubmit();
+          else if(form) form.submit();
+        }, 40);
+        return;
+      }
       root.classList.add("is-loading");
       if(nameEl) nameEl.textContent = f.name;
       if(sizeEl) sizeEl.textContent = uploadWidgetFormatSize(f.size);

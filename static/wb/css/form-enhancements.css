@@ -641,6 +641,35 @@
   cursor: default;
 }
 
+.document-upload-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.document-upload-btn {
+  width: 100%;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.document-remove-btn {
+  border-color: rgba(185, 28, 28, .28);
+  color: #b91c1c;
+  background: #fff1f2;
+}
+
+.document-remove-btn:hover {
+  border-color: rgba(185, 28, 28, .44);
+  background: #ffe4e6;
+}
+
 .document-live-preview {
   position: relative;
   overflow: hidden;

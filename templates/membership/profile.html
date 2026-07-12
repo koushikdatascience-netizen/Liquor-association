@@ -60,9 +60,6 @@
             <div class="card card-tight mb-16 form-error-summary">
               <h3 class="h-card mb-8">{% if application.status == "REJECTED" %}Documents rejected{% else %}Document update requested{% endif %}</h3>
               <p class="small mb-16">{{ application.remarks|default:"Please upload corrected documents and resubmit the application." }}</p>
-              <a class="btn btn-primary" href="{% url 'application_create' %}#step=4">
-                <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Re-upload documents
-              </a>
             </div>
           {% endif %}
           {% if can_resubmit_documents %}
@@ -90,21 +87,18 @@
                       </div>
                       <div class="existing-doc">
                         <a href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-arrows-fullscreen"></i> Open full preview</a>
-                        <label><input type="checkbox" name="clear_{{ doc.key }}" value="1" data-clear-existing> Remove current file</label>
+                        <button class="btn btn-secondary btn-sm document-remove-btn" type="submit" name="clear_{{ doc.key }}" value="1"><i class="bi bi-trash"></i> Remove</button>
                       </div>
                     {% endif %}
-                    <label class="upload-drop">
-                      <input type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}">
+                    <input class="document-upload-input" id="profile-doc-upload-{{ forloop.counter }}" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}" data-auto-submit-document>
+                    <label class="btn btn-primary btn-sm document-upload-btn" for="profile-doc-upload-{{ forloop.counter }}">
                       <i class="bi bi-cloud-arrow-up"></i>
-                      <span data-file-label>{% if doc.uploaded %}Replace this file{% else %}Upload file{% endif %}</span>
+                      <span data-file-label>{% if doc.uploaded %}Replace file{% else %}Upload file{% endif %}</span>
                     </label>
                   </div>
                 {% empty %}
                   <p class="small">Documents will appear here after you submit your application.</p>
                 {% endfor %}
-              </div>
-              <div class="document-resubmit-actions">
-                <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle" aria-hidden="true"></i> Resubmit documents</button>
               </div>
             </form>
           {% else %}
