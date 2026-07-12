@@ -70,8 +70,14 @@
                   <div class="upload django-upload document-manage-card {% if doc.rejected %}doc-rejected{% endif %}" data-doc-key="{{ doc.key }}">
                     <div class="upload-head">
                       <div class="u-ic"><i class="bi {% if doc.uploaded %}bi-file-earmark-check{% else %}bi-file-earmark-x{% endif %}"></i></div>
-                      <div>
-                        <h5>{{ doc.label }}</h5>
+                      <div class="document-head-body">
+                        <div class="document-title-row">
+                          <h5>{{ doc.label }}</h5>
+                          <button class="btn btn-primary btn-sm document-upload-btn" type="button" data-upload-trigger>
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <span data-file-label>{% if doc.uploaded %}Replace{% else %}Upload{% endif %}</span>
+                          </button>
+                        </div>
                         <p>{% if doc.rejected %}Rejected - upload a corrected file{% elif doc.uploaded %}Current file is saved{% else %}Not uploaded{% endif %}</p>
                       </div>
                     </div>
@@ -91,10 +97,6 @@
                       </div>
                     {% endif %}
                     <input class="document-upload-input" id="profile-doc-upload-{{ forloop.counter }}" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}" data-auto-submit-document>
-                    <button class="btn btn-primary btn-sm document-upload-btn" type="button" data-upload-trigger>
-                      <i class="bi bi-cloud-arrow-up"></i>
-                      <span data-file-label>{% if doc.uploaded %}Replace file{% else %}Upload file{% endif %}</span>
-                    </button>
                   </div>
                 {% empty %}
                   <p class="small">Documents will appear here after you submit your application.</p>

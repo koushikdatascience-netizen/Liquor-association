@@ -170,7 +170,7 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         self.assertContains(response, 'name="excise_license"')
         self.assertContains(response, 'name="clear_excise_license"')
         self.assertContains(response, "Remove")
-        self.assertContains(response, "Replace file")
+        self.assertContains(response, "Replace")
 
     @patch("membership.views.notify_staff")
     def test_profile_document_resubmit_replaces_and_clears_documents(self, _notify_staff):
