@@ -65,30 +65,81 @@
               </a>
             </div>
           {% endif %}
-          <div class="upload-grid">
-            {% for doc in documents %}
-              {% if doc.uploaded %}
-                <a class="upload" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank">
-                  <div class="upload-head">
-                    <div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div>
-                    <div>
-                      <h5>{{ doc.label }}</h5>
-                      <p>{% if can_resubmit_documents %}Uploaded - preview or replace from re-upload{% else %}Uploaded - click to preview{% endif %}</p>
+          {% if can_resubmit_documents %}
+            <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form">
+              {% csrf_token %}
+              <div class="upload-grid">
+                {% for doc in documents %}
+                  <div class="upload django-upload document-manage-card {% if doc.rejected %}doc-rejected{% endif %}" data-doc-key="{{ doc.key }}">
+                    <div class="upload-head">
+                      <div class="u-ic"><i class="bi {% if doc.uploaded %}bi-file-earmark-check{% else %}bi-file-earmark-x{% endif %}"></i></div>
+                      <div>
+                        <h5>{{ doc.label }}</h5>
+                        <p>{% if doc.rejected %}Rejected - upload a corrected file{% elif doc.uploaded %}Current file is saved{% else %}Not uploaded{% endif %}</p>
+                      </div>
+                    </div>
+                    {% if doc.uploaded %}
+                      <div class="document-live-preview">
+                        {% if doc.is_image %}
+                          <img src="{{ doc.preview_url }}" alt="{{ doc.label }}">
+                        {% elif doc.is_pdf %}
+                          <iframe src="{{ doc.preview_url }}" title="{{ doc.label }}"></iframe>
+                        {% else %}
+                          <div class="document-preview-fallback"><i class="bi bi-file-earmark-text"></i></div>
+                        {% endif %}
+                      </div>
+                      <div class="existing-doc">
+                        <a href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-arrows-fullscreen"></i> Open full preview</a>
+                        <label><input type="checkbox" name="clear_{{ doc.key }}" value="1" data-clear-existing> Remove current file</label>
+                      </div>
+                    {% endif %}
+                    <label class="upload-drop">
+                      <input type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}">
+                      <i class="bi bi-cloud-arrow-up"></i>
+                      <span data-file-label>{% if doc.uploaded %}Replace this file{% else %}Upload file{% endif %}</span>
+                    </label>
+                  </div>
+                {% empty %}
+                  <p class="small">Documents will appear here after you submit your application.</p>
+                {% endfor %}
+              </div>
+              <div class="document-resubmit-actions">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle" aria-hidden="true"></i> Resubmit documents</button>
+              </div>
+            </form>
+          {% else %}
+            <div class="upload-grid">
+              {% for doc in documents %}
+                {% if doc.uploaded %}
+                  <div class="upload document-manage-card">
+                    <div class="upload-head">
+                      <div class="u-ic"><i class="bi bi-file-earmark-check"></i></div>
+                      <div><h5>{{ doc.label }}</h5><p>Uploaded</p></div>
+                    </div>
+                    <div class="document-live-preview">
+                      {% if doc.is_image %}
+                        <img src="{{ doc.preview_url }}" alt="{{ doc.label }}">
+                      {% elif doc.is_pdf %}
+                        <iframe src="{{ doc.preview_url }}" title="{{ doc.label }}"></iframe>
+                      {% else %}
+                        <div class="document-preview-fallback"><i class="bi bi-file-earmark-text"></i></div>
+                      {% endif %}
+                    </div>
+                    <a class="btn btn-secondary btn-sm mt-8" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-arrows-fullscreen"></i> Open full preview</a>
+                  </div>
+                {% else %}
+                  <div class="upload missing">
+                    <div class="upload-head">
+                      <div class="u-ic"><i class="bi bi-file-earmark-x"></i></div>
+                      <div><h5>{{ doc.label }}</h5><p>Not uploaded</p></div>
                     </div>
                   </div>
-                </a>
-              {% else %}
-                <div class="upload missing">
-                  <div class="upload-head">
-                    <div class="u-ic"><i class="bi bi-file-earmark-x"></i></div>
-                    <div><h5>{{ doc.label }}</h5><p>Not uploaded</p></div>
-                  </div>
-                </div>
-              {% endif %}
-            {% empty %}
-              <p class="small">Documents will appear here after you submit your application.</p>
-            {% endfor %}
-          </div>
+                {% endif %}
+              {% empty %}
+                <p class="small">Documents will appear here after you submit your application.</p>
+              {% endfor %}
+            </div>
+          {% endif %}
           {% else %}
           <p class="small">Documents will appear here after you submit your application.</p>
           {% endif %}

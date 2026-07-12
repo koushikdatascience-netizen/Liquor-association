@@ -249,6 +249,21 @@ class MembershipApplicationForm(forms.ModelForm):
         return cleaned_data
 
 
+class ApplicationDocumentResubmissionForm(MembershipApplicationForm):
+    class Meta(MembershipApplicationForm.Meta):
+        fields = [
+            "excise_license",
+            "passport_photo",
+            "primary_delegate_photo",
+            "alternate_delegate_photo",
+            "pan_card",
+            "aadhaar_card",
+            "partnership_deed",
+            "gst_certificate",
+            "address_proof",
+        ]
+
+
 class PaymentProofForm(forms.ModelForm):
     class Meta:
         model = PaymentProof

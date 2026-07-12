@@ -144,6 +144,71 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         self.assertTrue(application.excise_license.storage.exists(original_file_name))
         self.assertEqual(application.status, MembershipApplication.Status.SUBMITTED)
 
+    def test_profile_documents_tab_shows_real_resubmit_form_for_legacy_rejected_status(self):
+        application = MembershipApplication.objects.create(
+            applicant=self.user,
+            status="DOCUMENTS_REJECTED",
+            full_name="Abhi Singh",
+            gender=MembershipApplication.Gender.MALE,
+            mobile_number="9876543210",
+            email="abhi@example.com",
+            residential_address="Kolkata",
+            shop_name="Abhi Stores",
+            excise_license_number="EX-123",
+            excise_license_type="Off",
+            district="",
+            primary_delegate_name="Abhi Singh",
+            declaration_accepted=True,
+            digital_signature="Abhi Singh",
+            rejected_documents=["excise_license"],
+        )
+        application.excise_license.save("existing.pdf", self.upload_file("existing.pdf"), save=True)
+
+        response = self.client.get(reverse("member_profile"))
+
+        self.assertContains(response, reverse("member_document_resubmit"))
+        self.assertContains(response, 'name="excise_license"')
+        self.assertContains(response, 'name="clear_excise_license"')
+        self.assertContains(response, "Resubmit documents")
+
+    @patch("membership.views.notify_staff")
+    def test_profile_document_resubmit_replaces_and_clears_documents(self, _notify_staff):
+        application = MembershipApplication.objects.create(
+            applicant=self.user,
+            status=MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+            full_name="Abhi Singh",
+            gender=MembershipApplication.Gender.MALE,
+            mobile_number="9876543210",
+            email="abhi@example.com",
+            residential_address="Kolkata",
+            shop_name="Abhi Stores",
+            excise_license_number="EX-123",
+            excise_license_type="Off",
+            district="",
+            primary_delegate_name="Abhi Singh",
+            declaration_accepted=True,
+            digital_signature="Abhi Singh",
+            rejected_documents=["excise_license"],
+        )
+        application.excise_license.save("old-excise.pdf", self.upload_file("old-excise.pdf"), save=True)
+        application.pan_card.save("old-pan.pdf", self.upload_file("old-pan.pdf"), save=True)
+        old_excise_name = application.excise_license.name
+
+        response = self.client.post(
+            reverse("member_document_resubmit"),
+            {
+                "excise_license": self.upload_file("new-excise.pdf"),
+                "clear_pan_card": "1",
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("member_profile"))
+        application.refresh_from_db()
+        self.assertNotEqual(application.excise_license.name, old_excise_name)
+        self.assertFalse(application.pan_card.name)
+        self.assertEqual(application.status, MembershipApplication.Status.SUBMITTED)
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()

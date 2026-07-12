@@ -688,6 +688,7 @@
 
     root.addEventListener("click", function(e){
       if(rmBtn && (e.target === rmBtn || rmBtn.contains(e.target))) return;
+      if(e.target.closest("a, button, label, input, select, textarea, iframe")) return;
       if(e.target === input) return;
       if(root.classList.contains("django-upload") && e.target.closest(".upload-drop")) return;
       input.click();

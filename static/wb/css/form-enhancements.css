@@ -633,6 +633,52 @@
   border-color: rgba(185, 28, 28, .24);
 }
 
+.document-resubmit-form {
+  display: block;
+}
+
+.document-manage-card {
+  cursor: default;
+}
+
+.document-live-preview {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin: 10px 0 12px;
+  border: 1px solid rgba(15, 23, 42, .1);
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.document-live-preview img,
+.document-live-preview iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.document-live-preview img {
+  object-fit: contain;
+}
+
+.document-preview-fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #64748b;
+  font-size: 38px;
+}
+
+.document-resubmit-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
 .application-portal .upload[data-doc-key].doc-rejected .u-ic {
   background: linear-gradient(135deg, rgba(185, 28, 28, .14), rgba(201, 162, 39, .22));
   color: #b91c1c;

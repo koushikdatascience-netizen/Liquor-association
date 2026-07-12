@@ -20,7 +20,7 @@ from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from .forms import MembershipApplicationForm, PaymentProofForm, SitePaymentSettingsForm
+from .forms import ApplicationDocumentResubmissionForm, MembershipApplicationForm, PaymentProofForm, SitePaymentSettingsForm
 from .models import AuditLog, BroadcastMessage, Member, MembershipApplication, PaymentProof, SitePaymentSettings, notify_staff
 from .services import notify_member
 
@@ -377,6 +377,55 @@ def member_profile(request):
     context["documents"] = application_documents(application) if application else []
     context["can_resubmit_documents"] = bool(application and is_document_resubmission_status(application.status))
     return render(request, "membership/profile.html", context)
+
+
+@login_required
+def member_document_resubmit(request):
+    if request.method != "POST":
+        return redirect("member_profile")
+
+    application = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at").first()
+    if not application or not is_document_resubmission_status(application.status):
+        messages.error(request, "Document re-upload is not available for this application right now.")
+        return redirect("member_profile")
+
+    form = ApplicationDocumentResubmissionForm(request.POST, request.FILES, instance=application)
+    submitted_document_fields = set(request.FILES).intersection(APPLICATION_DOCUMENT_FIELDS)
+    cleared_document_fields = {
+        field_name
+        for field_name in APPLICATION_DOCUMENT_FIELDS
+        if request.POST.get(f"clear_{field_name}") == "1" and field_name not in request.FILES
+    }
+    existing_document_fields = {
+        field_name
+        for field_name in APPLICATION_DOCUMENT_FIELDS
+        if field_name not in cleared_document_fields and getattr(application, field_name)
+    }
+
+    if not submitted_document_fields and not cleared_document_fields:
+        messages.error(request, "Please upload or remove at least one document before resubmitting.")
+        return redirect("member_profile")
+
+    if not (submitted_document_fields or existing_document_fields):
+        messages.error(request, "At least one application document must remain uploaded.")
+        return redirect("member_profile")
+
+    if not form.is_valid():
+        first_error = next(iter(form.errors.values()), ["Please check the selected files."])[0]
+        messages.error(request, first_error)
+        return redirect("member_profile")
+
+    application = form.save(commit=False)
+    clear_requested_application_documents(application, request.POST, request.FILES)
+    application.status = MembershipApplication.Status.SUBMITTED
+    application.remarks = ""
+    application.save()
+    notify_staff(
+        "Documents resubmitted",
+        f"{application.full_name} / {application.shop_name} has resubmitted documents from the member portal.",
+    )
+    messages.success(request, "Documents updated and resubmitted for admin review.")
+    return redirect("member_profile")
 
 
 @login_required
@@ -1054,8 +1103,11 @@ def application_documents(application):
     rejected = set(getattr(application, "rejected_documents", []) or [])
     for document in documents:
         file = document["file"]
-        document["is_image"] = file_kind(file) == "image"
+        kind = file_kind(file)
+        document["is_image"] = kind == "image"
+        document["is_pdf"] = kind == "pdf"
         document["url"] = storage_url(file)
+        document["preview_url"] = reverse("document_file", args=["application", application.pk, document["key"]]) if document["url"] else ""
         document["uploaded"] = bool(document["url"])
         document["rejected"] = document["key"] in rejected
     return documents
