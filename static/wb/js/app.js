@@ -684,9 +684,17 @@
     const sizeEl = fileEl ? fileEl.querySelector(".size") : null;
     const thumbEl = fileEl ? fileEl.querySelector(".upload-thumb") : null;
     const rmBtn = fileEl ? fileEl.querySelector(".rm") : null;
+    const uploadTrigger = root.querySelector("[data-upload-trigger]");
     let previewUrl = "";
 
+    uploadTrigger && uploadTrigger.addEventListener("click", function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      input.click();
+    });
+
     root.addEventListener("click", function(e){
+      if(root.classList.contains("document-manage-card")) return;
       if(rmBtn && (e.target === rmBtn || rmBtn.contains(e.target))) return;
       if(e.target.closest("a, button, label, input, select, textarea, iframe")) return;
       if(e.target === input) return;

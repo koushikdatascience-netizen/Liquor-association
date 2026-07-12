@@ -91,10 +91,10 @@
                       </div>
                     {% endif %}
                     <input class="document-upload-input" id="profile-doc-upload-{{ forloop.counter }}" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}" data-auto-submit-document>
-                    <label class="btn btn-primary btn-sm document-upload-btn" for="profile-doc-upload-{{ forloop.counter }}">
+                    <button class="btn btn-primary btn-sm document-upload-btn" type="button" data-upload-trigger>
                       <i class="bi bi-cloud-arrow-up"></i>
                       <span data-file-label>{% if doc.uploaded %}Replace file{% else %}Upload file{% endif %}</span>
-                    </label>
+                    </button>
                   </div>
                 {% empty %}
                   <p class="small">Documents will appear here after you submit your application.</p>

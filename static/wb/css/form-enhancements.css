@@ -657,6 +657,7 @@
   width: 100%;
   justify-content: center;
   cursor: pointer;
+  border: 0;
 }
 
 .document-remove-btn {
