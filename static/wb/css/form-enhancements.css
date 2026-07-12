@@ -15,10 +15,25 @@
   -webkit-backdrop-filter: blur(14px);
 }
 
+.application-portal .page {
+  padding-top: 18px;
+  padding-bottom: 44px;
+}
+
+.application-portal .breadcrumb {
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+
+.application-portal .page-title {
+  font-size: 22px;
+}
+
 .page-textured {
   position: relative;
   isolation: isolate;
   min-height: calc(100vh - 72px);
+  padding-top: 10px;
   background:
     linear-gradient(135deg, rgba(109, 15, 26, .08), rgba(201, 162, 39, .12)),
     url("/static/img/form-bg.jpg");
@@ -39,10 +54,10 @@
 }
 
 .page-textured .page-head {
-  margin-bottom: 18px;
-  padding: 22px 24px;
-  border: 1px solid rgba(109, 15, 26, .12);
-  border-radius: 22px;
+  margin-bottom: 12px;
+  padding: 14px 18px;
+  border: 1px solid rgba(109, 15, 26, .11);
+  border-radius: 18px;
   background: rgba(255, 255, 255, .72);
   box-shadow: 0 18px 50px rgba(74, 10, 18, .10);
   backdrop-filter: blur(14px);
@@ -58,7 +73,7 @@
   position: sticky;
   top: 88px;
   z-index: 12;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
   background: rgba(255, 255, 255, .82);
   border: 1px solid rgba(109, 15, 26, .14);
   box-shadow: 0 14px 34px rgba(74, 10, 18, .10);
@@ -67,8 +82,19 @@
 }
 
 .application-stepper .st {
-  border-radius: 14px;
+  border-radius: 12px;
+  padding: 8px 10px;
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.application-stepper .st-label {
+  font-size: 11px;
+}
+
+.application-stepper .st-num {
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
 }
 
 .application-stepper .st:hover {
@@ -98,7 +124,7 @@
 .application-wizard {
   position: relative;
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .application-wizard::before {
@@ -119,9 +145,9 @@
   position: relative;
   z-index: 1;
   overflow: hidden;
-  padding: 34px;
-  border: 1px solid rgba(109, 15, 26, .16);
-  border-radius: 24px;
+  padding: 26px;
+  border: 1px solid rgba(109, 15, 26, .15);
+  border-radius: 20px;
   background: rgba(255, 255, 255, .86);
   box-shadow: 0 22px 60px rgba(74, 10, 18, .12);
   backdrop-filter: blur(18px);
@@ -139,11 +165,14 @@
 
 .application-portal .wizard-card h3 {
   color: var(--maroon-dark);
+  font-size: 18px;
   letter-spacing: 0;
 }
 
 .application-portal .wizard-card .sub {
   max-width: 640px;
+  font-size: 12px;
+  line-height: 1.42;
 }
 
 @keyframes formPanelIn {
@@ -159,16 +188,17 @@
 
 .application-portal .wizard-card > .card {
   border-color: rgba(109, 15, 26, .12);
+  padding: 18px;
   background: rgba(255, 252, 249, .72);
   box-shadow: 0 12px 28px rgba(74, 10, 18, .06);
 }
 
 .application-portal .form {
-  gap: 18px;
+  gap: 14px;
 }
 
 .application-portal .form-row {
-  gap: 18px;
+  gap: 14px;
 }
 
 .application-portal .field {
@@ -180,9 +210,9 @@
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--maroon-dark);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .02em;
 }
@@ -191,14 +221,14 @@
 .application-portal .field select,
 .application-portal .field textarea {
   width: 100%;
-  min-height: 50px;
-  padding: 13px 44px 13px 15px;
-  border: 1.5px solid rgba(109, 15, 26, .18);
-  border-radius: 14px;
+  min-height: 40px;
+  padding: 9px 36px 9px 12px;
+  border: 1.25px solid rgba(109, 15, 26, .18);
+  border-radius: 11px;
   background: rgba(255, 255, 255, .92);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), 0 1px 2px rgba(74, 10, 18, .04);
   transition:
     border-color var(--dur) var(--ease),
@@ -208,7 +238,7 @@
 }
 
 .application-portal .field textarea {
-  min-height: 108px;
+  min-height: 82px;
   resize: vertical;
 }
 
@@ -236,18 +266,18 @@
 
 .application-portal .field-icon {
   position: absolute;
-  right: 15px;
-  top: 42px;
+  right: 12px;
+  top: 34px;
   z-index: 2;
   color: var(--text-3);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
   pointer-events: none;
   transition: color var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
 .application-portal .field textarea + .field-icon {
-  top: 45px;
+  top: 36px;
 }
 
 .application-portal .field input:focus + .field-icon,
@@ -274,23 +304,23 @@
 .application-portal .upload .errorlist,
 .application-portal .checkbox + .errorlist,
 .application-portal .field-error {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   padding: 0;
   list-style: none;
   color: var(--danger);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .application-portal .upload-grid {
-  gap: 18px;
+  gap: 14px;
 }
 
 .application-portal .upload {
   position: relative;
   overflow: hidden;
-  border: 1.5px dashed rgba(109, 15, 26, .28);
-  border-radius: 18px;
+  border: 1.25px dashed rgba(109, 15, 26, .28);
+  border-radius: 14px;
   background: rgba(255, 252, 249, .78);
   box-shadow: 0 10px 24px rgba(74, 10, 18, .06);
   transition:
@@ -320,9 +350,23 @@
 .application-portal .upload-head {
   position: relative;
   z-index: 1;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.application-portal .upload-head h5 {
+  font-size: 12px;
+}
+
+.application-portal .upload-head p {
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .application-portal .u-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   background: linear-gradient(135deg, rgba(109, 15, 26, .10), rgba(201, 162, 39, .22));
   color: var(--maroon);
 }
@@ -330,8 +374,8 @@
 .application-portal .upload-drop {
   position: relative;
   z-index: 1;
-  min-height: 78px;
-  border-radius: 14px;
+  min-height: 58px;
+  border-radius: 11px;
   border: 1px solid rgba(109, 15, 26, .12);
   background: rgba(255, 255, 255, .70);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
@@ -344,7 +388,7 @@
 }
 
 .application-portal .upload-drop i {
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .application-portal .upload-file.upload-preview {
@@ -360,9 +404,10 @@
 }
 
 .application-portal .checkbox {
-  padding: 16px;
+  padding: 12px;
   border: 1px solid rgba(109, 15, 26, .14);
-  border-radius: 16px;
+  border-radius: 13px;
+  font-size: 12px;
   background: rgba(255, 255, 255, .78);
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
 }
@@ -374,8 +419,8 @@
 }
 
 .application-portal .checkbox input {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   accent-color: var(--maroon);
   margin-top: 2px;
   flex: 0 0 auto;
@@ -385,7 +430,7 @@
   background:
     linear-gradient(135deg, rgba(247, 237, 208, .54), rgba(255, 255, 255, .78));
   border: 1px solid rgba(201, 162, 39, .42);
-  border-radius: 18px;
+  border-radius: 14px;
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -398,7 +443,7 @@
 .application-portal .review-block {
   background: rgba(255, 255, 255, .80);
   border: 1px solid rgba(109, 15, 26, .14);
-  border-radius: 18px;
+  border-radius: 14px;
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -418,9 +463,9 @@
   bottom: 0;
   z-index: 10;
   margin-top: 2px;
-  padding: 16px;
+  padding: 12px;
   border: 1px solid rgba(109, 15, 26, .12);
-  border-radius: 20px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, .84);
   box-shadow: 0 -12px 34px rgba(74, 10, 18, .09);
   backdrop-filter: blur(16px);
@@ -428,6 +473,9 @@
 }
 
 .application-wizard .btn {
+  height: 38px;
+  padding: 0 16px;
+  font-size: 12px;
   transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 
@@ -463,8 +511,8 @@
   }
 
   .page-textured .page-head {
-    padding: 18px;
-    border-radius: 18px;
+    padding: 14px;
+    border-radius: 16px;
   }
 
   .application-stepper {
@@ -482,14 +530,14 @@
   }
 
   .application-portal .wizard-card {
-    padding: 24px 18px;
-    border-radius: 20px;
+    padding: 20px 14px;
+    border-radius: 18px;
   }
 
   .application-portal .form,
   .application-portal .form-row,
   .application-portal .upload-grid {
-    gap: 14px;
+    gap: 12px;
   }
 
   .application-portal .wiz-footer {
