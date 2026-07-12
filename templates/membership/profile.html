@@ -59,6 +59,9 @@
           {% if can_resubmit_documents %}
             <div class="card card-tight mb-16 form-error-summary">
               <h3 class="h-card mb-8">{% if application.status == "REJECTED" %}Documents rejected{% else %}Document update requested{% endif %}</h3>
+              {% if requested_document_labels %}
+                <p class="small mb-8">Please re-upload: <strong>{{ requested_document_labels|join:", " }}</strong>.</p>
+              {% endif %}
               <p class="small mb-16">{{ application.remarks|default:"Please upload corrected documents and resubmit the application." }}</p>
             </div>
           {% endif %}
@@ -66,40 +69,28 @@
             <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form">
               {% csrf_token %}
               <div class="upload-grid">
-                {% for doc in documents %}
-                  <div class="upload django-upload document-manage-card {% if doc.rejected %}doc-rejected{% endif %}" data-doc-key="{{ doc.key }}">
+                {% for doc in resubmission_documents %}
+                  <div class="upload django-upload document-manage-card doc-rejected" data-doc-key="{{ doc.key }}">
                     <div class="upload-head">
                       <div class="u-ic"><i class="bi {% if doc.uploaded %}bi-file-earmark-check{% else %}bi-file-earmark-x{% endif %}"></i></div>
                       <div class="document-head-body">
                         <div class="document-title-row">
-                          <h5>{{ doc.label }}</h5>
+                          <button class="document-title-trigger" type="button" data-upload-trigger>{{ doc.label }}</button>
                           <button class="btn btn-primary btn-sm document-upload-btn" type="button" data-upload-trigger>
                             <i class="bi bi-cloud-arrow-up"></i>
                             <span data-file-label>{% if doc.uploaded %}Replace{% else %}Upload{% endif %}</span>
                           </button>
                         </div>
-                        <p>{% if doc.rejected %}Rejected - upload a corrected file{% elif doc.uploaded %}Current file is saved{% else %}Not uploaded{% endif %}</p>
-                      </div>
-                    </div>
-                    {% if doc.uploaded %}
-                      <div class="document-live-preview">
-                        {% if doc.is_image %}
-                          <img src="{{ doc.preview_url }}" alt="{{ doc.label }}">
-                        {% elif doc.is_pdf %}
-                          <iframe src="{{ doc.preview_url }}" title="{{ doc.label }}"></iframe>
-                        {% else %}
-                          <div class="document-preview-fallback"><i class="bi bi-file-earmark-text"></i></div>
+                        <p>Requested for re-upload{% if doc.uploaded %} - current file saved{% endif %}</p>
+                        {% if doc.uploaded %}
+                          <a class="document-preview-link" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> View current file</a>
                         {% endif %}
                       </div>
-                      <div class="existing-doc">
-                        <a href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-arrows-fullscreen"></i> Open full preview</a>
-                        <button class="btn btn-secondary btn-sm document-remove-btn" type="submit" name="clear_{{ doc.key }}" value="1"><i class="bi bi-trash"></i> Remove</button>
-                      </div>
-                    {% endif %}
+                    </div>
                     <input class="document-upload-input" id="profile-doc-upload-{{ forloop.counter }}" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}" data-auto-submit-document>
                   </div>
                 {% empty %}
-                  <p class="small">Documents will appear here after you submit your application.</p>
+                  <p class="small">No specific document has been requested for re-upload.</p>
                 {% endfor %}
               </div>
             </form>

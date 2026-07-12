@@ -16,8 +16,9 @@
 }
 
 .application-portal .page {
-  padding-top: 18px;
-  padding-bottom: 44px;
+  width: 100%;
+  max-width: none;
+  padding: 16px 42px 40px;
 }
 
 .application-portal .breadcrumb {
@@ -54,12 +55,14 @@
 }
 
 .page-textured .page-head {
+  width: min(100%, 840px);
+  margin-left: auto;
   margin-bottom: 12px;
-  padding: 14px 18px;
-  border: 1px solid rgba(109, 15, 26, .11);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, .72);
-  box-shadow: 0 18px 50px rgba(74, 10, 18, .10);
+  padding: 10px 14px;
+  border: 1px solid rgba(109, 15, 26, .10);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .62);
+  box-shadow: 0 14px 36px rgba(74, 10, 18, .08);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -73,6 +76,8 @@
   position: sticky;
   top: 88px;
   z-index: 12;
+  width: min(100%, 840px);
+  margin-left: auto;
   margin-bottom: 14px;
   background: rgba(255, 255, 255, .82);
   border: 1px solid rgba(109, 15, 26, .14);
@@ -83,18 +88,19 @@
 
 .application-stepper .st {
   border-radius: 12px;
-  padding: 8px 10px;
+  min-width: 68px;
+  padding: 6px 8px;
   transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
 .application-stepper .st-label {
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .application-stepper .st-num {
-  width: 26px;
-  height: 26px;
-  font-size: 12px;
+  width: 23px;
+  height: 23px;
+  font-size: 11px;
 }
 
 .application-stepper .st:hover {
@@ -125,6 +131,8 @@
   position: relative;
   display: grid;
   gap: 14px;
+  width: min(100%, 840px);
+  margin-left: auto;
 }
 
 .application-wizard::before {
@@ -145,11 +153,11 @@
   position: relative;
   z-index: 1;
   overflow: hidden;
-  padding: 26px;
+  padding: 20px;
   border: 1px solid rgba(109, 15, 26, .15);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, .86);
-  box-shadow: 0 22px 60px rgba(74, 10, 18, .12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .80);
+  box-shadow: 0 18px 46px rgba(74, 10, 18, .10);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   animation: formPanelIn 240ms var(--ease);
@@ -159,20 +167,21 @@
   content: "";
   position: absolute;
   inset: 0 0 auto;
-  height: 5px;
+  height: 4px;
   background: linear-gradient(90deg, var(--maroon), var(--gold), var(--red));
 }
 
 .application-portal .wizard-card h3 {
   color: var(--maroon-dark);
-  font-size: 18px;
+  font-size: 16px;
   letter-spacing: 0;
 }
 
 .application-portal .wizard-card .sub {
   max-width: 640px;
-  font-size: 12px;
-  line-height: 1.42;
+  margin-bottom: 16px;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 @keyframes formPanelIn {
@@ -188,17 +197,17 @@
 
 .application-portal .wizard-card > .card {
   border-color: rgba(109, 15, 26, .12);
-  padding: 18px;
+  padding: 14px;
   background: rgba(255, 252, 249, .72);
   box-shadow: 0 12px 28px rgba(74, 10, 18, .06);
 }
 
 .application-portal .form {
-  gap: 14px;
+  gap: 10px;
 }
 
 .application-portal .form-row {
-  gap: 14px;
+  gap: 10px;
 }
 
 .application-portal .field {
@@ -210,9 +219,9 @@
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: var(--maroon-dark);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: .02em;
 }
@@ -221,14 +230,14 @@
 .application-portal .field select,
 .application-portal .field textarea {
   width: 100%;
-  min-height: 40px;
-  padding: 9px 36px 9px 12px;
+  min-height: 35px;
+  padding: 7px 32px 7px 10px;
   border: 1.25px solid rgba(109, 15, 26, .18);
-  border-radius: 11px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, .92);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), 0 1px 2px rgba(74, 10, 18, .04);
   transition:
     border-color var(--dur) var(--ease),
@@ -238,7 +247,7 @@
 }
 
 .application-portal .field textarea {
-  min-height: 82px;
+  min-height: 66px;
   resize: vertical;
 }
 
@@ -267,17 +276,17 @@
 .application-portal .field-icon {
   position: absolute;
   right: 12px;
-  top: 34px;
+  top: 29px;
   z-index: 2;
   color: var(--text-3);
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1;
   pointer-events: none;
   transition: color var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
 .application-portal .field textarea + .field-icon {
-  top: 36px;
+  top: 30px;
 }
 
 .application-portal .field input:focus + .field-icon,
@@ -313,14 +322,15 @@
 }
 
 .application-portal .upload-grid {
-  gap: 14px;
+  gap: 10px;
 }
 
 .application-portal .upload {
   position: relative;
   overflow: hidden;
   border: 1.25px dashed rgba(109, 15, 26, .28);
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: 12px;
   background: rgba(255, 252, 249, .78);
   box-shadow: 0 10px 24px rgba(74, 10, 18, .06);
   transition:
@@ -350,23 +360,23 @@
 .application-portal .upload-head {
   position: relative;
   z-index: 1;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .application-portal .upload-head h5 {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .application-portal .upload-head p {
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.35;
 }
 
 .application-portal .u-ic {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: linear-gradient(135deg, rgba(109, 15, 26, .10), rgba(201, 162, 39, .22));
   color: var(--maroon);
 }
@@ -374,8 +384,10 @@
 .application-portal .upload-drop {
   position: relative;
   z-index: 1;
-  min-height: 58px;
-  border-radius: 11px;
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 11px;
   border: 1px solid rgba(109, 15, 26, .12);
   background: rgba(255, 255, 255, .70);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
@@ -388,7 +400,7 @@
 }
 
 .application-portal .upload-drop i {
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .application-portal .upload-file.upload-preview {
@@ -404,10 +416,10 @@
 }
 
 .application-portal .checkbox {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid rgba(109, 15, 26, .14);
-  border-radius: 13px;
-  font-size: 12px;
+  border-radius: 11px;
+  font-size: 11px;
   background: rgba(255, 255, 255, .78);
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
 }
@@ -430,7 +442,8 @@
   background:
     linear-gradient(135deg, rgba(247, 237, 208, .54), rgba(255, 255, 255, .78));
   border: 1px solid rgba(201, 162, 39, .42);
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: 12px;
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -443,7 +456,9 @@
 .application-portal .review-block {
   background: rgba(255, 255, 255, .80);
   border: 1px solid rgba(109, 15, 26, .14);
-  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 12px;
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -463,19 +478,20 @@
   bottom: 0;
   z-index: 10;
   margin-top: 2px;
-  padding: 12px;
+  padding: 9px;
   border: 1px solid rgba(109, 15, 26, .12);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, .84);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .78);
   box-shadow: 0 -12px 34px rgba(74, 10, 18, .09);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
 .application-wizard .btn {
-  height: 38px;
-  padding: 0 16px;
-  font-size: 12px;
+  height: 33px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 11px;
   transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 
@@ -500,12 +516,20 @@
 }
 
 @media (max-width: 960px) {
+  .application-portal .page {
+    padding: 14px 20px 40px;
+  }
+
   .application-stepper {
     top: 64px;
   }
 }
 
 @media (max-width: 720px) {
+  .application-portal .page {
+    padding: 14px 16px 40px;
+  }
+
   .page-textured {
     background-attachment: scroll;
   }
@@ -704,6 +728,35 @@
 .document-title-row h5 {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.document-title-trigger {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--maroon-dark);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.document-title-trigger:hover {
+  color: var(--maroon);
+  text-decoration: underline;
+}
+
+.document-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .document-upload-input {

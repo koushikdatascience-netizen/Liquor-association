@@ -134,9 +134,12 @@ def storage_url(file):
     return str(url)
 
 
-def clear_requested_application_documents(application, post, files):
+def clear_requested_application_documents(application, post, files, allowed_fields=None):
+    allowed_fields = set(allowed_fields or APPLICATION_DOCUMENT_FIELDS)
     cleared_fields = set()
     for field_name in APPLICATION_DOCUMENT_FIELDS:
+        if field_name not in allowed_fields:
+            continue
         if post.get(f"clear_{field_name}") != "1" or field_name in files:
             continue
         current_file = getattr(application, field_name, None)
@@ -154,6 +157,21 @@ def clear_requested_application_documents(application, post, files):
         setattr(application, field_name, "")
         cleared_fields.add(field_name)
     return cleared_fields
+
+
+def requested_document_keys(application):
+    requested = list(getattr(application, "rejected_documents", []) or [])
+    valid_keys = set(APPLICATION_DOCUMENT_FIELDS)
+    return [key for key in dict.fromkeys(requested) if key in valid_keys]
+
+
+def requested_documents(application):
+    requested = set(requested_document_keys(application))
+    return [document for document in application_documents(application) if document["key"] in requested]
+
+
+def requested_document_labels(application):
+    return [document["label"] for document in requested_documents(application)]
 
 
 def file_kind(file):
@@ -302,7 +320,11 @@ def member_dashboard(request):
     else:
         status = application.status
         if is_document_resubmission_status(status):
-            status_message = f"Document update requested. {application.remarks or ''}"
+            requested_labels = requested_document_labels(application)
+            if requested_labels:
+                status_message = f"Please re-upload: {', '.join(requested_labels)}."
+            else:
+                status_message = f"Document update requested. {application.remarks or ''}"
             banner_class = "warn"
             banner_icon = "bi bi-file-earmark"
         elif status == MembershipApplication.Status.SUBMITTED or status in ("PENDING", "PENDING_REVIEW", "APPLICATION_PENDING", "DOCUMENTS_SUBMITTED"):
@@ -350,6 +372,7 @@ def member_dashboard(request):
             "banner_class": banner_class,
             "banner_icon": banner_icon,
             "payment_unlocked": payment_unlocked,
+            "requested_documents": requested_documents(application) if application and is_document_resubmission_status(application.status) else [],
         },
     )
 
@@ -376,6 +399,9 @@ def member_profile(request):
     application = context.get("application")
     context["documents"] = application_documents(application) if application else []
     context["can_resubmit_documents"] = bool(application and is_document_resubmission_status(application.status))
+    context["requested_documents"] = requested_documents(application) if context["can_resubmit_documents"] else []
+    context["requested_document_labels"] = requested_document_labels(application) if context["can_resubmit_documents"] else []
+    context["resubmission_documents"] = context["requested_documents"] or context["documents"]
     return render(request, "membership/profile.html", context)
 
 
@@ -389,21 +415,35 @@ def member_document_resubmit(request):
         messages.error(request, "Document re-upload is not available for this application right now.")
         return redirect("member_profile")
 
-    form = ApplicationDocumentResubmissionForm(request.POST, request.FILES, instance=application)
-    submitted_document_fields = set(request.FILES).intersection(APPLICATION_DOCUMENT_FIELDS)
+    allowed_fields = set(requested_document_keys(application) or APPLICATION_DOCUMENT_FIELDS)
+    post_data = request.POST.copy()
+    files_data = request.FILES.copy()
+    for field_name in APPLICATION_DOCUMENT_FIELDS:
+        if field_name not in allowed_fields:
+            post_data.pop(f"clear_{field_name}", None)
+            files_data.pop(field_name, None)
+
+    form = ApplicationDocumentResubmissionForm(post_data, files_data, instance=application)
+    submitted_document_fields = set(files_data).intersection(allowed_fields)
     cleared_document_fields = {
         field_name
-        for field_name in APPLICATION_DOCUMENT_FIELDS
-        if request.POST.get(f"clear_{field_name}") == "1" and field_name not in request.FILES
+        for field_name in allowed_fields
+        if post_data.get(f"clear_{field_name}") == "1" and field_name not in files_data
     }
     existing_document_fields = {
         field_name
         for field_name in APPLICATION_DOCUMENT_FIELDS
-        if field_name not in cleared_document_fields and getattr(application, field_name)
+        if field_name not in cleared_document_fields
+        and (field_name not in allowed_fields or getattr(application, field_name))
     }
 
+    if requested_document_keys(application) and not submitted_document_fields:
+        labels = requested_document_labels(application)
+        messages.error(request, f"Please upload corrected files for: {', '.join(labels)}.")
+        return redirect("member_profile")
+
     if not submitted_document_fields and not cleared_document_fields:
-        messages.error(request, "Please upload or remove at least one document before resubmitting.")
+        messages.error(request, "Please upload at least one requested document before resubmitting.")
         return redirect("member_profile")
 
     if not (submitted_document_fields or existing_document_fields):
@@ -416,9 +456,10 @@ def member_document_resubmit(request):
         return redirect("member_profile")
 
     application = form.save(commit=False)
-    clear_requested_application_documents(application, request.POST, request.FILES)
+    clear_requested_application_documents(application, post_data, files_data, allowed_fields=allowed_fields)
     application.status = MembershipApplication.Status.SUBMITTED
     application.remarks = ""
+    application.rejected_documents = []
     application.save()
     notify_staff(
         "Documents resubmitted",
@@ -514,6 +555,9 @@ def application_create(request):
 
         # ---- Submit application ----
         form = MembershipApplicationForm(request.POST, request.FILES, instance=instance)
+        validation_started_at = time.monotonic()
+        form_valid = form.is_valid()
+        validation_duration = time.monotonic() - validation_started_at
         submitted_document_fields = set(request.FILES).intersection(APPLICATION_DOCUMENT_FIELDS)
         cleared_document_fields = {
             field_name
@@ -529,7 +573,7 @@ def application_create(request):
             and getattr(resubmittable, field_name)
         }
         has_document_uploads = bool(submitted_document_fields or existing_document_fields)
-        if form.is_valid() and has_document_uploads:
+        if form_valid and has_document_uploads:
             application = form.save(commit=False)
             clear_requested_application_documents(application, request.POST, request.FILES)
             application.applicant = request.user
@@ -541,17 +585,22 @@ def application_create(request):
             application.digital_signature = application.digital_signature or application.full_name
             application.status = MembershipApplication.Status.SUBMITTED
             application.remarks = ""
+            application.rejected_documents = []
+            save_started_at = time.monotonic()
             try:
                 application.save()
             except CloudinaryBadRequest:
                 form.add_error(None, "One of the uploaded image files is invalid. Please upload JPG, PNG or WebP images and submit again.")
             else:
+                save_duration = time.monotonic() - save_started_at
                 logger.info(
-                    "Application submitted id=%s user=%s files=%s bytes=%s duration=%.2fs",
+                    "Application submitted id=%s user=%s files=%s bytes=%s validation=%.2fs save=%.2fs total=%.2fs",
                     application.pk,
                     request.user.pk,
                     file_count,
                     total_upload_bytes,
+                    validation_duration,
+                    save_duration,
                     time.monotonic() - started_at,
                 )
                 notify_staff(
@@ -560,7 +609,7 @@ def application_create(request):
                 )
                 messages.success(request, "Application submitted successfully." if not can_update_documents else "Documents updated and resubmitted for admin review.")
                 return redirect("member_dashboard")
-        if form.is_valid() and not has_document_uploads:
+        if form_valid and not has_document_uploads:
             form.add_error(None, "Please upload at least one application document before submitting.")
         messages.error(request, "Application was not submitted. Please fix the highlighted fields and submit again.")
     else:
@@ -665,21 +714,28 @@ def payment_upload(request, application_id):
         started_at = time.monotonic()
         file_count, total_upload_bytes = uploaded_files_summary(request.FILES)
         form = PaymentProofForm(request.POST, request.FILES, instance=instance)
-        if form.is_valid():
+        validation_started_at = time.monotonic()
+        form_valid = form.is_valid()
+        validation_duration = time.monotonic() - validation_started_at
+        if form_valid:
             payment = form.save(commit=False)
             payment.application = application
             payment.amount = SitePaymentSettings.load().membership_fee
             payment.status = payment.Status.PENDING
+            save_started_at = time.monotonic()
             payment.save()
+            save_duration = time.monotonic() - save_started_at
             application.status = MembershipApplication.Status.PAYMENT_SUBMITTED
             application.save(update_fields=["status", "updated_at"])
             logger.info(
-                "Payment proof submitted id=%s application=%s user=%s files=%s bytes=%s duration=%.2fs",
+                "Payment proof submitted id=%s application=%s user=%s files=%s bytes=%s validation=%.2fs save=%.2fs total=%.2fs",
                 payment.pk,
                 application.pk,
                 request.user.pk,
                 file_count,
                 total_upload_bytes,
+                validation_duration,
+                save_duration,
                 time.monotonic() - started_at,
             )
             notify_staff(
@@ -1255,13 +1311,21 @@ def staff_application_action(request, pk):
             messages.error(request, "Updated documents can only be requested during document review.")
             return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Please upload clearer or missing documents."
+        rejected_keys = request.POST.getlist("rejected_documents")
+        application.rejected_documents = list(dict.fromkeys(rejected_keys))
         application.status = MembershipApplication.Status.ADDITIONAL_DOCUMENTS
         application.remarks = remarks
-        application.save(update_fields=["status", "remarks", "updated_at"])
+        application.save(update_fields=["rejected_documents", "status", "remarks", "updated_at"])
+        requested_labels = requested_document_labels(application)
+        requested_message = (
+            f"Please re-upload: {', '.join(requested_labels)}."
+            if requested_labels
+            else "Additional documents are required for your membership application."
+        )
         notify_member(
             application.applicant,
             title="Additional documents requested",
-            message="Additional documents are required for your membership application.",
+            message=requested_message,
             remarks=remarks,
         )
         AuditLog.objects.create(actor=request.user, action="Additional documents requested", target=str(application), notes=remarks)

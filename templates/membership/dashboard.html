@@ -29,6 +29,44 @@
       <i class="bi {{ banner_icon }}"></i>
       <span>{{ status_message }}</span>
     </div>
+    {% if requested_documents %}
+      <div class="card document-action-panel mb-16">
+        <div class="document-action-head">
+          <div>
+            <span class="badge warn"><i class="bi bi-exclamation-triangle"></i> Action required</span>
+            <h3 class="h-card mt-8 mb-8">Re-upload requested documents</h3>
+            <p class="small">Upload only the documents listed below. Your application will go back to review automatically after upload.</p>
+          </div>
+          <a class="btn btn-secondary btn-sm" href="{% url 'member_profile' %}#documents"><i class="bi bi-folder2-open"></i> All Documents</a>
+        </div>
+        <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form dashboard-document-form">
+          {% csrf_token %}
+          <div class="upload-grid dashboard-document-grid">
+          {% for doc in requested_documents %}
+            <div class="upload django-upload document-manage-card doc-rejected dashboard-document-card" data-doc-key="{{ doc.key }}">
+              <div class="upload-head">
+                <div class="u-ic"><i class="bi {% if doc.uploaded %}bi-file-earmark-check{% else %}bi-file-earmark-x{% endif %}"></i></div>
+                <div class="document-head-body">
+                  <div class="document-title-row">
+                    <button class="document-title-trigger" type="button" data-upload-trigger>{{ doc.label }}</button>
+                    <button class="btn btn-primary btn-sm document-upload-btn" type="button" data-upload-trigger>
+                      <i class="bi bi-cloud-arrow-up"></i>
+                      <span data-file-label>{% if doc.uploaded %}Replace{% else %}Upload{% endif %}</span>
+                    </button>
+                  </div>
+                  <p>Requested for re-upload{% if doc.uploaded %} - current file saved{% endif %}</p>
+                  {% if doc.uploaded %}
+                    <a class="document-preview-link" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> View current file</a>
+                  {% endif %}
+                </div>
+              </div>
+              <input class="document-upload-input" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}" data-auto-submit-document>
+            </div>
+          {% endfor %}
+          </div>
+        </form>
+      </div>
+    {% endif %}
 
     {% include "includes/member_card.html" with application=application member=member locked=card_locked passport_photo_url=passport_photo_url qr_code_url=qr_code_url %}
 

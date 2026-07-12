@@ -171,18 +171,27 @@
   dlPdf && dlPdf.addEventListener("click", function(){ window.toast("PDF downloaded"); });
 
   // ---------- Profile tabs ----------
-  document.querySelectorAll(".tab").forEach(function(tab){
-    tab.addEventListener("click", function(){
+  const profileTabs = Array.from(document.querySelectorAll(".tab"));
+  function activateProfileTab(tab){
+    if(!tab) return;
       const target = tab.dataset.tab;
-      document.querySelectorAll(".tab").forEach(function(t){
+      profileTabs.forEach(function(t){
         t.classList.toggle("active", t === tab);
         t.setAttribute("aria-selected", String(t === tab));
       });
       document.querySelectorAll(".tab-panel").forEach(function(p){
         p.hidden = p.dataset.panel !== target;
       });
+  }
+  profileTabs.forEach(function(tab){
+    tab.addEventListener("click", function(){
+      activateProfileTab(tab);
+      if(tab.dataset.tab) history.replaceState(null, "", "#" + tab.dataset.tab);
     });
   });
+  if(profileTabs.length && window.location.hash){
+    activateProfileTab(profileTabs.find(function(tab){ return "#" + tab.dataset.tab === window.location.hash; }));
+  }
 
   // ---------- Django membership application wizard ----------
   const applicationWizard = document.querySelector("[data-application-wizard]");
@@ -598,6 +607,9 @@
     saveDraftBtn && saveDraftBtn.addEventListener("click", function(){
       persistDraft();
       const fd = new FormData(applicationWizard);
+      applicationWizard.querySelectorAll("input[type='file']").forEach(function(input){
+        if(input.name) fd.delete(input.name);
+      });
       fd.set("save_draft", "1");
       saveDraftBtn.disabled = true;
       saveDraftBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Saving...';

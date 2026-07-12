@@ -168,12 +168,12 @@ class MembershipApplicationDocumentUploadTests(TestCase):
 
         self.assertContains(response, reverse("member_document_resubmit"))
         self.assertContains(response, 'name="excise_license"')
-        self.assertContains(response, 'name="clear_excise_license"')
-        self.assertContains(response, "Remove")
+        self.assertNotContains(response, 'name="clear_excise_license"')
+        self.assertNotContains(response, "Remove")
         self.assertContains(response, "Replace")
 
     @patch("membership.views.notify_staff")
-    def test_profile_document_resubmit_replaces_and_clears_documents(self, _notify_staff):
+    def test_profile_document_resubmit_replaces_only_requested_documents(self, _notify_staff):
         application = MembershipApplication.objects.create(
             applicant=self.user,
             status=MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
@@ -207,8 +207,53 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         self.assertRedirects(response, reverse("member_profile"))
         application.refresh_from_db()
         self.assertNotEqual(application.excise_license.name, old_excise_name)
-        self.assertFalse(application.pan_card.name)
+        self.assertTrue(application.pan_card.name)
         self.assertEqual(application.status, MembershipApplication.Status.SUBMITTED)
+        self.assertEqual(application.rejected_documents, [])
+
+    @patch("membership.views.notify_member")
+    def test_request_reupload_saves_selected_documents_for_member_ui(self, _notify_member):
+        staff = User.objects.create_user(username="staff", password="pass12345", is_staff=True)
+        application = MembershipApplication.objects.create(
+            applicant=self.user,
+            status=MembershipApplication.Status.SUBMITTED,
+            full_name="Abhi Singh",
+            gender=MembershipApplication.Gender.MALE,
+            mobile_number="9876543210",
+            email="abhi@example.com",
+            residential_address="Kolkata",
+            shop_name="Abhi Stores",
+            excise_license_number="EX-123",
+            excise_license_type="Off",
+            district="",
+            primary_delegate_name="Abhi Singh",
+            declaration_accepted=True,
+            digital_signature="Abhi Singh",
+        )
+        application.aadhaar_card.save("aadhaar.pdf", self.upload_file("aadhaar.pdf"), save=True)
+        application.pan_card.save("pan.pdf", self.upload_file("pan.pdf"), save=True)
+
+        self.client.force_login(staff)
+        response = self.client.post(
+            reverse("staff_application_action", args=[application.pk]),
+            {
+                "action": "request_documents",
+                "remarks": "Aadhaar is unclear.",
+                "rejected_documents": ["aadhaar_card"],
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("staff_application_detail", args=[application.pk]))
+        application.refresh_from_db()
+        self.assertEqual(application.status, MembershipApplication.Status.ADDITIONAL_DOCUMENTS)
+        self.assertEqual(application.rejected_documents, ["aadhaar_card"])
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("member_profile"))
+        self.assertContains(response, 'name="aadhaar_card"')
+        self.assertContains(response, "Aadhaar")
+        self.assertNotContains(response, 'name="pan_card"')
 
     @classmethod
     def tearDownClass(cls):
