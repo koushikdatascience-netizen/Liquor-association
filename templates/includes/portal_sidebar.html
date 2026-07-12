@@ -1,7 +1,7 @@
 <div class="sidebar-backdrop"></div>
 <aside class="sidebar">
   <button class="sidebar-close" data-sidebar-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button>
-  <a href="{% url 'member_dashboard' %}" class="brand">{% include "includes/brand_logo.html" %} {{ ASSOCIATION_NAME }}</a>
+  <a href="{% url 'member_dashboard' %}" class="brand">{% include "includes/brand_logo.html" %} WB Foreign Liquor and IML Licensees</a>
 
   <a href="{% url 'member_dashboard' %}" class="side-link {% if request.resolver_match.url_name == 'member_dashboard' %}active{% endif %}"><i class="bi bi-house"></i> Dashboard</a>
 

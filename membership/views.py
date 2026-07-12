@@ -368,22 +368,29 @@ def application_create(request):
         messages.error(request, "Please verify your email OTP before submitting the application.")
         return redirect("verify_registration_otp")
 
-    # Active (non-draft) applications block a new one; drafts are resumable.
-    existing = MembershipApplication.objects.filter(applicant=request.user).exclude(
+    # Active applications block a new one. Drafts and document-review failures
+    # are resumable so members can replace rejected/requested documents.
+    applications = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at")
+    draft = applications.filter(status=MembershipApplication.Status.DRAFT).first()
+    resubmittable = applications.filter(
+        status__in=[
+            MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+            MembershipApplication.Status.REJECTED,
+        ]
+    ).first()
+    existing = applications.exclude(
         status__in=[
             MembershipApplication.Status.REJECTED,
+            MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
             MembershipApplication.Status.DRAFT,
         ]
     ).first()
-    draft = MembershipApplication.objects.filter(
-        applicant=request.user, status=MembershipApplication.Status.DRAFT
-    ).first()
-    can_update_documents = existing and existing.status == MembershipApplication.Status.ADDITIONAL_DOCUMENTS
-    if existing and not can_update_documents:
+    can_update_documents = resubmittable is not None
+    if existing:
         messages.info(request, "You already have an active application.")
         return redirect("member_dashboard")
 
-    instance = draft or (existing if can_update_documents else None)
+    instance = draft or resubmittable
 
     if request.method == "POST":
         started_at = time.monotonic()
@@ -425,7 +432,7 @@ def application_create(request):
         existing_document_fields = {
             field_name
             for field_name in APPLICATION_DOCUMENT_FIELDS
-            if can_update_documents and existing and getattr(existing, field_name)
+            if can_update_documents and resubmittable and getattr(resubmittable, field_name)
         }
         has_document_uploads = bool(submitted_document_fields or existing_document_fields)
         if form.is_valid() and has_document_uploads:
@@ -479,8 +486,8 @@ def application_create(request):
             "form": form,
             "is_update": can_update_documents,
             "has_form_errors": form.is_bound and form.errors,
-            "rejected_documents": list(getattr(existing, "rejected_documents", []) or []) if can_update_documents else [],
-            "rejected_documents_json": json.dumps(list(getattr(existing, "rejected_documents", []) or []) if can_update_documents else []),
+            "rejected_documents": list(getattr(resubmittable, "rejected_documents", []) or []) if can_update_documents else [],
+            "rejected_documents_json": json.dumps(list(getattr(resubmittable, "rejected_documents", []) or []) if can_update_documents else []),
         },
     )
 

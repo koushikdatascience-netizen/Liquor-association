@@ -56,13 +56,25 @@
         </div>
         <div class="tab-panel" data-panel="documents" hidden>
           {% if application %}
+          {% if application.status == "ADDITIONAL_DOCUMENTS" or application.status == "REJECTED" %}
+            <div class="card card-tight mb-16 form-error-summary">
+              <h3 class="h-card mb-8">{% if application.status == "REJECTED" %}Documents rejected{% else %}Document update requested{% endif %}</h3>
+              <p class="small mb-16">{{ application.remarks|default:"Please upload corrected documents and resubmit the application." }}</p>
+              <a class="btn btn-primary" href="{% url 'application_create' %}#step=4">
+                <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Re-upload documents
+              </a>
+            </div>
+          {% endif %}
           <div class="upload-grid">
             {% for doc in documents %}
               {% if doc.uploaded %}
                 <a class="upload" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank">
                   <div class="upload-head">
                     <div class="u-ic"><i class="bi bi-file-earmark-medical"></i></div>
-                    <div><h5>{{ doc.label }}</h5><p>Uploaded - click to preview</p></div>
+                    <div>
+                      <h5>{{ doc.label }}</h5>
+                      <p>{% if application.status == "ADDITIONAL_DOCUMENTS" or application.status == "REJECTED" %}Uploaded - preview or replace from re-upload{% else %}Uploaded - click to preview{% endif %}</p>
+                    </div>
                   </div>
                 </a>
               {% else %}
