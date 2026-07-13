@@ -13,6 +13,20 @@ from .services import send_login_otps, send_registration_otps
 import socket
 
 
+def otp_delivery_message(result):
+    sent = set((result or {}).get("sent", []))
+    errors = (result or {}).get("errors", [])
+    if "email" in sent and "whatsapp" in sent:
+        return "We sent an OTP to your email and WhatsApp."
+    if "whatsapp" in sent:
+        return "We sent an OTP to your WhatsApp. Email delivery failed, but you can continue with the WhatsApp OTP."
+    if "email" in sent:
+        return "We sent an OTP to your email."
+    if errors:
+        return "OTP was generated. Please check your messages or resend OTP."
+    return "We sent an OTP."
+
+
 def test_smtp_connection(request):
     import socket
     from django.http import JsonResponse
@@ -64,8 +78,8 @@ def register(request):
         if form.is_valid():
             user = form.save()
             try:
-                send_registration_otps(user)
-                messages.success(request, "Account created. We sent an OTP to your email and WhatsApp.")
+                delivery_result = send_registration_otps(user)
+                messages.success(request, f"Account created. {otp_delivery_message(delivery_result)}")
             except Exception as exc:
                 messages.warning(request, f"Account created, but OTP sending failed: {exc}")
             request.session["registration_otp_user_id"] = user.pk
@@ -120,8 +134,8 @@ def resend_registration_otp(request):
         messages.error(request, "Please register before requesting another OTP.")
         return redirect("register")
     try:
-        send_registration_otps(user)
-        messages.success(request, "A new OTP has been sent to your email and WhatsApp.")
+        delivery_result = send_registration_otps(user)
+        messages.success(request, otp_delivery_message(delivery_result))
     except Exception as exc:
         messages.error(request, f"Could not send OTP: {exc}")
     return redirect("verify_registration_otp")
@@ -170,13 +184,13 @@ def login_request_otp(request):
                 purpose = OTPVerification.Purpose.REGISTRATION
                 send_otps = send_registration_otps
             try:
-                send_otps(user)
+                delivery_result = send_otps(user)
             except Exception as exc:
                 messages.error(request, f"Could not send OTP: {exc}")
                 return redirect("login")
             request.session["auth_otp_user_id"] = user.pk
             request.session["auth_otp_is_registration"] = (purpose == OTPVerification.Purpose.REGISTRATION)
-            messages.success(request, "We sent an OTP to your email and WhatsApp.")
+            messages.success(request, otp_delivery_message(delivery_result))
             return redirect("login_verify_otp")
     else:
         form = UnifiedAuthForm()
@@ -240,10 +254,10 @@ def login_resend_otp(request):
     is_registration = request.session.get("auth_otp_is_registration", False)
     try:
         if is_registration:
-            send_registration_otps(user)
+            delivery_result = send_registration_otps(user)
         else:
-            send_login_otps(user)
-        messages.success(request, "A new OTP has been sent to your email and WhatsApp.")
+            delivery_result = send_login_otps(user)
+        messages.success(request, otp_delivery_message(delivery_result))
     except Exception as exc:
         messages.error(request, f"Could not send OTP: {exc}")
     return redirect("login_verify_otp")

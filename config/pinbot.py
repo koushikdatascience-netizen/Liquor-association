@@ -1,8 +1,12 @@
 import json
+import logging
 import urllib.error
 import urllib.request
 
 from django.conf import settings
+
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_whatsapp_number(value):
@@ -47,5 +51,13 @@ def send_template_message(to, template_name, body_parameters):
     try:
         with urllib.request.urlopen(request, timeout=settings.PINBOT_TIMEOUT_SECONDS) as response:
             return 200 <= response.status < 300
-    except (urllib.error.URLError, TimeoutError):
+    except urllib.error.HTTPError as exc:
+        try:
+            body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            body = ""
+        logger.warning("Pinbot WhatsApp HTTP error status=%s reason=%s body=%s", exc.code, exc.reason, body)
+        return False
+    except (urllib.error.URLError, TimeoutError) as exc:
+        logger.warning("Pinbot WhatsApp connection failed: %s: %s", type(exc).__name__, exc)
         return False
