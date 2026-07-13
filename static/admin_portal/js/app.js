@@ -28,6 +28,21 @@ function adminLoadingMessage(form) {
   return "Saving changes...";
 }
 
+function adminActionMessage(form, submitter) {
+  const action = submitter && submitter.value ? submitter.value : "";
+  const messages = {
+    approve_documents: "Approving uploaded documents...",
+    request_documents: "Requesting document re-upload...",
+    reject_documents: "Rejecting application...",
+    generate_membership: "Generating membership...",
+    save_remarks: "Saving admin remark...",
+    approve_payment: "Approving payment and activating membership...",
+    reject_payment: "Rejecting payment...",
+    request_reupload: "Requesting payment re-upload..."
+  };
+  return messages[action] || adminLoadingMessage(form);
+}
+
 function setAdminButtonLoading(button, label) {
   if (!button || button.dataset.loadingActive === "true") return;
   button.dataset.loadingActive = "true";
@@ -47,16 +62,14 @@ document.addEventListener("click", (e) => {
 document.addEventListener("submit", (e) => {
   const form = e.target;
   if (!(form instanceof HTMLFormElement) || form.dataset.loadingSkip === "true") return;
-  setTimeout(() => {
-    if (e.defaultPrevented || form.dataset.loadingStarted === "true") return;
-    form.dataset.loadingStarted = "true";
-    const message = adminLoadingMessage(form);
-    const submitter = e.submitter || (lastAdminSubmitter && lastAdminSubmitter.form === form ? lastAdminSubmitter : null) || form.querySelector('button[type="submit"], input[type="submit"]');
-    setAdminButtonLoading(submitter, message);
-    const overlay = ensureAdminLoadingOverlay();
-    const messageEl = overlay.querySelector("[data-admin-loading-message]");
-    if (messageEl) messageEl.textContent = message;
-    overlay.classList.add("is-visible");
-    document.documentElement.classList.add("has-admin-loading");
-  }, 0);
+  if (e.defaultPrevented || form.dataset.loadingStarted === "true") return;
+  form.dataset.loadingStarted = "true";
+  const submitter = e.submitter || (lastAdminSubmitter && lastAdminSubmitter.form === form ? lastAdminSubmitter : null) || form.querySelector('button[type="submit"], input[type="submit"]');
+  const message = adminActionMessage(form, submitter);
+  setAdminButtonLoading(submitter, message);
+  const overlay = ensureAdminLoadingOverlay();
+  const messageEl = overlay.querySelector("[data-admin-loading-message]");
+  if (messageEl) messageEl.textContent = message;
+  overlay.classList.add("is-visible");
+  document.documentElement.classList.add("has-admin-loading");
 });
