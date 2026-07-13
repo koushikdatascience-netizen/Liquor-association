@@ -268,8 +268,6 @@
     const totalSteps = 6;
     const panels = Array.from(applicationWizard.querySelectorAll("[data-step-panel]"));
     const indicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
-    const progressFill = document.querySelector("[data-progress-fill]");
-    const progressLabel = document.querySelector("[data-progress-label]");
     const prevBtn = applicationWizard.querySelector("[data-prev-step]");
     const nextBtn = applicationWizard.querySelector("[data-next-step]");
     const submitLabel = nextBtn ? nextBtn.dataset.submitLabel : "Submit Application";
@@ -623,17 +621,6 @@
 
     const sidebarStepLinks = Array.from(document.querySelectorAll(".side-link[data-step-target]"));
 
-    function stepIconHtml(indicator){
-      const icon = indicator.dataset.stepIcon || "bi-circle";
-      return '<i class="bi ' + icon + '" aria-hidden="true"></i>';
-    }
-
-    function updateWizardProgress(){
-      const percent = Math.round((currentStep / totalSteps) * 100);
-      if(progressFill) progressFill.style.width = percent + "%";
-      if(progressLabel) progressLabel.textContent = "Step " + currentStep + " of " + totalSteps + " - " + percent + "% complete";
-    }
-
     function showStep(step, opts){
       opts = opts || {};
       currentStep = Math.max(1, Math.min(totalSteps, step));
@@ -647,7 +634,7 @@
         indicator.classList.toggle("active", num === currentStep);
         indicator.classList.toggle("done", num < currentStep);
         const stepNum = indicator.querySelector(".st-num");
-        if(stepNum) stepNum.innerHTML = num < currentStep ? '<i class="bi bi-check2" aria-hidden="true"></i>' : stepIconHtml(indicator);
+        if(stepNum) stepNum.innerHTML = num < currentStep ? '<i class="bi bi-check" aria-hidden="true"></i>' : String(num);
       });
       sidebarStepLinks.forEach(function(link){
         const num = Number(link.dataset.stepTarget);
@@ -664,7 +651,6 @@
           : 'Next <i class="bi bi-arrow-right" aria-hidden="true"></i>';
       }
       if(currentStep === totalSteps) refreshReview();
-      updateWizardProgress();
       if(!opts.skipScroll) applicationWizard.scrollIntoView({behavior:"smooth", block:"start"});
     }
 
@@ -709,8 +695,7 @@
     applicationWizard.querySelectorAll("input[type='file']").forEach(function(input){
       input.addEventListener("change", function(){
         const label = input.closest(".upload-drop")?.querySelector("[data-file-label]");
-        if(label && input.files && input.files[0]) setUploadDropFileState(label, input.files[0].name);
-        else if(label) label.textContent = "Drag & drop or click to upload";
+        if(label) label.textContent = input.files && input.files[0] ? input.files[0].name : "Drag & drop or click to upload";
         clearFieldError(input);
       });
     });
@@ -770,15 +755,6 @@
     return isPdf || acceptsPdf ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
   }
 
-  function setUploadDropFileState(label, fileName){
-    const icon = document.createElement("i");
-    icon.className = "bi bi-check-circle-fill upload-file-check";
-    icon.setAttribute("aria-hidden", "true");
-    const text = document.createElement("span");
-    text.textContent = fileName;
-    label.replaceChildren(icon, text);
-  }
-
   document.querySelectorAll(".upload").forEach(function(root){
     const input = root.querySelector('input[type="file"]');
     if(!input) return;
@@ -796,9 +772,6 @@
     const thumbEl = fileEl ? fileEl.querySelector(".upload-thumb") : null;
     const rmBtn = fileEl ? fileEl.querySelector(".rm") : null;
     const uploadTriggers = Array.from(root.querySelectorAll("[data-upload-trigger]"));
-    const keepDropState = !!root.closest(".application-portal");
-    const dropLabel = dropEl ? dropEl.querySelector("[data-file-label]") : null;
-    if(dropLabel && !dropLabel.dataset.emptyLabel) dropLabel.dataset.emptyLabel = dropLabel.textContent || "Drag & drop or click to upload";
     let previewUrl = "";
 
     uploadTriggers.forEach(function(uploadTrigger){
@@ -834,10 +807,8 @@
       input.value = "";
       if(previewUrl) URL.revokeObjectURL(previewUrl);
       previewUrl = "";
-      root.classList.remove("has-file");
       if(fileEl) fileEl.style.display = "none";
       if(dropEl) dropEl.style.display = "flex";
-      if(dropLabel) dropLabel.textContent = dropLabel.dataset.emptyLabel || "Drag & drop or click to upload";
     });
     function showFile(f){
       const limit = uploadWidgetLimit(input, f);
@@ -858,13 +829,11 @@
         return;
       }
       root.classList.add("is-loading");
-      root.classList.add("has-file");
-      if(dropLabel) setUploadDropFileState(dropLabel, f.name);
       if(nameEl) nameEl.textContent = f.name;
       if(sizeEl) sizeEl.textContent = uploadWidgetFormatSize(f.size);
       if(thumbEl) thumbEl.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i>';
       if(fileEl) fileEl.style.display = "flex";
-      if(dropEl && !keepDropState) dropEl.style.display = "none";
+      if(dropEl) dropEl.style.display = "none";
       window.setTimeout(function(){
         root.classList.remove("is-loading");
         if(!thumbEl) return;
