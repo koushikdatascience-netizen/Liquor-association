@@ -17,13 +17,17 @@
       <p class="small mt-8">Complete all steps to submit your application for review.</p>
     </div>
   </div>
+  <div class="application-progress" aria-live="polite">
+    <div class="application-progress__bar" aria-hidden="true"><span data-progress-fill style="width: 17%;"></span></div>
+    <div class="application-progress__meta" data-progress-label>Step 1 of 6 - 17% complete</div>
+  </div>
   <div class="stepper application-stepper" role="navigation" aria-label="Application steps">
-        <div class="st active" data-step-indicator="1"><div class="st-num">1</div><div class="st-label">Personal</div></div><div class="st-sep"></div>
-        <div class="st" data-step-indicator="2"><div class="st-num">2</div><div class="st-label">Business</div></div><div class="st-sep"></div>
-        <div class="st" data-step-indicator="3"><div class="st-num">3</div><div class="st-label">Partners</div></div><div class="st-sep"></div>
-        <div class="st" data-step-indicator="4"><div class="st-num">4</div><div class="st-label">Documents</div></div><div class="st-sep"></div>
-        <div class="st" data-step-indicator="5"><div class="st-num">5</div><div class="st-label">Declaration</div></div><div class="st-sep"></div>
-        <div class="st" data-step-indicator="6"><div class="st-num">6</div><div class="st-label">Review</div></div>
+        <div class="st active" data-step-indicator="1" data-step-icon="bi-person"><div class="st-num"><i class="bi bi-person" aria-hidden="true"></i></div><div class="st-label">Personal</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="2" data-step-icon="bi-shop"><div class="st-num"><i class="bi bi-shop" aria-hidden="true"></i></div><div class="st-label">Business</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="3" data-step-icon="bi-people"><div class="st-num"><i class="bi bi-people" aria-hidden="true"></i></div><div class="st-label">Partners</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="4" data-step-icon="bi-cloud-upload"><div class="st-num"><i class="bi bi-cloud-upload" aria-hidden="true"></i></div><div class="st-label">Documents</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="5" data-step-icon="bi-pen"><div class="st-num"><i class="bi bi-pen" aria-hidden="true"></i></div><div class="st-label">Declaration</div></div><div class="st-sep"></div>
+        <div class="st" data-step-indicator="6" data-step-icon="bi-check2-circle"><div class="st-num"><i class="bi bi-check2-circle" aria-hidden="true"></i></div><div class="st-label">Review</div></div>
       </div>
       {% if form.non_field_errors %}
         <div class="card card-tight mb-16 form-error-summary" role="alert">
@@ -259,10 +263,10 @@
         <div class="wizard-card step-panel" data-step-panel="6" hidden>
           <h3>Review &amp; submit</h3>
           <p class="sub">Verify your details before submitting the application.</p>
-          <div class="review-block"><div class="review-head"><h5>Personal information</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="1">Edit</button></div><div class="review-grid" data-review-fields="full_name,nationality,age,gender,residential_address,pin_code,whatsapp_number,email,residence_phone"></div></div>
-          <div class="review-block"><div class="review-head"><h5>Business information</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="2">Edit</button></div><div class="review-grid" data-review-fields="entity_type,licence_category,style_name,excise_license_number,office_phone,shop_phone"></div></div>
-          <div class="review-block"><div class="review-head"><h5>Representative</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="3">Edit</button></div><div class="review-grid" data-review-fields="primary_delegate_name,primary_delegate_designation,alternate_delegate_name,alternate_delegate_role"></div></div>
-          <div class="review-block"><div class="review-head"><h5>Fee</h5></div><div class="review-grid"><div><span>Annual subscription</span><b>&#8377;{{ MEMBERSHIP_FEE }}</b></div><div><span>Payable</span><b>After approval</b></div></div></div>
+          <div class="review-block"><div class="review-head"><h5><span class="review-head-icon"><i class="bi bi-person" aria-hidden="true"></i></span>Personal information</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="1">Edit</button></div><div class="review-grid" data-review-fields="full_name,nationality,age,gender,residential_address,pin_code,whatsapp_number,email,residence_phone"></div></div>
+          <div class="review-block"><div class="review-head"><h5><span class="review-head-icon"><i class="bi bi-shop" aria-hidden="true"></i></span>Business information</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="2">Edit</button></div><div class="review-grid" data-review-fields="entity_type,licence_category,style_name,excise_license_number,office_phone,shop_phone"></div></div>
+          <div class="review-block"><div class="review-head"><h5><span class="review-head-icon"><i class="bi bi-people" aria-hidden="true"></i></span>Representative</h5><button class="btn btn-secondary btn-sm" type="button" data-go-step="3">Edit</button></div><div class="review-grid" data-review-fields="primary_delegate_name,primary_delegate_designation,alternate_delegate_name,alternate_delegate_role"></div></div>
+          <div class="review-block"><div class="review-head"><h5><span class="review-head-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>Fee</h5></div><div class="review-grid"><div><span>Annual subscription</span><b>&#8377;{{ MEMBERSHIP_FEE }}</b></div><div><span>Payable</span><b>After approval</b></div></div></div>
         </div>
         <div class="wiz-footer application-wizard-footer">
           <button class="btn btn-secondary" data-prev-step type="button"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
