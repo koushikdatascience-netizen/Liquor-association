@@ -76,7 +76,7 @@
       <dt>Admin Remarks</dt><dd>{{ payment.remarks|default:"No remarks" }}</dd>
     </dl>
     {% if payment.status == 'PENDING' %}
-    <form class="payment-action-form" method="post" action="{% url 'staff_payment_action' payment.id %}">
+    <form class="payment-action-form" method="post" action="{% url 'staff_payment_action' payment.id %}" data-loading-message="Updating payment verification...">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'staff_payments' %}">
       <label style="font-weight:700;font-size:13px;">Verification remarks</label>

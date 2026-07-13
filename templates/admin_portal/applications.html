@@ -64,14 +64,14 @@
         <td data-label="Actions"><div class="application-actions">
           <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="View details"><i class="bi bi-eye"></i></a>
           {% if app.can_inline_review %}
-            <form method="post" action="{% url 'staff_application_action' app.id %}">
+            <form method="post" action="{% url 'staff_application_action' app.id %}" data-loading-message="Approving documents...">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'staff_applications' %}">
               <button class="icon-btn approve-action" name="action" value="approve_documents" type="submit" title="Approve documents"><i class="bi bi-check2"></i></button>
             </form>
             <details class="reject-inline">
               <summary class="icon-btn reject-toggle reject-action" title="Reject application"><i class="bi bi-x-lg"></i></summary>
-              <form class="reject-panel" method="post" action="{% url 'staff_application_action' app.id %}">
+              <form class="reject-panel" method="post" action="{% url 'staff_application_action' app.id %}" data-loading-message="Rejecting application...">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{% url 'staff_applications' %}">
                 <textarea class="textarea" name="remarks" required placeholder="Write rejection remarks for the member...">{{ app.remarks }}</textarea>

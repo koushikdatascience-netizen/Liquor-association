@@ -16,7 +16,7 @@
   <div style="display:flex;flex-direction:column;gap:20px;">
     <div class="card" id="account">
       <div class="card__head"><div class="card__title">Account Details</div></div>
-      <form method="post" class="form-grid">
+      <form method="post" class="form-grid" data-loading-message="Saving profile...">
         {% csrf_token %}
         <input type="hidden" name="action" value="update_account">
         <div class="field"><label>Full name</label><input class="input" name="full_name" value="{{ request.user.get_full_name|default:request.user.username }}"></div>
@@ -30,7 +30,7 @@
 
     <div class="card">
       <div class="card__head"><div class="card__title">Change Password</div></div>
-      <form method="post">
+      <form method="post" data-loading-message="Updating password...">
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">
         <div class="form-grid">

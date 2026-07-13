@@ -97,6 +97,12 @@
     return "Submitting...";
   }
 
+  let lastSubmitter = null;
+  document.addEventListener("click", function(e){
+    const button = e.target.closest('button[type="submit"], input[type="submit"]');
+    if(button && button.form) lastSubmitter = button;
+  }, true);
+
   document.addEventListener("submit", function(e){
     const form = e.target;
     if(!(form instanceof HTMLFormElement) || form.dataset.loadingSkip === "true") return;
@@ -104,7 +110,7 @@
       if(e.defaultPrevented || form.dataset.loadingStarted === "true") return;
       form.dataset.loadingStarted = "true";
       const message = formLoadingMessage(form);
-      const submitter = e.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+      const submitter = e.submitter || (lastSubmitter && lastSubmitter.form === form ? lastSubmitter : null) || form.querySelector('button[type="submit"], input[type="submit"]');
       setButtonLoading(submitter, message);
       window.WBFLLoading.show(message);
     }, 0);

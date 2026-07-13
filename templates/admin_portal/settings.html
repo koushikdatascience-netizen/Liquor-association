@@ -6,7 +6,7 @@
   <div><h1>Settings</h1><p class="subtitle">Update payment details shown to approved applicants.</p></div>
 </div>
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" data-loading-message="Saving payment settings...">
   {% csrf_token %}
   <div class="card">
     <div class="card__head">

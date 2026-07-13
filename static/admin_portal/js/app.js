@@ -38,6 +38,12 @@ function setAdminButtonLoading(button, label) {
   button.innerHTML = '<span class="admin-btn-spinner" aria-hidden="true"></span><span>' + (label || "Please wait...") + '</span>';
 }
 
+let lastAdminSubmitter = null;
+document.addEventListener("click", (e) => {
+  const button = e.target.closest('button[type="submit"], input[type="submit"]');
+  if (button && button.form) lastAdminSubmitter = button;
+}, true);
+
 document.addEventListener("submit", (e) => {
   const form = e.target;
   if (!(form instanceof HTMLFormElement) || form.dataset.loadingSkip === "true") return;
@@ -45,7 +51,8 @@ document.addEventListener("submit", (e) => {
     if (e.defaultPrevented || form.dataset.loadingStarted === "true") return;
     form.dataset.loadingStarted = "true";
     const message = adminLoadingMessage(form);
-    setAdminButtonLoading(e.submitter || form.querySelector('button[type="submit"], input[type="submit"]'), message);
+    const submitter = e.submitter || (lastAdminSubmitter && lastAdminSubmitter.form === form ? lastAdminSubmitter : null) || form.querySelector('button[type="submit"], input[type="submit"]');
+    setAdminButtonLoading(submitter, message);
     const overlay = ensureAdminLoadingOverlay();
     const messageEl = overlay.querySelector("[data-admin-loading-message]");
     if (messageEl) messageEl.textContent = message;

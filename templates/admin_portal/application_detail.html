@@ -48,7 +48,7 @@
   </div>
 
   {% if show_document_actions %}
-    <form method="post" action="{% url 'staff_application_action' application.id %}">
+    <form method="post" action="{% url 'staff_application_action' application.id %}" data-loading-message="Updating document verification...">
       {% csrf_token %}
       <textarea class="textarea" name="remarks" placeholder="Optional remarks shown/saved with this action...">{{ application.remarks }}</textarea>
       <div class="reject-docs" style="margin-top:14px;">
@@ -81,7 +81,7 @@
   {% elif waiting_for_payment_reupload %}
     <div class="verify-actions"><span class="badge payment-pending"><i class="bi bi-hourglass-split"></i> Payment re-upload requested; waiting for applicant</span>{% if payment %}<a class="btn" href="{% url 'staff_payment_detail' payment.id %}"><i class="bi bi-receipt"></i> View Payment</a>{% endif %}</div>
   {% elif can_activate_membership %}
-    <form method="post" action="{% url 'staff_application_action' application.id %}">{% csrf_token %}<button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate / Activate Membership</button></form>
+    <form method="post" action="{% url 'staff_application_action' application.id %}" data-loading-message="Generating membership...">{% csrf_token %}<button class="btn gold" name="action" value="generate_membership" type="submit"><i class="bi bi-card-heading"></i> Generate / Activate Membership</button></form>
   {% elif membership_active %}
     <div class="verify-actions">{% if member %}<a class="btn primary" href="{% url 'staff_member_detail' member.id %}"><i class="bi bi-person-badge"></i> Open Active Member</a>{% else %}<span class="badge approved"><i class="bi bi-check-circle"></i> Membership active</span>{% endif %}</div>
   {% elif application.status == 'REJECTED' %}
@@ -149,7 +149,7 @@
 
 <div class="card" style="margin-top:20px;">
   <div class="card__head"><div class="card__title">Internal Remark</div></div>
-  <form method="post" action="{% url 'staff_application_action' application.id %}">
+  <form method="post" action="{% url 'staff_application_action' application.id %}" data-loading-message="Saving admin remark...">
     {% csrf_token %}
     <textarea class="textarea" name="remarks" placeholder="Add internal/admin remarks...">{{ application.remarks }}</textarea>
     <button class="btn primary sm" name="action" value="save_remarks" type="submit" style="margin-top:12px;"><i class="bi bi-save"></i> Save Remark</button>

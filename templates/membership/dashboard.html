@@ -42,6 +42,9 @@
                 Admin requested document updates. Upload the corrected files below and your application will go back to review.
               {% endif %}
             </p>
+            {% if application.remarks %}
+              <p class="small mt-8"><strong>Admin remarks:</strong> {{ application.remarks }}</p>
+            {% endif %}
           </div>
           <a class="btn btn-secondary btn-sm" href="{% url 'member_profile' %}#documents"><i class="bi bi-folder2-open"></i> All Documents</a>
         </div>

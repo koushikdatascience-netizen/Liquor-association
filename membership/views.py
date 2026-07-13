@@ -338,6 +338,8 @@ def member_dashboard(request):
             requested_labels = requested_document_labels(application)
             if requested_labels:
                 status_message = f"Please re-upload: {', '.join(requested_labels)}."
+                if application.remarks:
+                    status_message = f"{status_message} Remarks: {application.remarks}"
             else:
                 status_message = f"Document update requested. {application.remarks or 'Please upload the corrected document files.'}"
             banner_class = "warn"

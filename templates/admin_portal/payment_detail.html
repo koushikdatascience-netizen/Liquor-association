@@ -16,7 +16,7 @@
     {% endif %}
   </div></div></div>
   {% if show_payment_actions %}
-  <form method="post" action="{% url 'staff_payment_action' payment.id %}">
+  <form method="post" action="{% url 'staff_payment_action' payment.id %}" data-loading-message="Updating payment verification...">
     {% csrf_token %}
     <textarea class="textarea" name="remarks" placeholder="Add payment verification remarks...">{{ payment.remarks }}</textarea>
     <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;"><button class="btn" name="action" value="request_reupload" type="submit"><i class="bi bi-envelope"></i> Request Re-upload</button><button class="btn danger" name="action" value="reject_payment" type="submit"><i class="bi bi-x"></i> Reject Payment</button><button class="btn primary" name="action" value="approve_payment" type="submit"><i class="bi bi-check2"></i> Approve Payment & Activate Membership</button></div>
