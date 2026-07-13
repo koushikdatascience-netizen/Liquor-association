@@ -10,7 +10,7 @@
         <div class="topbar-search"><i class="bi bi-search"></i><input placeholder="Search reports..." aria-label="Search"></div>
       </div>
       <div class="topbar-right">
-        <a class="btn btn-admin btn-sm" href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin</a>
+        <a class="btn btn-admin btn-sm" href="{% url 'staff_dashboard' %}"><i class="bi bi-shield-lock"></i> Admin</a>
         <div class="avatar">{{ user.get_full_name|default:user.username|slice:":2"|upper }}</div>
       </div>
     </header>

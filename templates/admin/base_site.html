@@ -16,12 +16,12 @@
 <div class="admin-brand">
   <div class="admin-brand__mark" aria-hidden="true">{% include "includes/brand_logo.html" %}</div>
   <div>
-    <h1 id="site-name"><a href="{% url 'admin:index' %}">WB Foreign Liquor and IML Licensees</a></h1>
+    <h1 id="site-name"><a href="{% url 'staff_dashboard' %}">WB Foreign Liquor and IML Licensees</a></h1>
     <p>Membership Operations Dashboard</p>
   </div>
 </div>
 {% endblock %}
 
 {% block nav-global %}
-<a class="admin-portal-link" href="{% url 'home' %}">Member Portal</a>
+<a class="admin-portal-link" href="{% url 'staff_dashboard' %}">Admin Portal</a>
 {% endblock %}

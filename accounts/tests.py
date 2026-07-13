@@ -69,3 +69,15 @@ class OtpAuthenticationTests(TestCase):
 
         self.assertRedirects(response, reverse("admin_login"))
         send_login_otps.assert_not_called()
+
+    def test_custom_admin_pages_redirect_to_admin_login(self):
+        response = self.client.get(reverse("staff_dashboard"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].startswith(reverse("admin_login")))
+        self.assertIn("next=/admin/dashboard/", response["Location"])
+
+    def test_django_admin_url_redirects_to_custom_admin(self):
+        response = self.client.get("/django-admin/")
+
+        self.assertRedirects(response, reverse("staff_dashboard"), fetch_redirect_response=False)

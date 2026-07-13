@@ -36,6 +36,7 @@
       <a class="nav-item {% if active_page == 'profile' %}active{% endif %}" href="{% url 'staff_profile' %}"><i class="bi bi-person-circle"></i><span>My Profile</span></a>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'admin_login' %}">
         <button class="nav-item" type="submit"><i class="bi bi-box-arrow-right"></i><span>Logout</span></button>
       </form>
     </nav>

@@ -5,7 +5,7 @@ import logging
 import time
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.admin.views.decorators import staff_member_required as django_staff_member_required
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
@@ -26,6 +26,13 @@ from .services import notify_member
 
 
 logger = logging.getLogger(__name__)
+
+
+def staff_member_required(view_func=None):
+    decorator = django_staff_member_required(login_url="admin_login")
+    if view_func is None:
+        return decorator
+    return decorator(view_func)
 
 
 APPLICATION_DOCUMENT_FIELDS = (

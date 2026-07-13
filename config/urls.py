@@ -1,17 +1,14 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 from membership import views as membership_views
-
-admin.site.site_header = "WB Foreign Liquor and IML Licensees Admin"
-admin.site.site_title = "WB Foreign Liquor and IML Licensees"
-admin.site.index_title = "Membership Operations"
 
 urlpatterns = [
     # Main admin panel: use the provided WBLiquor admin UI, not Django's default admin.
     path("admin/", membership_views.staff_dashboard, name="admin_dashboard"),
-    path("django-admin/", admin.site.urls),
+    path("django-admin/", RedirectView.as_view(pattern_name="staff_dashboard", permanent=False)),
+    path("django-admin/<path:unused>", RedirectView.as_view(pattern_name="staff_dashboard", permanent=False)),
     path("", include("membership.urls")),
     path("accounts/", include("accounts.urls")),
 ]
