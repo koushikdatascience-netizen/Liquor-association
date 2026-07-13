@@ -8,7 +8,7 @@
     <span class="eyebrow"><span class="dot"></span> OTP registration</span>
     <h2>Member Registration</h2>
     <p class="sub">Create your member account with email and mobile only. No password is required.</p>
-    <form method="post" class="form django-form">
+    <form method="post" class="form django-form" data-loading-message="Creating account and sending OTP...">
       {% csrf_token %}
       {{ form.as_p }}
       <div class="otp-note">

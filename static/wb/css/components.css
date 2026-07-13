@@ -1164,3 +1164,81 @@
   box-shadow:0 8px 20px rgba(255,234,0,.5);
   transform:translateY(-1px);
 }
+
+/* ---------- Loading states ---------- */
+@keyframes wbSpin {
+  to { transform: rotate(360deg); }
+}
+
+.has-page-loading {
+  cursor: progress;
+}
+
+.page-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(17, 17, 17, .42);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.page-loading.is-visible {
+  display: flex;
+}
+
+.page-loading-card {
+  width: min(360px, 100%);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 24px 70px rgba(17, 17, 17, .24);
+  padding: 24px;
+  text-align: center;
+  color: var(--text);
+}
+
+.page-loading-spinner,
+.btn-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: wbSpin .75s linear infinite;
+}
+
+.page-loading-spinner {
+  width: 34px;
+  height: 34px;
+  color: var(--maroon);
+  margin-bottom: 14px;
+}
+
+.page-loading-card strong,
+.page-loading-card span {
+  display: block;
+}
+
+.page-loading-card strong {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.page-loading-card span {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.btn.is-loading {
+  pointer-events: none;
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}

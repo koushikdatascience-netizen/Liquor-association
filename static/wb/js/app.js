@@ -48,6 +48,68 @@
     }, 2400);
   };
 
+  function ensureLoadingOverlay(){
+    let overlay = document.querySelector("[data-page-loading]");
+    if(!overlay){
+      overlay = document.createElement("div");
+      overlay.className = "page-loading";
+      overlay.setAttribute("data-page-loading", "");
+      overlay.setAttribute("role", "status");
+      overlay.setAttribute("aria-live", "polite");
+      overlay.innerHTML = '<div class="page-loading-card"><span class="page-loading-spinner" aria-hidden="true"></span><strong data-page-loading-title>Please wait</strong><span data-page-loading-message>Processing your request...</span></div>';
+      document.body.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function setButtonLoading(button, label){
+    if(!button || button.dataset.loadingActive === "true") return;
+    button.dataset.loadingActive = "true";
+    button.dataset.originalHtml = button.innerHTML;
+    if(button.name) button.setAttribute("aria-disabled", "true");
+    else button.disabled = true;
+    button.classList.add("is-loading");
+    button.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>' + (label || "Please wait...") + '</span>';
+  }
+
+  window.WBFLLoading = {
+    show: function(message, title){
+      const overlay = ensureLoadingOverlay();
+      const titleEl = overlay.querySelector("[data-page-loading-title]");
+      const messageEl = overlay.querySelector("[data-page-loading-message]");
+      if(titleEl) titleEl.textContent = title || "Please wait";
+      if(messageEl) messageEl.textContent = message || "Processing your request...";
+      overlay.classList.add("is-visible");
+      document.documentElement.classList.add("has-page-loading");
+    },
+    hide: function(){
+      const overlay = document.querySelector("[data-page-loading]");
+      overlay && overlay.classList.remove("is-visible");
+      document.documentElement.classList.remove("has-page-loading");
+    },
+    setButton: setButtonLoading
+  };
+
+  function formLoadingMessage(form){
+    if(form.dataset.loadingMessage) return form.dataset.loadingMessage;
+    if(form.enctype && form.enctype.indexOf("multipart/form-data") >= 0) return "Uploading files...";
+    if(form.closest(".auth-card")) return "Sending OTP...";
+    return "Submitting...";
+  }
+
+  document.addEventListener("submit", function(e){
+    const form = e.target;
+    if(!(form instanceof HTMLFormElement) || form.dataset.loadingSkip === "true") return;
+    setTimeout(function(){
+      if(e.defaultPrevented || form.dataset.loadingStarted === "true") return;
+      form.dataset.loadingStarted = "true";
+      const message = formLoadingMessage(form);
+      const submitter = e.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+      setButtonLoading(submitter, message);
+      window.WBFLLoading.show(message);
+    }, 0);
+  });
+
   document.querySelectorAll(".django-messages .toast").forEach(function(el, index){
     const delay = 3200 + (index * 180);
     setTimeout(function(){
@@ -663,6 +725,7 @@
       if(nextBtn){
         nextBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Uploading...';
       }
+      window.WBFLLoading && window.WBFLLoading.show(applicationWizard.dataset.loadingMessage || "Uploading application documents...");
       applicationWizard.submit();
     });
     restoreDraft();

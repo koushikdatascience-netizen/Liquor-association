@@ -8,7 +8,7 @@
     <span class="eyebrow"><span class="dot"></span> Admin access</span>
     <h2>Admin Login</h2>
     <p class="sub">Administrators must sign in with their username or email and password.</p>
-<form method="post" class="form django-form">
+<form method="post" class="form django-form" data-loading-message="Signing in...">
   {% csrf_token %}
   {{ form.as_p }}
   <div class="password-note">

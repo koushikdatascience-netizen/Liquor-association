@@ -8,7 +8,7 @@
   <span class="eyebrow"><span class="dot"></span> Passwordless access</span>
   <h2>Member Registration</h2>
   <p class="sub">Enter your email and mobile number to register. If you already have an account we will simply sign you in — either way, a single OTP verifies and logs you in.</p>
-  <form method="post" class="form django-form">
+  <form method="post" class="form django-form" data-loading-message="Sending OTP...">
     {% csrf_token %}
     <div class="field">
       {{ form.email.label_tag }}

@@ -45,7 +45,7 @@
           </div>
           <a class="btn btn-secondary btn-sm" href="{% url 'member_profile' %}#documents"><i class="bi bi-folder2-open"></i> All Documents</a>
         </div>
-        <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form dashboard-document-form">
+        <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form dashboard-document-form" data-loading-message="Uploading corrected documents...">
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'member_dashboard' %}">
           <div class="upload-grid dashboard-document-grid">

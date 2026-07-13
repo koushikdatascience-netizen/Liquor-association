@@ -574,3 +574,85 @@ table.table {
 .badge.payment-verified { background: var(--blue-bg); color: var(--blue); }
 .badge.active { background: var(--maroon); color: #fff; }
 .badge.gold { background: var(--gold-soft); color: #7a5e10; }
+
+/* ============================================================
+   Loading states
+   ============================================================ */
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
+}
+
+.has-admin-loading {
+  cursor: progress;
+}
+
+.admin-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, .42);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.admin-loading.is-visible {
+  display: flex;
+}
+
+.admin-loading-card {
+  width: min(360px, 100%);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .24);
+  padding: 24px;
+  text-align: center;
+  color: var(--text);
+}
+
+.admin-loading-spinner,
+.admin-btn-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: adminSpin .75s linear infinite;
+}
+
+.admin-loading-spinner {
+  width: 34px;
+  height: 34px;
+  color: var(--maroon);
+  margin-bottom: 14px;
+}
+
+.admin-loading-card strong,
+.admin-loading-card span {
+  display: block;
+}
+
+.admin-loading-card strong {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.admin-loading-card span {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.btn.is-loading,
+.nav-item.is-loading,
+.icon-btn.is-loading {
+  pointer-events: none;
+}
+
+.admin-btn-spinner {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}

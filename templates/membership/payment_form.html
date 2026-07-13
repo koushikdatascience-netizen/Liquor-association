@@ -67,7 +67,7 @@
     <div class="wizard-card mt-24">
       <h3>{% if payment and payment.status == "REUPLOAD_REQUESTED" %}Correct payment proof{% else %}Payment submission{% endif %}</h3>
       <p class="sub">Upload a clear screenshot and accurate transaction details.</p>
-      <form method="post" enctype="multipart/form-data" class="form django-form">
+      <form method="post" enctype="multipart/form-data" class="form django-form" data-loading-message="Uploading payment proof...">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="wiz-footer">

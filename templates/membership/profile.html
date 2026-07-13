@@ -66,7 +66,7 @@
             </div>
           {% endif %}
           {% if can_resubmit_documents %}
-            <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form">
+            <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form" data-loading-message="Uploading corrected documents...">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'member_profile' %}#documents">
               <div class="upload-grid">

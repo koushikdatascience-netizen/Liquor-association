@@ -6,7 +6,7 @@
     <span class="eyebrow"><span class="dot"></span> One-time password</span>
     <h2>{{ heading|default:"Verify OTP" }}</h2>
     <p class="sub">{{ subheading|default:"Confirm account" }} using the OTP sent to your registered email and WhatsApp.</p>
-    <form method="post" class="form django-form">
+    <form method="post" class="form django-form" data-loading-message="Verifying OTP...">
       {% csrf_token %}
       {{ form.as_p }}
       <div class="otp-note">
