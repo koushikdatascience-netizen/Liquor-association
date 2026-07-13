@@ -26,6 +26,28 @@ services:
         value: "5000.00"
       - key: ACCOUNT_REQUIRE_OTP_VERIFICATION
         value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: wbliquorsocity.com,www.wbliquorsocity.com,login.wbliquorsocity.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://wbliquorsocity.com,https://www.wbliquorsocity.com,https://login.wbliquorsocity.com,https://*.wbliquorsocity.com
+      - key: SESSION_COOKIE_NAME
+        value: wbliquor_sessionid
+      - key: CSRF_COOKIE_NAME
+        value: wbliquor_csrftoken
+      - key: SESSION_COOKIE_DOMAIN
+        value: .wbliquorsocity.com
+      - key: CSRF_COOKIE_DOMAIN
+        value: .wbliquorsocity.com
+      - key: SESSION_COOKIE_SAMESITE
+        value: Lax
+      - key: CSRF_COOKIE_SAMESITE
+        value: Lax
+      - key: SESSION_COOKIE_SECURE
+        value: "True"
+      - key: CSRF_COOKIE_SECURE
+        value: "True"
+      - key: SITE_URL
+        value: https://wbliquorsocity.com
       - key: USE_CLOUDINARY
         value: "True"
       - key: CLOUDINARY_CLOUD_NAME
