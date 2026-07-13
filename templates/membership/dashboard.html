@@ -41,6 +41,7 @@
         </div>
         <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form dashboard-document-form">
           {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'member_dashboard' %}">
           <div class="upload-grid dashboard-document-grid">
           {% for doc in requested_documents %}
             <div class="upload django-upload document-manage-card doc-rejected dashboard-document-card" data-doc-key="{{ doc.key }}">
@@ -60,9 +61,12 @@
                   {% endif %}
                 </div>
               </div>
-              <input class="document-upload-input" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}" data-auto-submit-document>
+              <input class="document-upload-input" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}">
             </div>
           {% endfor %}
+          </div>
+          <div class="document-resubmit-actions">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-send-check"></i> Submit updated documents</button>
           </div>
         </form>
       </div>

@@ -410,12 +410,14 @@ def member_document_resubmit(request):
     if request.method != "POST":
         return redirect("member_profile")
 
+    next_url = request.POST.get("next") or reverse("member_dashboard")
     application = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at").first()
     if not application or not is_document_resubmission_status(application.status):
         messages.error(request, "Document re-upload is not available for this application right now.")
-        return redirect("member_profile")
+        return redirect(next_url)
 
-    allowed_fields = set(requested_document_keys(application) or APPLICATION_DOCUMENT_FIELDS)
+    requested_keys = requested_document_keys(application)
+    allowed_fields = set(requested_keys or APPLICATION_DOCUMENT_FIELDS)
     post_data = request.POST.copy()
     files_data = request.FILES.copy()
     for field_name in APPLICATION_DOCUMENT_FIELDS:
@@ -423,7 +425,7 @@ def member_document_resubmit(request):
             post_data.pop(f"clear_{field_name}", None)
             files_data.pop(field_name, None)
 
-    form = ApplicationDocumentResubmissionForm(post_data, files_data, instance=application)
+    form = ApplicationDocumentResubmissionForm(post_data, files_data, instance=application, allowed_fields=allowed_fields)
     submitted_document_fields = set(files_data).intersection(allowed_fields)
     cleared_document_fields = {
         field_name
@@ -437,23 +439,26 @@ def member_document_resubmit(request):
         and (field_name not in allowed_fields or getattr(application, field_name))
     }
 
-    if requested_document_keys(application) and not submitted_document_fields:
-        labels = requested_document_labels(application)
-        messages.error(request, f"Please upload corrected files for: {', '.join(labels)}.")
-        return redirect("member_profile")
+    if requested_keys:
+        missing_fields = [key for key in requested_keys if key not in submitted_document_fields]
+        if missing_fields:
+            labels_by_key = {document["key"]: document["label"] for document in application_documents(application)}
+            missing_labels = [labels_by_key.get(key, key) for key in missing_fields]
+            messages.error(request, f"Please upload corrected files for: {', '.join(missing_labels)}.")
+            return redirect(next_url)
 
     if not submitted_document_fields and not cleared_document_fields:
         messages.error(request, "Please upload at least one requested document before resubmitting.")
-        return redirect("member_profile")
+        return redirect(next_url)
 
     if not (submitted_document_fields or existing_document_fields):
         messages.error(request, "At least one application document must remain uploaded.")
-        return redirect("member_profile")
+        return redirect(next_url)
 
     if not form.is_valid():
         first_error = next(iter(form.errors.values()), ["Please check the selected files."])[0]
         messages.error(request, first_error)
-        return redirect("member_profile")
+        return redirect(next_url)
 
     application = form.save(commit=False)
     clear_requested_application_documents(application, post_data, files_data, allowed_fields=allowed_fields)
@@ -466,7 +471,7 @@ def member_document_resubmit(request):
         f"{application.full_name} / {application.shop_name} has resubmitted documents from the member portal.",
     )
     messages.success(request, "Documents updated and resubmitted for admin review.")
-    return redirect("member_profile")
+    return redirect(next_url)
 
 
 @login_required

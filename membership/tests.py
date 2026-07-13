@@ -211,6 +211,43 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         self.assertEqual(application.status, MembershipApplication.Status.SUBMITTED)
         self.assertEqual(application.rejected_documents, [])
 
+    @patch("membership.views.notify_staff")
+    def test_document_resubmit_requires_all_requested_documents(self, _notify_staff):
+        application = MembershipApplication.objects.create(
+            applicant=self.user,
+            status=MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+            full_name="Abhi Singh",
+            gender=MembershipApplication.Gender.MALE,
+            mobile_number="9876543210",
+            email="abhi@example.com",
+            residential_address="Kolkata",
+            shop_name="Abhi Stores",
+            excise_license_number="EX-123",
+            excise_license_type="Off",
+            district="",
+            primary_delegate_name="Abhi Singh",
+            declaration_accepted=True,
+            digital_signature="Abhi Singh",
+            rejected_documents=["aadhaar_card", "pan_card"],
+        )
+        application.aadhaar_card.save("old-aadhaar.pdf", self.upload_file("old-aadhaar.pdf"), save=True)
+        application.pan_card.save("old-pan.pdf", self.upload_file("old-pan.pdf"), save=True)
+
+        response = self.client.post(
+            reverse("member_document_resubmit"),
+            {
+                "next": reverse("member_dashboard"),
+                "aadhaar_card": self.upload_file("new-aadhaar.pdf"),
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("member_dashboard"))
+        application.refresh_from_db()
+        self.assertEqual(application.status, MembershipApplication.Status.ADDITIONAL_DOCUMENTS)
+        self.assertEqual(application.rejected_documents, ["aadhaar_card", "pan_card"])
+        self.assertContains(response, "Please upload corrected files for: PAN card")
+
     @patch("membership.views.notify_member")
     def test_request_reupload_saves_selected_documents_for_member_ui(self, _notify_member):
         staff = User.objects.create_user(username="staff", password="pass12345", is_staff=True)

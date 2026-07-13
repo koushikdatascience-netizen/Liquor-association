@@ -68,6 +68,7 @@
           {% if can_resubmit_documents %}
             <form method="post" action="{% url 'member_document_resubmit' %}" enctype="multipart/form-data" class="document-resubmit-form">
               {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'member_profile' %}#documents">
               <div class="upload-grid">
                 {% for doc in resubmission_documents %}
                   <div class="upload django-upload document-manage-card doc-rejected" data-doc-key="{{ doc.key }}">
@@ -87,11 +88,14 @@
                         {% endif %}
                       </div>
                     </div>
-                    <input class="document-upload-input" id="profile-doc-upload-{{ forloop.counter }}" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}" data-auto-submit-document>
+                    <input class="document-upload-input" id="profile-doc-upload-{{ forloop.counter }}" type="file" name="{{ doc.key }}" accept="{% if doc.key == 'passport_photo' or doc.key == 'primary_delegate_photo' or doc.key == 'alternate_delegate_photo' %}image/jpeg,image/png,image/webp{% else %}application/pdf,image/jpeg,image/png,image/webp{% endif %}">
                   </div>
                 {% empty %}
                   <p class="small">No specific document has been requested for re-upload.</p>
                 {% endfor %}
+              </div>
+              <div class="document-resubmit-actions">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-send-check"></i> Submit updated documents</button>
               </div>
             </form>
           {% else %}
@@ -102,15 +106,6 @@
                     <div class="upload-head">
                       <div class="u-ic"><i class="bi bi-file-earmark-check"></i></div>
                       <div><h5>{{ doc.label }}</h5><p>Uploaded</p></div>
-                    </div>
-                    <div class="document-live-preview">
-                      {% if doc.is_image %}
-                        <img src="{{ doc.preview_url }}" alt="{{ doc.label }}">
-                      {% elif doc.is_pdf %}
-                        <iframe src="{{ doc.preview_url }}" title="{{ doc.label }}"></iframe>
-                      {% else %}
-                        <div class="document-preview-fallback"><i class="bi bi-file-earmark-text"></i></div>
-                      {% endif %}
                     </div>
                     <a class="btn btn-secondary btn-sm mt-8" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-arrows-fullscreen"></i> Open full preview</a>
                   </div>

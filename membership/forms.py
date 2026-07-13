@@ -202,6 +202,8 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Photo fields: images only (JPG / JPEG / PNG / WebP).
         for field_name in self.image_upload_fields:
+            if field_name not in self.files:
+                continue
             uploaded_file = cleaned_data.get(field_name)
             if not uploaded_file:
                 continue
@@ -224,6 +226,8 @@ class MembershipApplicationForm(forms.ModelForm):
 
         # Document fields: PDF or image (JPG / JPEG / PNG / WebP) only.
         for field_name in self.document_fields:
+            if field_name not in self.files:
+                continue
             uploaded_file = cleaned_data.get(field_name)
             if not uploaded_file:
                 continue
@@ -249,8 +253,12 @@ class MembershipApplicationForm(forms.ModelForm):
         return cleaned_data
 
 
-class ApplicationDocumentResubmissionForm(MembershipApplicationForm):
-    class Meta(MembershipApplicationForm.Meta):
+class ApplicationDocumentResubmissionForm(forms.ModelForm):
+    image_upload_fields = MembershipApplicationForm.image_upload_fields
+    document_fields = MembershipApplicationForm.document_fields
+
+    class Meta:
+        model = MembershipApplication
         fields = [
             "excise_license",
             "passport_photo",
@@ -262,6 +270,61 @@ class ApplicationDocumentResubmissionForm(MembershipApplicationForm):
             "gst_certificate",
             "address_proof",
         ]
+
+    def __init__(self, *args, allowed_fields=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        allowed = set(allowed_fields or self.fields)
+        for field_name in list(self.fields):
+            if field_name not in allowed:
+                self.fields.pop(field_name)
+                continue
+            field = self.fields[field_name]
+            field.required = False
+            field.widget.attrs.setdefault("hidden", True)
+            if field_name in self.image_upload_fields:
+                field.widget.attrs["accept"] = "image/jpeg,image/png,image/webp"
+            else:
+                field.widget.attrs["accept"] = "application/pdf,image/jpeg,image/png,image/webp"
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Validate only files uploaded in this request. Existing stored files may
+        # be Cloudinary/R2 URLs without normal extensions and must be preserved.
+        for field_name, uploaded_file in self.files.items():
+            if field_name not in self.fields:
+                continue
+            if field_name in self.image_upload_fields:
+                if _file_size(uploaded_file) > MAX_IMAGE_UPLOAD_SIZE:
+                    self.add_error(
+                        field_name,
+                        ValidationError(
+                            f"Image is too large. Please upload an image up to {_format_mb(MAX_IMAGE_UPLOAD_SIZE)}."
+                        ),
+                    )
+                    continue
+                if _file_signature(uploaded_file) != "image" or not _has_allowed_extension(uploaded_file, IMAGE_EXTENSIONS):
+                    self.add_error(
+                        field_name,
+                        ValidationError("File type not supported. Please upload only a JPG, JPEG or PNG image."),
+                    )
+            else:
+                if _file_size(uploaded_file) > MAX_DOCUMENT_UPLOAD_SIZE:
+                    self.add_error(
+                        field_name,
+                        ValidationError(
+                            f"Document is too large. Please upload a file up to {_format_mb(MAX_DOCUMENT_UPLOAD_SIZE)}."
+                        ),
+                    )
+                    continue
+                signature = _file_signature(uploaded_file)
+                if signature not in {"pdf", "image"} or not _has_allowed_extension(uploaded_file, DOCUMENT_EXTENSIONS):
+                    self.add_error(
+                        field_name,
+                        ValidationError("File type not supported. Please upload only a PDF or a JPG, JPEG, PNG image."),
+                    )
+
+        return cleaned_data
 
 
 class PaymentProofForm(forms.ModelForm):

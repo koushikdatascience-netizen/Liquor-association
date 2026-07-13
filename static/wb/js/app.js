@@ -627,8 +627,6 @@
     applicationWizard.querySelectorAll("input[type='file']").forEach(function(input){
       input.addEventListener("change", function(){
         const label = input.closest(".upload-drop")?.querySelector("[data-file-label]");
-        const clearExisting = input.closest(".upload")?.querySelector("[data-clear-existing]");
-        if(clearExisting && input.files && input.files[0]) clearExisting.checked = false;
         if(label) label.textContent = input.files && input.files[0] ? input.files[0].name : "Drag & drop or click to upload";
         clearFieldError(input);
       });
@@ -704,13 +702,15 @@
     const sizeEl = fileEl ? fileEl.querySelector(".size") : null;
     const thumbEl = fileEl ? fileEl.querySelector(".upload-thumb") : null;
     const rmBtn = fileEl ? fileEl.querySelector(".rm") : null;
-    const uploadTrigger = root.querySelector("[data-upload-trigger]");
+    const uploadTriggers = Array.from(root.querySelectorAll("[data-upload-trigger]"));
     let previewUrl = "";
 
-    uploadTrigger && uploadTrigger.addEventListener("click", function(e){
+    uploadTriggers.forEach(function(uploadTrigger){
+      uploadTrigger.addEventListener("click", function(e){
       e.preventDefault();
       e.stopPropagation();
       input.click();
+      });
     });
 
     root.addEventListener("click", function(e){
@@ -741,20 +741,7 @@
       if(fileEl) fileEl.style.display = "none";
       if(dropEl) dropEl.style.display = "flex";
     });
-    const clearExisting = root.querySelector("[data-clear-existing]");
-    clearExisting && clearExisting.addEventListener("change", function(){
-      root.classList.toggle("is-clearing-existing", clearExisting.checked);
-      if(clearExisting.checked){
-        input.value = "";
-        if(previewUrl) URL.revokeObjectURL(previewUrl);
-        previewUrl = "";
-        if(fileEl) fileEl.style.display = "none";
-        if(dropEl) dropEl.style.display = "flex";
-      }
-    });
     function showFile(f){
-      if(clearExisting) clearExisting.checked = false;
-      root.classList.remove("is-clearing-existing");
       const limit = uploadWidgetLimit(input, f);
       if(f.size > limit){
         window.toast("Max file size is " + uploadWidgetFormatSize(limit), "warn");
