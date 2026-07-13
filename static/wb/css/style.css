@@ -62,7 +62,7 @@ img{max-width:100%;display:block}
 
 /* ---------- Textured page (application form only) ---------- */
 .page-textured{
-  background:linear-gradient(rgba(255,255,255,.94),rgba(255,255,255,.94)),url('/static/img/form-bg.jpg');
+  background:linear-gradient(rgba(255,255,255,.94),rgba(255,255,255,.94)),url('/static/img/bg.jpeg');
   background-size:cover;
   background-attachment:fixed;
   background-position:center;

@@ -180,6 +180,7 @@ class MembershipApplicationAdmin(admin.ModelAdmin):
     def status_badge(self, obj):
         tones = {
             MembershipApplication.Status.SUBMITTED: "warning",
+            MembershipApplication.Status.DOCUMENTS_REUPLOADED: "warning",
             MembershipApplication.Status.APPROVED_PENDING_PAYMENT: "info",
             MembershipApplication.Status.ADDITIONAL_DOCUMENTS: "warning",
             MembershipApplication.Status.PAYMENT_SUBMITTED: "info",

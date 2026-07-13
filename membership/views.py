@@ -42,11 +42,11 @@ APPLICATION_DOCUMENT_FIELDS = (
 
 DOCUMENT_REVIEW_STATUSES = {
     MembershipApplication.Status.SUBMITTED,
+    MembershipApplication.Status.DOCUMENTS_REUPLOADED,
     "PENDING",
     "PENDING_REVIEW",
     "APPLICATION_PENDING",
     "DOCUMENTS_SUBMITTED",
-    "DOCUMENTS_REUPLOADED",
 }
 
 PAYMENT_WAITING_STATUSES = {
@@ -92,7 +92,6 @@ DOCUMENT_RESUBMISSION_STATUSES = {
     "RESUBMIT_DOCUMENTS",
     "DOCUMENTS_RESUBMIT",
     "DOCUMENTS_RESUBMISSION",
-    "DOCUMENTS_REUPLOADED",
 }
 
 PENDING_PAYMENT_PROOF_STATUSES = {
@@ -172,6 +171,13 @@ def requested_documents(application):
 
 def requested_document_labels(application):
     return [document["label"] for document in requested_documents(application)]
+
+
+def resubmission_documents(application):
+    if not application or not is_document_resubmission_status(application.status):
+        return []
+    requested = requested_documents(application)
+    return requested or application_documents(application)
 
 
 def file_kind(file):
@@ -324,9 +330,13 @@ def member_dashboard(request):
             if requested_labels:
                 status_message = f"Please re-upload: {', '.join(requested_labels)}."
             else:
-                status_message = f"Document update requested. {application.remarks or ''}"
+                status_message = f"Document update requested. {application.remarks or 'Please upload the corrected document files.'}"
             banner_class = "warn"
             banner_icon = "bi bi-file-earmark"
+        elif status == MembershipApplication.Status.DOCUMENTS_REUPLOADED:
+            status_message = "Your corrected documents were uploaded and are waiting for admin review."
+            banner_class = "warn"
+            banner_icon = "bi bi-hourglass-split"
         elif status == MembershipApplication.Status.SUBMITTED or status in ("PENDING", "PENDING_REVIEW", "APPLICATION_PENDING", "DOCUMENTS_SUBMITTED"):
             status_message = "Your application is submitted and pending document approval."
             banner_class = "warn"
@@ -372,7 +382,9 @@ def member_dashboard(request):
             "banner_class": banner_class,
             "banner_icon": banner_icon,
             "payment_unlocked": payment_unlocked,
+            "can_resubmit_documents": bool(application and is_document_resubmission_status(application.status)),
             "requested_documents": requested_documents(application) if application and is_document_resubmission_status(application.status) else [],
+            "resubmission_documents": resubmission_documents(application),
         },
     )
 
@@ -401,7 +413,7 @@ def member_profile(request):
     context["can_resubmit_documents"] = bool(application and is_document_resubmission_status(application.status))
     context["requested_documents"] = requested_documents(application) if context["can_resubmit_documents"] else []
     context["requested_document_labels"] = requested_document_labels(application) if context["can_resubmit_documents"] else []
-    context["resubmission_documents"] = context["requested_documents"] or context["documents"]
+    context["resubmission_documents"] = resubmission_documents(application)
     return render(request, "membership/profile.html", context)
 
 
@@ -462,10 +474,16 @@ def member_document_resubmit(request):
 
     application = form.save(commit=False)
     clear_requested_application_documents(application, post_data, files_data, allowed_fields=allowed_fields)
-    application.status = MembershipApplication.Status.SUBMITTED
+    application.status = MembershipApplication.Status.DOCUMENTS_REUPLOADED
     application.remarks = ""
     application.rejected_documents = []
     application.save()
+    AuditLog.objects.create(
+        actor=request.user,
+        action="Documents re-uploaded",
+        target=str(application),
+        notes="Member uploaded corrected documents for admin review.",
+    )
     notify_staff(
         "Documents resubmitted",
         f"{application.full_name} / {application.shop_name} has resubmitted documents from the member portal.",
@@ -588,7 +606,11 @@ def application_create(request):
             application.district = application.district or ""
             application.state = application.state or "West Bengal"
             application.digital_signature = application.digital_signature or application.full_name
-            application.status = MembershipApplication.Status.SUBMITTED
+            application.status = (
+                MembershipApplication.Status.DOCUMENTS_REUPLOADED
+                if can_update_documents
+                else MembershipApplication.Status.SUBMITTED
+            )
             application.remarks = ""
             application.rejected_documents = []
             save_started_at = time.monotonic()
@@ -663,6 +685,7 @@ def payment_upload(request, application_id):
     if application.status in [
         MembershipApplication.Status.DRAFT,
         MembershipApplication.Status.SUBMITTED,
+        MembershipApplication.Status.DOCUMENTS_REUPLOADED,
         MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
         MembershipApplication.Status.REJECTED
     ]:
@@ -793,6 +816,7 @@ def card(request):
         if application.status in [
             MembershipApplication.Status.DRAFT,
             MembershipApplication.Status.SUBMITTED,
+            MembershipApplication.Status.DOCUMENTS_REUPLOADED,
             MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
             MembershipApplication.Status.REJECTED
         ]:
@@ -1054,13 +1078,17 @@ def reports(request):
     stats = {
         "total_members": Member.objects.count(),
         "active_members": Member.objects.filter(is_active=True).count(),
-        "pending_applications": MembershipApplication.objects.filter(status=MembershipApplication.Status.SUBMITTED).count(),
+        "pending_applications": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
         "pending_payments": MembershipApplication.objects.filter(status=MembershipApplication.Status.PAYMENT_SUBMITTED).count(),
         "expired_members": Member.objects.filter(valid_till__lt=timezone.localdate()).count(),
         "renewals_due": Member.objects.filter(valid_till__range=(timezone.localdate(), timezone.localdate() + timezone.timedelta(days=30))).count(),
         "payment_collection": PaymentProof.objects.filter(status=PaymentProof.Status.APPROVED).aggregate(total=Sum("amount"))["total"] or 0,
         "pending_kyc": MembershipApplication.objects.filter(
-            status__in=[MembershipApplication.Status.SUBMITTED, MembershipApplication.Status.ADDITIONAL_DOCUMENTS]
+            status__in=[
+                MembershipApplication.Status.SUBMITTED,
+                MembershipApplication.Status.DOCUMENTS_REUPLOADED,
+                MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+            ]
         ).count(),
         "districts": MembershipApplication.objects.values("district").annotate(total=Count("id")).order_by("district"),
         "license_types": MembershipApplication.objects.values("excise_license_type").annotate(total=Count("id")),
@@ -1073,7 +1101,7 @@ def admin_stats():
     return {
         "total_members": Member.objects.count(),
         "active_members": Member.objects.filter(is_active=True).count(),
-        "pending_applications": MembershipApplication.objects.filter(status=MembershipApplication.Status.SUBMITTED).count(),
+        "pending_applications": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
         "pending_payments": MembershipApplication.objects.filter(status=MembershipApplication.Status.PAYMENT_SUBMITTED).count(),
         "expired_members": Member.objects.filter(valid_till__lt=today).count(),
         "renewals_due": Member.objects.filter(valid_till__range=(today, today + timezone.timedelta(days=30))).count(),
@@ -1226,6 +1254,7 @@ def staff_application_status_context(application):
             "done": application.status
             in [
                 MembershipApplication.Status.SUBMITTED,
+                MembershipApplication.Status.DOCUMENTS_REUPLOADED,
                 MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
                 MembershipApplication.Status.PAYMENT_SUBMITTED,
                 MembershipApplication.Status.PAYMENT_APPROVED,
@@ -1317,6 +1346,9 @@ def staff_application_action(request, pk):
             return redirect("staff_application_detail", pk=application.pk)
         remarks = remarks or "Please upload clearer or missing documents."
         rejected_keys = request.POST.getlist("rejected_documents")
+        if not rejected_keys:
+            messages.error(request, "Select at least one uploaded document before requesting re-upload.")
+            return redirect(next_url)
         application.rejected_documents = list(dict.fromkeys(rejected_keys))
         application.status = MembershipApplication.Status.ADDITIONAL_DOCUMENTS
         application.remarks = remarks
@@ -1762,7 +1794,11 @@ def report_rows(report_type):
         rows = [["Applicant", "Mobile", "Shop", "Status"]]
         rows += list(
             MembershipApplication.objects.filter(
-                status__in=[MembershipApplication.Status.SUBMITTED, MembershipApplication.Status.ADDITIONAL_DOCUMENTS]
+                status__in=[
+                    MembershipApplication.Status.SUBMITTED,
+                    MembershipApplication.Status.DOCUMENTS_REUPLOADED,
+                    MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+                ]
             ).values_list("full_name", "mobile_number", "shop_name", "status")
         )
         return rows

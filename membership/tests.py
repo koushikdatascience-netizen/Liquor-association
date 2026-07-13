@@ -142,7 +142,7 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         application.refresh_from_db()
         self.assertEqual(application.excise_license.name, original_file_name)
         self.assertTrue(application.excise_license.storage.exists(original_file_name))
-        self.assertEqual(application.status, MembershipApplication.Status.SUBMITTED)
+        self.assertEqual(application.status, MembershipApplication.Status.DOCUMENTS_REUPLOADED)
 
     def test_profile_documents_tab_shows_real_resubmit_form_for_legacy_rejected_status(self):
         application = MembershipApplication.objects.create(
@@ -208,8 +208,34 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         application.refresh_from_db()
         self.assertNotEqual(application.excise_license.name, old_excise_name)
         self.assertTrue(application.pan_card.name)
-        self.assertEqual(application.status, MembershipApplication.Status.SUBMITTED)
+        self.assertEqual(application.status, MembershipApplication.Status.DOCUMENTS_REUPLOADED)
         self.assertEqual(application.rejected_documents, [])
+
+    def test_dashboard_shows_reupload_form_when_request_has_no_specific_documents(self):
+        application = MembershipApplication.objects.create(
+            applicant=self.user,
+            status=MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
+            full_name="Abhi Singh",
+            gender=MembershipApplication.Gender.MALE,
+            mobile_number="9876543210",
+            email="abhi@example.com",
+            residential_address="Kolkata",
+            shop_name="Abhi Stores",
+            excise_license_number="EX-123",
+            excise_license_type="Off",
+            district="",
+            primary_delegate_name="Abhi Singh",
+            declaration_accepted=True,
+            digital_signature="Abhi Singh",
+            rejected_documents=[],
+        )
+        application.aadhaar_card.save("aadhaar.pdf", self.upload_file("aadhaar.pdf"), save=True)
+
+        response = self.client.get(reverse("member_dashboard"))
+
+        self.assertContains(response, "Re-upload requested documents")
+        self.assertContains(response, 'name="aadhaar_card"')
+        self.assertContains(response, "Submit updated documents")
 
     @patch("membership.views.notify_staff")
     def test_document_resubmit_requires_all_requested_documents(self, _notify_staff):
@@ -291,6 +317,39 @@ class MembershipApplicationDocumentUploadTests(TestCase):
         self.assertContains(response, 'name="aadhaar_card"')
         self.assertContains(response, "Aadhaar")
         self.assertNotContains(response, 'name="pan_card"')
+
+    @patch("membership.views.notify_member")
+    def test_request_reupload_requires_selected_document(self, _notify_member):
+        staff = User.objects.create_user(username="staff2", password="pass12345", is_staff=True)
+        application = MembershipApplication.objects.create(
+            applicant=self.user,
+            status=MembershipApplication.Status.SUBMITTED,
+            full_name="Abhi Singh",
+            gender=MembershipApplication.Gender.MALE,
+            mobile_number="9876543210",
+            email="abhi@example.com",
+            residential_address="Kolkata",
+            shop_name="Abhi Stores",
+            excise_license_number="EX-123",
+            excise_license_type="Off",
+            district="",
+            primary_delegate_name="Abhi Singh",
+            declaration_accepted=True,
+            digital_signature="Abhi Singh",
+        )
+
+        self.client.force_login(staff)
+        response = self.client.post(
+            reverse("staff_application_action", args=[application.pk]),
+            {"action": "request_documents", "remarks": "Need clearer files."},
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("staff_application_detail", args=[application.pk]))
+        application.refresh_from_db()
+        self.assertEqual(application.status, MembershipApplication.Status.SUBMITTED)
+        self.assertEqual(application.rejected_documents, [])
+        self.assertContains(response, "Select at least one uploaded document")
 
     @classmethod
     def tearDownClass(cls):

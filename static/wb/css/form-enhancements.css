@@ -4,9 +4,8 @@
 
 .application-portal .portal-main {
   background:
-    radial-gradient(circle at 12% 8%, rgba(201, 162, 39, .18), transparent 28rem),
-    radial-gradient(circle at 92% 16%, rgba(163, 22, 31, .20), transparent 32rem),
-    linear-gradient(135deg, #fff7f2 0%, #f8ece6 42%, #f4e0dc 100%);
+    linear-gradient(90deg, rgba(255, 255, 255, .72), rgba(255, 246, 239, .66)),
+    url("/static/img/bg.jpeg") center / cover fixed;
 }
 
 .application-portal .topbar {
@@ -36,8 +35,8 @@
   min-height: calc(100vh - 72px);
   padding-top: 10px;
   background:
-    linear-gradient(135deg, rgba(109, 15, 26, .08), rgba(201, 162, 39, .12)),
-    url("/static/img/form-bg.jpg");
+    linear-gradient(180deg, rgba(255, 255, 255, .44), rgba(255, 248, 244, .58)),
+    url("/static/img/bg.jpeg");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -50,13 +49,12 @@
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, .76), rgba(255, 247, 242, .88)),
-    radial-gradient(circle at 20% 0%, rgba(109, 15, 26, .16), transparent 28rem);
+    linear-gradient(180deg, rgba(255, 255, 255, .42), rgba(255, 247, 242, .58));
 }
 
 .page-textured .page-head {
-  width: min(100%, 840px);
-  margin-left: auto;
+  width: min(100%, 800px);
+  margin-inline: auto;
   margin-bottom: 12px;
   padding: 10px 14px;
   border: 1px solid rgba(109, 15, 26, .10);
@@ -76,8 +74,8 @@
   position: sticky;
   top: 88px;
   z-index: 12;
-  width: min(100%, 840px);
-  margin-left: auto;
+  width: min(100%, 800px);
+  margin-inline: auto;
   margin-bottom: 14px;
   background: rgba(255, 255, 255, .82);
   border: 1px solid rgba(109, 15, 26, .14);
@@ -131,8 +129,8 @@
   position: relative;
   display: grid;
   gap: 14px;
-  width: min(100%, 840px);
-  margin-left: auto;
+  width: min(100%, 800px);
+  margin-inline: auto;
 }
 
 .application-wizard::before {
@@ -153,10 +151,10 @@
   position: relative;
   z-index: 1;
   overflow: hidden;
-  padding: 20px;
+  padding: 18px;
   border: 1px solid rgba(109, 15, 26, .15);
   border-radius: 16px;
-  background: rgba(255, 255, 255, .80);
+  background: rgba(255, 255, 255, .84);
   box-shadow: 0 18px 46px rgba(74, 10, 18, .10);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);

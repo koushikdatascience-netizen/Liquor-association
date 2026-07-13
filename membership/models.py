@@ -62,6 +62,7 @@ class MembershipApplication(TimeStampedModel):
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         SUBMITTED = "SUBMITTED", "Application Submitted"
+        DOCUMENTS_REUPLOADED = "DOCUMENTS_REUPLOADED", "Documents Re-uploaded"
         APPROVED_PENDING_PAYMENT = "APPROVED_PENDING_PAYMENT", "Documents Verified - Pending Payment"
         ADDITIONAL_DOCUMENTS = "ADDITIONAL_DOCUMENTS", "Additional Documents Requested"
         PAYMENT_SUBMITTED = "PAYMENT_SUBMITTED", "Payment Verification Pending"
@@ -362,6 +363,7 @@ class BroadcastMessage(TimeStampedModel):
             return User.objects.filter(
                 applications__status__in=[
                     MembershipApplication.Status.SUBMITTED,
+                    MembershipApplication.Status.DOCUMENTS_REUPLOADED,
                     MembershipApplication.Status.ADDITIONAL_DOCUMENTS,
                     MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
                     MembershipApplication.Status.PAYMENT_SUBMITTED,

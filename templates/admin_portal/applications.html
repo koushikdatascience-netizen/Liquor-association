@@ -42,7 +42,7 @@
 <div class="table-wrap">
   <div class="table-toolbar">
     <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..." /></div>
-    <select class="select" data-table-filter="#applicationsTable" data-filter-column="6"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option><option value="Additional">Docs Requested</option></select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="6"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Documents Re-uploaded">Documents Re-uploaded</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option><option value="Additional">Docs Requested</option></select>
     <select class="select" data-table-filter="#applicationsTable" data-filter-column="4"><option value="">All districts</option>{% for app in applications %}<option value="{{ app.district }}">{{ app.district }}</option>{% endfor %}</select>
     <select class="select" data-table-filter="#applicationsTable" data-filter-column="3"><option value="">All licenses</option>{% for app in applications %}<option value="{{ app.excise_license_type }}">{{ app.excise_license_type }}</option>{% endfor %}</select>
     <input class="input" style="max-width:180px;" type="date" />
@@ -88,6 +88,8 @@
             <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Member active"><i class="bi bi-person-check"></i></a>
           {% elif app.status == 'ADDITIONAL_DOCUMENTS' %}
             <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Waiting for documents"><i class="bi bi-envelope-paper"></i></a>
+          {% elif app.status == 'DOCUMENTS_REUPLOADED' %}
+            <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Review re-uploaded documents"><i class="bi bi-file-earmark-check"></i></a>
           {% elif app.status == 'REJECTED' %}
             <a class="icon-btn" href="{% url 'staff_application_detail' app.id %}" title="Rejected"><i class="bi bi-x-circle"></i></a>
           {% endif %}

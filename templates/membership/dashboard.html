@@ -29,13 +29,19 @@
       <i class="bi {{ banner_icon }}"></i>
       <span>{{ status_message }}</span>
     </div>
-    {% if requested_documents %}
+    {% if resubmission_documents %}
       <div class="card document-action-panel mb-16">
         <div class="document-action-head">
           <div>
             <span class="badge warn"><i class="bi bi-exclamation-triangle"></i> Action required</span>
             <h3 class="h-card mt-8 mb-8">Re-upload requested documents</h3>
-            <p class="small">Upload only the documents listed below. Your application will go back to review automatically after upload.</p>
+            <p class="small">
+              {% if requested_documents %}
+                Upload only the documents listed below. Your application will go back to review automatically after upload.
+              {% else %}
+                Admin requested document updates. Upload the corrected files below and your application will go back to review.
+              {% endif %}
+            </p>
           </div>
           <a class="btn btn-secondary btn-sm" href="{% url 'member_profile' %}#documents"><i class="bi bi-folder2-open"></i> All Documents</a>
         </div>
@@ -43,7 +49,7 @@
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'member_dashboard' %}">
           <div class="upload-grid dashboard-document-grid">
-          {% for doc in requested_documents %}
+          {% for doc in resubmission_documents %}
             <div class="upload django-upload document-manage-card doc-rejected dashboard-document-card" data-doc-key="{{ doc.key }}">
               <div class="upload-head">
                 <div class="u-ic"><i class="bi {% if doc.uploaded %}bi-file-earmark-check{% else %}bi-file-earmark-x{% endif %}"></i></div>
