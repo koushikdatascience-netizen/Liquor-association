@@ -3,6 +3,8 @@ import csv
 import json
 import logging
 import time
+import urllib.error
+import urllib.request
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required as django_staff_member_required
@@ -1850,13 +1852,27 @@ def document_file(request, source, pk, field_name):
     kind = file_kind(file)
     content_type = document_content_type(file, kind)
 
+    data = None
     try:
         file.open("rb")
         data = file.read()
         file.close()
     except (OSError, ValueError):
-        # Fall back to redirecting to the remote URL if we cannot read locally.
-        return redirect(preview_url(file) or url)
+        remote_url = preview_url(file) or url
+        try:
+            with urllib.request.urlopen(remote_url, timeout=20) as remote_response:
+                data = remote_response.read()
+                content_type = remote_response.headers.get_content_type() or content_type
+        except (OSError, urllib.error.URLError, TimeoutError, ValueError):
+            logger.warning(
+                "Could not proxy document file source=%s pk=%s field=%s url=%s",
+                source,
+                pk,
+                field_name,
+                remote_url,
+                exc_info=True,
+            )
+            return redirect(remote_url)
 
     response = HttpResponse(data, content_type=content_type)
     disposition = request.GET.get("disposition", "inline")

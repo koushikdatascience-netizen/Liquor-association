@@ -63,7 +63,7 @@
                   </div>
                   <p>Requested for re-upload{% if doc.uploaded %} - current file saved{% endif %}</p>
                   {% if doc.uploaded %}
-                    <a class="document-preview-link" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> View current file</a>
+                    <a class="document-preview-link" href="{% url 'document_file' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> View current file</a>
                   {% endif %}
                 </div>
               </div>

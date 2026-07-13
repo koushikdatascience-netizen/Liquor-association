@@ -84,7 +84,7 @@
                         </div>
                         <p>Requested for re-upload{% if doc.uploaded %} - current file saved{% endif %}</p>
                         {% if doc.uploaded %}
-                          <a class="document-preview-link" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> View current file</a>
+                          <a class="document-preview-link" href="{% url 'document_file' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> View current file</a>
                         {% endif %}
                       </div>
                     </div>
@@ -107,7 +107,7 @@
                       <div class="u-ic"><i class="bi bi-file-earmark-check"></i></div>
                       <div><h5>{{ doc.label }}</h5><p>Uploaded</p></div>
                     </div>
-                    <a class="btn btn-secondary btn-sm mt-8" href="{% url 'admin_document_review' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-arrows-fullscreen"></i> Open full preview</a>
+                    <a class="btn btn-secondary btn-sm mt-8" href="{% url 'document_file' 'application' application.id doc.key %}" target="_blank" rel="noopener"><i class="bi bi-arrows-fullscreen"></i> Open full preview</a>
                   </div>
                 {% else %}
                   <div class="upload missing">
