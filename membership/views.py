@@ -559,8 +559,22 @@ def application_create(request):
         # ---- Save draft (lenient, no strict validation) ----
         if request.POST.get("save_draft"):
             form = MembershipApplicationForm(request.POST, request.FILES, instance=instance)
-            form.is_valid()  # populate cleaned_data; ignore errors for draft
-            application = form.save(commit=False)
+            if form.is_valid():
+                application = form.save(commit=False)
+            else:
+                application = instance or MembershipApplication()
+                for field_name, field in form.fields.items():
+                    if field_name in request.FILES:
+                        continue
+                    if field_name == "declaration_accepted":
+                        setattr(application, field_name, request.POST.get(field_name) in {"1", "true", "True", "on"})
+                        continue
+                    if field_name == "age":
+                        age_value = request.POST.get(field_name, "").strip()
+                        setattr(application, field_name, int(age_value) if age_value.isdigit() else None)
+                        continue
+                    if field_name in request.POST:
+                        setattr(application, field_name, request.POST.get(field_name, "").strip())
             application.applicant = request.user
             application.status = MembershipApplication.Status.DRAFT
             for field in [

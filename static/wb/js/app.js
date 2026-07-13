@@ -507,6 +507,11 @@
       return file && file.type && file.type.indexOf("image/") === 0 && file.size > IMAGE_COMPRESS_THRESHOLD;
     }
 
+    function shouldSkipClientCompression(){
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "")
+        || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    }
+
     function loadImageFromFile(file){
       return new Promise(function(resolve, reject){
         const url = URL.createObjectURL(file);
@@ -546,6 +551,7 @@
     }
 
     async function compressWizardImages(){
+      if(shouldSkipClientCompression()) return;
       const inputs = Array.from(applicationWizard.querySelectorAll("input[type='file']"));
       let compressedCount = 0;
       let savedBytes = 0;
