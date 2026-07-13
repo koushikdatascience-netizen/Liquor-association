@@ -106,6 +106,7 @@
   document.addEventListener("submit", function(e){
     const form = e.target;
     if(!(form instanceof HTMLFormElement) || form.dataset.loadingSkip === "true") return;
+    refreshFormCsrfToken(form);
     setTimeout(function(){
       if(e.defaultPrevented || form.dataset.loadingStarted === "true") return;
       form.dataset.loadingStarted = "true";
@@ -167,10 +168,24 @@
 
   // ---------- CSRF token helper ----------
   function getCsrfToken(){
+    const cookieNames = ["wbliquor_csrftoken", "csrftoken"];
+    for(const name of cookieNames){
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const cookieMatch = document.cookie.match(new RegExp("(^|;)\\s*" + escaped + "=([^;]+)"));
+      if(cookieMatch) return decodeURIComponent(cookieMatch[2]);
+    }
     const meta = document.querySelector("meta[name='csrf-token']");
     if(meta) return meta.getAttribute("content");
-    const cookieMatch = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
-    return cookieMatch ? decodeURIComponent(cookieMatch[2]) : null;
+    return null;
+  }
+
+  function refreshFormCsrfToken(form){
+    const token = getCsrfToken();
+    if(!token || !form) return token;
+    form.querySelectorAll('input[name="csrfmiddlewaretoken"]').forEach(function(input){
+      input.value = token;
+    });
+    return token;
   }
 
   // ---------- FAQ accordion ----------
@@ -674,6 +689,7 @@
     const saveDraftBtn = applicationWizard.querySelector("[data-save-draft]");
     saveDraftBtn && saveDraftBtn.addEventListener("click", function(){
       persistDraft();
+      refreshFormCsrfToken(applicationWizard);
       const fd = new FormData(applicationWizard);
       applicationWizard.querySelectorAll("input[type='file']").forEach(function(input){
         if(input.name) fd.delete(input.name);
@@ -728,6 +744,7 @@
       }
       try{ localStorage.removeItem(DRAFT_KEY); }catch(_){}
       submitReady = true;
+      refreshFormCsrfToken(applicationWizard);
       if(nextBtn){
         nextBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite" aria-hidden="true"></i> Uploading...';
       }
