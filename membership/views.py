@@ -1106,8 +1106,12 @@ def reports(request):
     stats = {
         "total_members": Member.objects.count(),
         "active_members": Member.objects.filter(is_active=True).count(),
-        "pending_applications": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
-        "pending_payments": MembershipApplication.objects.filter(status=MembershipApplication.Status.PAYMENT_SUBMITTED).count(),
+        "pending_applications": MembershipApplication.objects.filter(
+            status__in=DOCUMENT_REVIEW_STATUSES | PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES
+        ).count(),
+        "pending_payments": MembershipApplication.objects.filter(
+            status__in=PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES
+        ).count(),
         "expired_members": Member.objects.filter(valid_till__lt=timezone.localdate()).count(),
         "renewals_due": Member.objects.filter(valid_till__range=(timezone.localdate(), timezone.localdate() + timezone.timedelta(days=30))).count(),
         "payment_collection": PaymentProof.objects.filter(status=PaymentProof.Status.APPROVED).aggregate(total=Sum("amount"))["total"] or 0,
@@ -1129,8 +1133,12 @@ def admin_stats():
     return {
         "total_members": Member.objects.count(),
         "active_members": Member.objects.filter(is_active=True).count(),
-        "pending_applications": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
-        "pending_payments": MembershipApplication.objects.filter(status=MembershipApplication.Status.PAYMENT_SUBMITTED).count(),
+        "pending_applications": MembershipApplication.objects.filter(
+            status__in=DOCUMENT_REVIEW_STATUSES | PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES
+        ).count(),
+        "pending_payments": MembershipApplication.objects.filter(
+            status__in=PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES
+        ).count(),
         "expired_members": Member.objects.filter(valid_till__lt=today).count(),
         "renewals_due": Member.objects.filter(valid_till__range=(today, today + timezone.timedelta(days=30))).count(),
         "payment_collection": PaymentProof.objects.filter(status=PaymentProof.Status.APPROVED).aggregate(total=Sum("amount"))["total"] or 0,
@@ -1187,11 +1195,12 @@ def staff_applications(request):
     active_filter = request.GET.get("status", "")
     qs = MembershipApplication.objects.select_related("applicant")
     if active_filter == "pending":
-        qs = qs.filter(status__in=DOCUMENT_REVIEW_STATUSES)
+        qs = qs.filter(status__in=DOCUMENT_REVIEW_STATUSES | PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES)
+    elif active_filter == "payment_pending":
+        qs = qs.filter(status__in=PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES)
     elif active_filter == "approved":
         qs = qs.filter(
             status__in=[
-                MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
                 MembershipApplication.Status.PAYMENT_APPROVED,
                 MembershipApplication.Status.MEMBER_ACTIVE,
             ]
@@ -1213,10 +1222,14 @@ def staff_applications(request):
             "applications": applications,
             "active_filter": active_filter,
             "counts": {
-                "pending": MembershipApplication.objects.filter(status__in=DOCUMENT_REVIEW_STATUSES).count(),
+                "pending": MembershipApplication.objects.filter(
+                    status__in=DOCUMENT_REVIEW_STATUSES | PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES
+                ).count(),
+                "payment_pending": MembershipApplication.objects.filter(
+                    status__in=PAYMENT_WAITING_STATUSES | PAYMENT_REVIEW_STATUSES
+                ).count(),
                 "approved": MembershipApplication.objects.filter(
                     status__in=[
-                        MembershipApplication.Status.APPROVED_PENDING_PAYMENT,
                         MembershipApplication.Status.PAYMENT_APPROVED,
                         MembershipApplication.Status.MEMBER_ACTIVE,
                     ]

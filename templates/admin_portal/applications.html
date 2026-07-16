@@ -30,7 +30,8 @@
 {% if active_filter %}
 <div class="filter-chip-row">
   <span class="filter-chip">
-    {% if active_filter == 'pending' %}Pending Review
+    {% if active_filter == 'pending' %}Pending Action
+    {% elif active_filter == 'payment_pending' %}Payment Pending
     {% elif active_filter == 'approved' %}Approved
     {% elif active_filter == 'rejected' %}Rejected
     {% elif active_filter == 'docs_requested' %}Docs Requested
@@ -52,19 +53,20 @@
   </form>
   <div class="table-toolbar">
     <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..." /></div>
-    <select class="select" data-table-filter="#applicationsTable" data-filter-column="6"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Documents Re-uploaded">Documents Re-uploaded</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option><option value="Additional">Docs Requested</option></select>
-    <select class="select" data-table-filter="#applicationsTable" data-filter-column="4"><option value="">All districts</option>{% for app in applications %}<option value="{{ app.district }}">{{ app.district }}</option>{% endfor %}</select>
-    <select class="select" data-table-filter="#applicationsTable" data-filter-column="3"><option value="">All licenses</option>{% for app in applications %}<option value="{{ app.excise_license_type }}">{{ app.excise_license_type }}</option>{% endfor %}</select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="8"><option value="">All statuses</option><option value="Application Submitted">Document Review</option><option value="Documents Re-uploaded">Documents Re-uploaded</option><option value="Pending Payment">Payment Pending</option><option value="Payment Verification Pending">Payment Review</option><option value="Payment Approved">Payment Approved</option><option value="Member Active">Member Active</option><option value="Rejected">Rejected</option><option value="Additional">Docs Requested</option></select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="6"><option value="">All districts</option>{% for app in applications %}<option value="{{ app.district }}">{{ app.district }}</option>{% endfor %}</select>
+    <select class="select" data-table-filter="#applicationsTable" data-filter-column="5"><option value="">All licenses</option>{% for app in applications %}<option value="{{ app.excise_license_type }}">{{ app.excise_license_type }}</option>{% endfor %}</select>
     <input class="input" style="max-width:180px;" type="date" />
     <button class="btn" style="margin-left:auto;" type="button" data-table-reset="#applicationsTable"><i class="bi bi-funnel"></i> Clear filters</button>
   </div>
 
   <table class="table" id="applicationsTable">
-    <thead><tr><th><input type="checkbox" data-select-all="[name='selected_applications']" aria-label="Select all applications"></th><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+    <thead><tr><th><input type="checkbox" data-select-all="[name='selected_applications']" aria-label="Select all applications"></th><th>#</th><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
       {% for app in applications %}
       <tr>
         <td data-label="Select"><input type="checkbox" name="selected_applications" value="{{ app.id }}" form="bulkApplicationDeleteForm" aria-label="Select {{ app.full_name }}"></td>
+        <td data-label="#"> {{ forloop.counter }}</td>
         <td data-label="No">#APP-{{ app.id|stringformat:"04d" }}</td>
         <td data-label="Applicant"><a class="who" href="{% url 'staff_application_detail' app.id %}" style="text-decoration:none;color:inherit;"><div class="avatar">{{ app.full_name|slice:":2"|upper }}</div><div><div class="n">{{ app.full_name }}</div><div class="s">{{ app.email }}</div></div></a></td>
         <td data-label="Shop">{{ app.shop_name }}</td>
@@ -106,7 +108,7 @@
           {% endif %}
         </div></td>
       </tr>
-      {% empty %}<tr><td colspan="9">No applications yet.</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="10">No applications yet.</td></tr>{% endfor %}
     </tbody>
   </table>
 

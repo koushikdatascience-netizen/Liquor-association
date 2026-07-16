@@ -17,10 +17,10 @@
     <div class="stat__top"><div class="stat__icon"><i class="bi bi-people"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Live</span></div><div class="stat__num">{{ stats.total_members }}</div><div class="stat__label">Total Members</div>
   </a>
   <a class="stat stat--link" href="{% url 'staff_applications' %}?status=pending">
-    <div class="stat__top"><div class="stat__icon"><i class="bi bi-hourglass-split"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> New</span></div><div class="stat__num">{{ stats.pending_applications }}</div><div class="stat__label">Pending Applications</div>
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-hourglass-split"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Action</span></div><div class="stat__num">{{ stats.pending_applications }}</div><div class="stat__label">Pending Action</div>
   </a>
-  <a class="stat stat--link" href="{% url 'staff_payments' %}?status=pending">
-    <div class="stat__top"><div class="stat__icon"><i class="bi bi-cash-stack"></i></div><span class="stat__delta down"><i class="bi bi-arrow-down"></i> Verify</span></div><div class="stat__num">{{ stats.pending_payments }}</div><div class="stat__label">Pending Payments</div>
+  <a class="stat stat--link" href="{% url 'staff_applications' %}?status=payment_pending">
+    <div class="stat__top"><div class="stat__icon"><i class="bi bi-cash-stack"></i></div><span class="stat__delta down"><i class="bi bi-arrow-down"></i> Pay</span></div><div class="stat__num">{{ stats.pending_payments }}</div><div class="stat__label">Payment Pending</div>
   </a>
   <a class="stat stat--link" href="{% url 'staff_members' %}?status=active">
     <div class="stat__top"><div class="stat__icon"><i class="bi bi-shield-check"></i></div><span class="stat__delta"><i class="bi bi-arrow-up"></i> Active</span></div><div class="stat__num">{{ stats.active_members }}</div><div class="stat__label">Active Members</div>

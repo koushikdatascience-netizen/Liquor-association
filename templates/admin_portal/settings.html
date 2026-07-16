@@ -6,15 +6,15 @@
   <div><h1>Settings</h1><p class="subtitle">Update payment details shown to approved applicants.</p></div>
 </div>
 
-<form method="post" enctype="multipart/form-data" data-loading-message="Saving payment settings...">
+<form method="post" enctype="multipart/form-data" class="settings-form" data-loading-message="Saving payment settings...">
   {% csrf_token %}
-  <div class="card">
+  <div class="card settings-card">
     <div class="card__head">
       <div>
         <div class="card__title">Payment Details & QR</div>
         <div class="card__sub">These details appear on the member payment page after document approval.</div>
       </div>
-      <button class="btn primary" type="submit"><i class="bi bi-check2"></i> Save changes</button>
+      <button class="btn primary settings-head-save" type="submit"><i class="bi bi-check2"></i> Save changes</button>
     </div>
     <div class="form-grid">
       <div class="field">
@@ -53,11 +53,14 @@
           </div>
         {% endif %}
       </div>
-      <div class="field">
+      <div class="field settings-fee-field">
         {{ payment_settings_form.membership_fee.label_tag }}
         {{ payment_settings_form.membership_fee }}
         {{ payment_settings_form.membership_fee.errors }}
       </div>
+    </div>
+    <div class="settings-save-row">
+      <button class="btn primary" type="submit"><i class="bi bi-check2"></i> Save payment settings</button>
     </div>
   </div>
 </form>

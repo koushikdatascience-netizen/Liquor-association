@@ -211,6 +211,38 @@ h3,
     grid-column: auto;
   }
 
+  .settings-card .form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .settings-card .field,
+  .settings-card .input,
+  .settings-card .select {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .settings-head-save {
+    display: none;
+  }
+
+  .settings-save-row {
+    display: block;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin: 18px -18px -18px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, .96);
+  }
+
+  .settings-save-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .quick-tile {
     padding: 16px;
   }
