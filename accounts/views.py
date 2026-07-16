@@ -1,16 +1,31 @@
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout as auth_logout
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from .backends import EmailOrMobileBackend
-from .forms import ApplicantRegistrationForm, MemberLoginRequestForm, OTPVerificationForm, UnifiedAuthForm
+from .forms import AdminAuthenticationForm, ApplicantRegistrationForm, MemberLoginRequestForm, OTPVerificationForm, UnifiedAuthForm
 from .models import OTPVerification, Profile
 from .services import send_login_otps, send_registration_otps
 
 import socket
+
+
+class AdminLoginView(auth_views.LoginView):
+    template_name = "accounts/admin_login.html"
+    authentication_form = AdminAuthenticationForm
+    next_page = "staff_dashboard"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            if request.user.is_staff:
+                return redirect(self.get_success_url())
+            auth_logout(request)
+            messages.info(request, "Please sign in with an administrator account.")
+        return super().dispatch(request, *args, **kwargs)
 
 
 def otp_delivery_message(result):

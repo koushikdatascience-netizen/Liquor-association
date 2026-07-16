@@ -324,6 +324,21 @@ p  { margin: 0; color: var(--text-2); }
   width: 100%;
   margin: 0 auto;
 }
+.powered-credit {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+.powered-credit a {
+  color: var(--text-2);
+  font-weight: 650;
+  text-decoration: none;
+}
+.powered-credit a:hover { color: var(--maroon); }
 
 .page-head {
   display: flex; align-items: flex-end; justify-content: space-between;

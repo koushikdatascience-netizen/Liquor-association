@@ -1,8 +1,8 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from .forms import AdminAuthenticationForm
 from .views import (
+    AdminLoginView,
     login_request_otp,
     login_resend_otp,
     login_verify_otp,
@@ -21,12 +21,7 @@ urlpatterns = [
     path("login/resend-otp/", login_resend_otp, name="login_resend_otp"),
     path(
         "admin-login/",
-        auth_views.LoginView.as_view(
-            template_name="accounts/admin_login.html",
-            authentication_form=AdminAuthenticationForm,
-            redirect_authenticated_user=True,
-            next_page="staff_dashboard",
-        ),
+        AdminLoginView.as_view(),
         name="admin_login",
     ),
 

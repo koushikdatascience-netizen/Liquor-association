@@ -129,6 +129,20 @@ class OtpAuthenticationTests(TestCase):
         self.assertTrue(response["Location"].startswith(reverse("admin_login")))
         self.assertIn("next=/admin/dashboard/", response["Location"])
 
+    def test_member_session_can_open_admin_login_without_redirect_loop(self):
+        member = User.objects.create_user(
+            username="member@example.com",
+            email="member@example.com",
+            password="memberpass123",
+        )
+        self.client.force_login(member)
+
+        response = self.client.get(reverse("admin_login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Admin Login")
+        self.assertNotIn("_auth_user_id", self.client.session)
+
     def test_django_admin_url_redirects_to_custom_admin(self):
         response = self.client.get("/django-admin/")
 
