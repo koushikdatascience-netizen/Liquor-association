@@ -23,10 +23,12 @@ class OtpAuthenticationTests(TestCase):
             {"email": "member@example.com", "mobile_number": "9876543210"},
         )
 
-        self.assertRedirects(response, reverse("verify_registration_otp"))
+        self.assertRedirects(response, reverse("member_dashboard"))
         user = User.objects.get(email="member@example.com")
         self.assertFalse(user.has_usable_password())
         self.assertEqual(user.profile.mobile_number, "9876543210")
+        self.assertEqual(self.client.session["_auth_user_id"], str(user.pk))
+        self.assertEqual(self.client.session["registration_otp_user_id"], user.pk)
         self.assertEqual(len(mail.outbox), 1)
         self.assertTrue(
             OTPVerification.objects.filter(

@@ -73,17 +73,22 @@ def find_member_user(identifier):
 
 
 def register(request):
+    if request.user.is_authenticated:
+        return redirect("staff_dashboard" if request.user.is_staff else "member_dashboard")
+
     if request.method == "POST":
         form = ApplicantRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            login(request, user, backend="accounts.backends.EmailOrMobileBackend")
+            request.session["registration_otp_user_id"] = user.pk
             try:
                 delivery_result = send_registration_otps(user)
                 messages.success(request, f"Account created. {otp_delivery_message(delivery_result)}")
             except Exception as exc:
                 messages.warning(request, f"Account created, but OTP sending failed: {exc}")
-            request.session["registration_otp_user_id"] = user.pk
-            return redirect("verify_registration_otp")
+            return redirect("member_dashboard")
+        messages.error(request, "Registration was not completed. Please fix the highlighted fields.")
     else:
         form = ApplicantRegistrationForm()
     return render(request, "accounts/register.html", {"form": form})
@@ -109,8 +114,8 @@ def verify_registration_otp(request):
                 profile.save(update_fields=["email_verified", "mobile_verified"])
                 login(request, user, backend="accounts.backends.EmailOrMobileBackend")
                 request.session.pop("registration_otp_user_id", None)
-                messages.success(request, "OTP verified. You can now submit your membership application.")
-                return redirect("application_create")
+                messages.success(request, "OTP verified. You can now submit your membership application from the dashboard.")
+                return redirect("member_dashboard")
             messages.error(request, "Invalid or expired OTP. Please try again or resend OTP.")
     else:
         form = OTPVerificationForm()
@@ -224,7 +229,7 @@ def login_verify_otp(request):
                 request.session.pop("auth_otp_user_id", None)
                 request.session.pop("auth_otp_is_registration", None)
                 messages.success(request, "You are signed in.")
-                return redirect("application_create" if is_registration else "member_dashboard")
+                return redirect("member_dashboard")
             messages.error(request, "Invalid or expired OTP. Please try again or request a new one.")
     else:
         form = OTPVerificationForm()
