@@ -65,7 +65,7 @@
     <tbody>
       {% for app in applications %}
       <tr>
-        <td data-label="Select"><input type="checkbox" name="selected_applications" value="{{ app.id }}" form="bulkApplicationDeleteForm" aria-label="Select {{ app.full_name }}"></td>
+        <td data-label="Select"><label class="bulk-select-cell"><input type="checkbox" name="selected_applications" value="{{ app.id }}" form="bulkApplicationDeleteForm" aria-label="Select {{ app.full_name }}"><span>Select</span></label></td>
         <td data-label="#"> {{ forloop.counter }}</td>
         <td data-label="No">#APP-{{ app.id|stringformat:"04d" }}</td>
         <td data-label="Applicant"><a class="who" href="{% url 'staff_application_detail' app.id %}" style="text-decoration:none;color:inherit;"><div class="avatar">{{ app.full_name|slice:":2"|upper }}</div><div><div class="n">{{ app.full_name }}</div><div class="s">{{ app.email }}</div></div></a></td>

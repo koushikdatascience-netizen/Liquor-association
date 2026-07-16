@@ -150,6 +150,7 @@ class MembershipApplicationForm(forms.ModelForm):
             "pin_code",
             "email",
             "excise_license_number",
+            "passport_photo",
             "declaration_accepted",
         }
         for field_name, field in self.fields.items():

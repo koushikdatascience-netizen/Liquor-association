@@ -79,6 +79,23 @@ button { font-family: inherit; cursor: pointer; }
   display: none;
 }
 
+.bulk-select-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.bulk-select-cell input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--maroon);
+}
+
 h1,h2,h3,h4 { margin: 0; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
 h1 { font-size: 26px; }
 h2 { font-size: 20px; }

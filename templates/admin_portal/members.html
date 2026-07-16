@@ -50,7 +50,7 @@
     <tbody>
       {% for member in members %}
       <tr>
-        <td data-label="Select"><input type="checkbox" name="selected_members" value="{{ member.id }}" form="bulkMemberDeleteForm" aria-label="Select {{ member.application.full_name }}"></td>
+        <td data-label="Select"><label class="bulk-select-cell"><input type="checkbox" name="selected_members" value="{{ member.id }}" form="bulkMemberDeleteForm" aria-label="Select {{ member.application.full_name }}"><span>Select</span></label></td>
         <td data-label="#">{{ forloop.counter }}</td>
         <td data-label="No">{{ member.membership_number }}</td>
         <td data-label="Member"><div class="who"><div class="avatar">{{ member.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ member.application.full_name }}</div><div class="s">{{ member.category }}</div></div></div></td>
