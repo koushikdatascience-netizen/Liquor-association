@@ -3,6 +3,10 @@
 {% block page_title %}Members{% endblock %}
 {% block search_target %}#membersTable{% endblock %}
 {% block content %}
+<style>
+  .bulk-delete-bar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:12px 0;padding:12px;border:1px solid rgba(179,38,30,.22);border-radius:12px;background:#fff5f5}
+  .bulk-delete-bar .input{max-width:150px}
+</style>
 <div class="page-head">
   <div>
     <h1>Members</h1>
@@ -27,6 +31,14 @@
 {% endif %}
 
 <div class="table-wrap">
+  <form id="bulkMemberDeleteForm" method="post" data-loading-message="Deleting selected members..." data-confirm-message="This will permanently delete all selected members, users and related records. Continue?">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_delete">
+    <div class="bulk-delete-bar">
+      <div class="field"><label>Bulk delete</label><input class="input" name="confirm_delete" pattern="DELETE" placeholder="Type DELETE"></div>
+      <button class="btn danger" type="submit"><i class="bi bi-trash"></i> Delete selected</button>
+    </div>
+  </form>
   <div class="table-toolbar">
     <div class="search"><i class="bi bi-search"></i><input data-table-search="#membersTable" placeholder="Search members..." /></div>
     <select class="select" data-table-filter="#membersTable" data-filter-column="6"><option value="">All statuses</option><option value="Active">Active</option><option value="Expired">Expired</option></select>
@@ -34,10 +46,11 @@
     <select class="select" data-table-filter="#membersTable"><option value="">All categories</option><option value="Gold">Gold</option><option value="Silver">Silver</option><option value="Regular">Regular</option></select>
   </div>
   <table class="table" id="membersTable">
-    <thead><tr><th>Membership</th><th>Member</th><th>Shop</th><th>District</th><th>Mobile</th><th>Validity</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th><input type="checkbox" data-select-all="[name='selected_members']" aria-label="Select all members"></th><th>Membership</th><th>Member</th><th>Shop</th><th>District</th><th>Mobile</th><th>Validity</th><th>Status</th><th></th></tr></thead>
     <tbody>
       {% for member in members %}
       <tr>
+        <td data-label="Select"><input type="checkbox" name="selected_members" value="{{ member.id }}" form="bulkMemberDeleteForm" aria-label="Select {{ member.application.full_name }}"></td>
         <td data-label="No">{{ member.membership_number }}</td>
         <td data-label="Member"><div class="who"><div class="avatar">{{ member.application.full_name|slice:":2"|upper }}</div><div><div class="n">{{ member.application.full_name }}</div><div class="s">{{ member.category }}</div></div></div></td>
         <td data-label="Shop">{{ member.application.shop_name }}</td>
@@ -51,7 +64,7 @@
           <a class="icon-btn" href="{% url 'staff_member_detail' member.id %}" title="More"><i class="bi bi-three-dots"></i></a>
         </div></td>
       </tr>
-      {% empty %}<tr><td colspan="8">No members yet.</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="9">No members yet.</td></tr>{% endfor %}
     </tbody>
   </table>
   <div class="table-footer"><span>Showing latest {{ members|length }} members</span><div class="pagination"><button class="pg"><i class="bi bi-chevron-left"></i></button><button class="pg active">1</button><button class="pg"><i class="bi bi-chevron-right"></i></button></div></div>

@@ -18,6 +18,17 @@
     </header>
     {% include "includes/messages.html" %}
     <div class="page">
+  {% if latest_notification %}
+    <div class="card mb-16">
+      <div class="flex between center mb-8">
+        <span class="badge warn"><i class="bi bi-bell"></i> Latest update</span>
+        <a class="btn btn-secondary btn-sm" href="{% url 'member_notifications' %}">View all</a>
+      </div>
+      <h3 class="h-card mb-8">{{ latest_notification.title }}</h3>
+      <p class="small">{{ latest_notification.message|linebreaksbr }}</p>
+      <p class="small mt-8">{{ latest_notification.created_at|timesince }} ago</p>
+    </div>
+  {% endif %}
   {% if not application %}
     <div class="card card-center">
       <h1 class="page-title">Welcome</h1>

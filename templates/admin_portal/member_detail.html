@@ -17,6 +17,18 @@
   </div>
 </div>
 
+<details class="card" style="margin-bottom:20px;border-color:rgba(179,38,30,.28);">
+  <summary style="cursor:pointer;font-weight:800;color:var(--red);"><i class="bi bi-trash"></i> Delete this member and all related data</summary>
+  <p class="subtitle" style="margin-top:12px;">This permanently deletes the user account, membership record, application, uploaded documents, payment proofs and notifications. Type DELETE to confirm.</p>
+  <form method="post" action="{% url 'staff_member_delete' member.id %}" data-loading-message="Deleting member data..." data-confirm-message="This will permanently delete this member, user account and all related records. Continue?">
+    {% csrf_token %}
+    <div class="form-grid" style="margin-top:12px;">
+      <div class="field"><label>Confirm deletion</label><input class="input" name="confirm_delete" required pattern="DELETE" placeholder="Type DELETE"></div>
+      <div class="field" style="align-self:end;"><button class="btn danger" type="submit"><i class="bi bi-trash"></i> Delete member</button></div>
+    </div>
+  </form>
+</details>
+
 <div class="tabs">
   <button class="tab active" data-tab="overview">Overview</button>
   <button class="tab" data-tab="business">Business</button>

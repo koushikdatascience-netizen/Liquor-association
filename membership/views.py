@@ -13,6 +13,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, JsonResponse
+from django.db import transaction
 from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -310,7 +311,9 @@ def member_dashboard(request):
     applications = MembershipApplication.objects.filter(applicant=request.user).order_by("-created_at")
     application = applications.first()
     member = Member.objects.filter(user=request.user).select_related("application").first()
-    notifications = request.user.notifications.order_by("-created_at")[:10]
+    notification_qs = request.user.notifications.order_by("-created_at")
+    latest_notification = notification_qs.first()
+    notifications = notification_qs[:10]
     payment = getattr(application, "payment", None) if application else None
     can_upload_payment = bool(
         application
@@ -383,6 +386,7 @@ def member_dashboard(request):
             "applications": applications,
             "member": member,
             "notifications": notifications,
+            "latest_notification": latest_notification,
             "payment": payment,
             "can_upload_payment": can_upload_payment,
             "payment_settings": payment_settings_context(),
@@ -1155,6 +1159,31 @@ def staff_dashboard(request):
 
 @staff_member_required
 def staff_applications(request):
+    if request.method == "POST" and request.POST.get("action") == "bulk_delete":
+        if request.POST.get("confirm_delete", "").strip() != "DELETE":
+            messages.error(request, "Bulk deletion cancelled. Type DELETE to confirm.")
+            return redirect("staff_applications")
+        selected_ids = request.POST.getlist("selected_applications")
+        applications = MembershipApplication.objects.select_related("applicant").filter(pk__in=selected_ids)
+        users = []
+        seen_user_ids = set()
+        for application in applications:
+            if application.applicant_id not in seen_user_ids:
+                seen_user_ids.add(application.applicant_id)
+                users.append(application.applicant)
+        if not users:
+            messages.error(request, "Select at least one applicant to delete.")
+            return redirect("staff_applications")
+        deleted_count = 0
+        for user in users:
+            try:
+                delete_member_account(user, request.user, "Bulk deleted from applications list.")
+                deleted_count += 1
+            except ValueError as exc:
+                messages.error(request, str(exc))
+        messages.warning(request, f"Deleted {deleted_count} applicant/member account(s).")
+        return redirect("staff_applications")
+
     active_filter = request.GET.get("status", "")
     qs = MembershipApplication.objects.select_related("applicant")
     if active_filter == "pending":
@@ -1313,6 +1342,26 @@ def staff_application_status_context(application):
     ]
 
 
+def delete_member_account(user, actor, reason=""):
+    if user.is_staff or user.is_superuser:
+        raise ValueError("Admin users cannot be deleted from this action.")
+    target = user.get_full_name() or user.email or user.username
+    with transaction.atomic():
+        applications = MembershipApplication.objects.filter(applicant=user)
+        application_count = applications.count()
+        Member.objects.filter(user=user).delete()
+        Member.objects.filter(application__in=applications).delete()
+        PaymentProof.objects.filter(application__in=applications).delete()
+        applications.delete()
+        user.delete()
+        AuditLog.objects.create(
+            actor=actor,
+            action="Applicant/member deleted",
+            target=target,
+            notes=reason or f"Deleted user account and {application_count} application record(s).",
+        )
+
+
 @staff_member_required
 def staff_application_detail(request, pk):
     application = get_object_or_404(MembershipApplication.objects.select_related("applicant"), pk=pk)
@@ -1427,6 +1476,24 @@ def staff_application_action(request, pk):
         messages.error(request, "Unknown application action.")
 
     return redirect(next_url)
+
+
+@staff_member_required
+def staff_application_delete(request, pk):
+    application = get_object_or_404(MembershipApplication.objects.select_related("applicant"), pk=pk)
+    if request.method != "POST":
+        return redirect("staff_application_detail", pk=application.pk)
+    if request.POST.get("confirm_delete", "").strip() != "DELETE":
+        messages.error(request, "Deletion cancelled. Type DELETE to confirm.")
+        return redirect("staff_application_detail", pk=application.pk)
+    target = application.full_name or application.email or application.applicant.username
+    try:
+        delete_member_account(application.applicant, request.user, f"Deleted from application #{application.pk}: {target}")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("staff_application_detail", pk=application.pk)
+    messages.warning(request, f"{target} and all related application/member data were deleted.")
+    return redirect("staff_applications")
 
 
 @staff_member_required
@@ -1577,6 +1644,31 @@ def staff_payment_action(request, pk):
 
 @staff_member_required
 def staff_members(request):
+    if request.method == "POST" and request.POST.get("action") == "bulk_delete":
+        if request.POST.get("confirm_delete", "").strip() != "DELETE":
+            messages.error(request, "Bulk deletion cancelled. Type DELETE to confirm.")
+            return redirect("staff_members")
+        selected_ids = request.POST.getlist("selected_members")
+        members = Member.objects.select_related("user").filter(pk__in=selected_ids)
+        users = []
+        seen_user_ids = set()
+        for member in members:
+            if member.user_id not in seen_user_ids:
+                seen_user_ids.add(member.user_id)
+                users.append(member.user)
+        if not users:
+            messages.error(request, "Select at least one member to delete.")
+            return redirect("staff_members")
+        deleted_count = 0
+        for user in users:
+            try:
+                delete_member_account(user, request.user, "Bulk deleted from members list.")
+                deleted_count += 1
+            except ValueError as exc:
+                messages.error(request, str(exc))
+        messages.warning(request, f"Deleted {deleted_count} member/applicant account(s).")
+        return redirect("staff_members")
+
     active_filter = request.GET.get("status", "")
     qs = Member.objects.select_related("application")
     if active_filter == "active":
@@ -1617,6 +1709,24 @@ def staff_member_detail(request, pk):
             "recent_logs": recent_logs,
         },
     )
+
+
+@staff_member_required
+def staff_member_delete(request, pk):
+    member = get_object_or_404(Member.objects.select_related("application", "user"), pk=pk)
+    if request.method != "POST":
+        return redirect("staff_member_detail", pk=member.pk)
+    if request.POST.get("confirm_delete", "").strip() != "DELETE":
+        messages.error(request, "Deletion cancelled. Type DELETE to confirm.")
+        return redirect("staff_member_detail", pk=member.pk)
+    target = member.application.full_name or member.user.email or member.user.username
+    try:
+        delete_member_account(member.user, request.user, f"Deleted active member {member.membership_number}: {target}")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("staff_member_detail", pk=member.pk)
+    messages.warning(request, f"{target} and all related member/application data were deleted.")
+    return redirect("staff_members")
 
 
 @staff_member_required

@@ -38,7 +38,9 @@ function adminActionMessage(form, submitter) {
     save_remarks: "Saving admin remark...",
     approve_payment: "Approving payment and activating membership...",
     reject_payment: "Rejecting payment...",
-    request_reupload: "Requesting payment re-upload..."
+    request_reupload: "Requesting payment re-upload...",
+    delete_applicant: "Deleting applicant data...",
+    delete_member: "Deleting member data..."
   };
   return messages[action] || adminLoadingMessage(form);
 }
@@ -62,6 +64,10 @@ document.addEventListener("click", (e) => {
 document.addEventListener("submit", (e) => {
   const form = e.target;
   if (!(form instanceof HTMLFormElement) || form.dataset.loadingSkip === "true") return;
+  if (form.dataset.confirmMessage && !window.confirm(form.dataset.confirmMessage)) {
+    e.preventDefault();
+    return;
+  }
   if (e.defaultPrevented || form.dataset.loadingStarted === "true") return;
   form.dataset.loadingStarted = "true";
   const submitter = e.submitter || (lastAdminSubmitter && lastAdminSubmitter.form === form ? lastAdminSubmitter : null) || form.querySelector('button[type="submit"], input[type="submit"]');
@@ -72,4 +78,13 @@ document.addEventListener("submit", (e) => {
   if (messageEl) messageEl.textContent = message;
   overlay.classList.add("is-visible");
   document.documentElement.classList.add("has-admin-loading");
+});
+
+document.querySelectorAll("[data-select-all]").forEach((toggle) => {
+  const selector = toggle.dataset.selectAll;
+  toggle.addEventListener("change", () => {
+    document.querySelectorAll(selector).forEach((checkbox) => {
+      checkbox.checked = toggle.checked;
+    });
+  });
 });

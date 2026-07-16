@@ -28,6 +28,18 @@
   </div>
 </div>
 
+<details class="card" style="margin-bottom:20px;border-color:rgba(179,38,30,.28);">
+  <summary style="cursor:pointer;font-weight:800;color:var(--red);"><i class="bi bi-trash"></i> Delete this applicant and all related data</summary>
+  <p class="subtitle" style="margin-top:12px;">This permanently deletes the user account, application, uploaded documents, payment proofs, membership record and notifications. Type DELETE to confirm.</p>
+  <form method="post" action="{% url 'staff_application_delete' application.id %}" data-loading-message="Deleting applicant data..." data-confirm-message="This will permanently delete this applicant, user account and all related records. Continue?">
+    {% csrf_token %}
+    <div class="form-grid" style="margin-top:12px;">
+      <div class="field"><label>Confirm deletion</label><input class="input" name="confirm_delete" required pattern="DELETE" placeholder="Type DELETE"></div>
+      <div class="field" style="align-self:end;"><button class="btn danger" type="submit"><i class="bi bi-trash"></i> Delete applicant</button></div>
+    </div>
+  </form>
+</details>
+
 <div class="card verify-panel" style="margin-bottom:20px;">
   <div class="card__head">
     <div>

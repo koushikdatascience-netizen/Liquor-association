@@ -14,6 +14,8 @@
   .reject-inline[open] .reject-toggle{background:#fff5f5;color:#b91c1c}
   .application-actions .approve-action{background:#ecfdf5;color:#047857;border-color:#bbf7d0}
   .application-actions .reject-action{background:#fff5f5;color:#b91c1c;border-color:#fecaca}
+  .bulk-delete-bar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:12px 0;padding:12px;border:1px solid rgba(179,38,30,.22);border-radius:12px;background:#fff5f5}
+  .bulk-delete-bar .input{max-width:150px}
 </style>
 <div class="page-head">
   <div>
@@ -40,6 +42,14 @@
 {% endif %}
 
 <div class="table-wrap">
+  <form id="bulkApplicationDeleteForm" method="post" data-loading-message="Deleting selected applicants..." data-confirm-message="This will permanently delete all selected applicants, users and related records. Continue?">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="bulk_delete">
+  <div class="bulk-delete-bar">
+    <div class="field"><label>Bulk delete</label><input class="input" name="confirm_delete" pattern="DELETE" placeholder="Type DELETE"></div>
+    <button class="btn danger" type="submit"><i class="bi bi-trash"></i> Delete selected</button>
+  </div>
+  </form>
   <div class="table-toolbar">
     <div class="search"><i class="bi bi-search"></i><input data-table-search="#applicationsTable" type="text" placeholder="Search applications..." /></div>
     <select class="select" data-table-filter="#applicationsTable" data-filter-column="6"><option value="">All statuses</option><option value="Pending">Pending</option><option value="Documents Re-uploaded">Documents Re-uploaded</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option><option value="Additional">Docs Requested</option></select>
@@ -50,10 +60,11 @@
   </div>
 
   <table class="table" id="applicationsTable">
-    <thead><tr><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+    <thead><tr><th><input type="checkbox" data-select-all="[name='selected_applications']" aria-label="Select all applications"></th><th>Application No</th><th>Applicant</th><th>Shop</th><th>License</th><th>District</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
       {% for app in applications %}
       <tr>
+        <td data-label="Select"><input type="checkbox" name="selected_applications" value="{{ app.id }}" form="bulkApplicationDeleteForm" aria-label="Select {{ app.full_name }}"></td>
         <td data-label="No">#APP-{{ app.id|stringformat:"04d" }}</td>
         <td data-label="Applicant"><a class="who" href="{% url 'staff_application_detail' app.id %}" style="text-decoration:none;color:inherit;"><div class="avatar">{{ app.full_name|slice:":2"|upper }}</div><div><div class="n">{{ app.full_name }}</div><div class="s">{{ app.email }}</div></div></a></td>
         <td data-label="Shop">{{ app.shop_name }}</td>
@@ -95,7 +106,7 @@
           {% endif %}
         </div></td>
       </tr>
-      {% empty %}<tr><td colspan="8">No applications yet.</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="9">No applications yet.</td></tr>{% endfor %}
     </tbody>
   </table>
 
