@@ -584,7 +584,6 @@ def application_create(request):
                 "pin_code",
                 "email",
                 "excise_license_number",
-                "primary_delegate_name",
             ]:
                 if not getattr(application, field, ""):
                     setattr(application, field, "(draft)")
