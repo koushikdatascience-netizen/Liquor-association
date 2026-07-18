@@ -6,6 +6,7 @@ import time
 import urllib.error
 import urllib.request
 
+from django import forms as django_forms
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required as django_staff_member_required
 from django.contrib import messages
@@ -570,7 +571,7 @@ def application_create(request):
                 for field_name, field in form.fields.items():
                     if field_name in request.FILES:
                         continue
-                    if field_name == "declaration_accepted":
+                    if isinstance(field.widget, django_forms.CheckboxInput):
                         setattr(application, field_name, request.POST.get(field_name) in {"1", "true", "True", "on"})
                         continue
                     if field_name == "age":

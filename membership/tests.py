@@ -61,6 +61,7 @@ class MembershipApplicationDocumentUploadTests(TestCase):
             "alternate_delegate_role": "",
             "alternate_delegate_address": "",
             "declaration_accepted": "on",
+            "other_association_declaration_accepted": "on",
             "digital_signature": "Abhi Singh",
         }
 

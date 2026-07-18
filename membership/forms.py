@@ -100,6 +100,7 @@ class MembershipApplicationForm(forms.ModelForm):
             "gst_certificate",
             "address_proof",
             "declaration_accepted",
+            "other_association_declaration_accepted",
             "digital_signature",
         ]
         widgets = {
@@ -152,6 +153,7 @@ class MembershipApplicationForm(forms.ModelForm):
             "excise_license_number",
             "passport_photo",
             "declaration_accepted",
+            "other_association_declaration_accepted",
         }
         for field_name, field in self.fields.items():
             field.required = field_name in required_fields
@@ -195,6 +197,12 @@ class MembershipApplicationForm(forms.ModelForm):
         accepted = self.cleaned_data["declaration_accepted"]
         if not accepted:
             raise forms.ValidationError("You must accept the declaration to submit.")
+        return accepted
+
+    def clean_other_association_declaration_accepted(self):
+        accepted = self.cleaned_data["other_association_declaration_accepted"]
+        if not accepted:
+            raise forms.ValidationError("You must confirm that you are not associated with any other society, committee or association.")
         return accepted
 
     def clean(self):

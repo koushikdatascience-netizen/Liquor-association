@@ -169,6 +169,7 @@ class MembershipApplicationAdmin(admin.ModelAdmin):
                     "signature_preview",
                     "signature",
                     "declaration_accepted",
+                    "other_association_declaration_accepted",
                     "digital_signature",
                 )
             },

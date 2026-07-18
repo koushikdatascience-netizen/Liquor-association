@@ -134,6 +134,7 @@ class MembershipApplication(TimeStampedModel):
     partnership_deed = models.FileField(upload_to="kyc/deed/", blank=True)
     signature = models.ImageField(upload_to="kyc/signatures/", blank=True)
     declaration_accepted = models.BooleanField(default=False)
+    other_association_declaration_accepted = models.BooleanField(default=False)
     digital_signature = models.CharField(max_length=160)
 
     def __str__(self):
